@@ -44,6 +44,8 @@
   /* Morphing colour field, rendered small and blurred up */
   #field { position: absolute; inset: -5%; width: 110%; height: 110%; filter: blur(var(--blur)); }
   .sheet { position: absolute; inset: auto 0 0; height: var(--sheet, 40%); background: var(--paper); transition: height 820ms var(--ease-out); }
+  /* Cover → volume: the page bleeds away like ink on wet paper */
+  #burn { position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%; pointer-events: none; filter: blur(0.7px); display: none; }
   .grain { position: absolute; inset: -40%; z-index: 9; pointer-events: none; opacity: var(--grain); mix-blend-mode: overlay; background-size: 220px; animation: grain 1s steps(5) infinite; }
   @keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -2%); } 60% { transform: translate(-2%, -4%); } 80% { transform: translate(4%, 2%); } }
 
@@ -88,17 +90,22 @@
   .hot i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; text-transform: uppercase; }
   .hot.dim { opacity: 0.6; }
 
+  /* Cover: ASCII on three depth planes behind the title; the far ones are softer */
+  .ascii { position: absolute; inset: 0 0 var(--sheet); pointer-events: none; -webkit-mask-image: linear-gradient(#000 50%, transparent 92%); mask-image: linear-gradient(#000 50%, transparent 92%); }
+  .ascii canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ascii .back { filter: blur(1.6px); }
+
   /* Volume: months strung on a white line */
   .chartline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .mline { fill: none; stroke: #fff; stroke-width: 2.4; stroke-dasharray: 1; stroke-dashoffset: 1; }
-  .slide.active .mline { animation: draw-line 1800ms var(--ease-out) forwards 300ms; }
+  .slide.active .mline { animation: draw-line 900ms var(--ease-out) forwards 100ms; }
   @keyframes draw-line { to { stroke-dashoffset: 0; } }
   .mnode { fill: #fff; transform-box: fill-box; transform-origin: center; }
-  .slide.active .mnode { animation: pop 500ms var(--ease-out) both; animation-delay: calc(var(--d) * 550ms + 300ms); }
+  .slide.active .mnode { animation: pop 500ms var(--ease-out) both; animation-delay: calc(var(--d) * 160ms + 100ms); }
   .mlabel { position: absolute; translate: -50% 0; margin-top: 2.6cqw; display: grid; justify-items: center; gap: 0.4cqw; color: var(--ink); opacity: 0; }
   .mlabel b { font: 400 3.8cqw/1 var(--sans); letter-spacing: -0.02em; }
   .mlabel i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; opacity: 0.7; }
-  .slide.active .mlabel { animation: fade-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 550ms + 400ms); }
+  .slide.active .mlabel { animation: fade-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 160ms + 200ms); }
   @keyframes fade-in { to { opacity: 1; } }
 
   /* Agents: a star chart */
@@ -114,11 +121,43 @@
   .orbit .moon { fill: #fff; stroke: none; filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.9)); }
   .orbit .dl { fill: var(--ink); stroke: none; font: 500 19px var(--mono); letter-spacing: 0.04em; opacity: 0.6; }
   .orbit .deg { opacity: 0.85; }
-  .orb-lbl, .moon-lbl { position: absolute; translate: -50% -50%; display: grid; gap: 0.5cqw; color: var(--ink); white-space: nowrap; }
+  .orb-lbl { position: absolute; translate: -50% -50%; display: grid; gap: 0.5cqw; color: var(--ink); white-space: nowrap; }
   .orb-lbl { justify-items: center; }
   .orb-lbl b { font: 400 6.4cqw/1 var(--sans); letter-spacing: -0.03em; }
-  .moon-lbl b { font: 400 3.8cqw/1 var(--sans); letter-spacing: -0.02em; }
-  .orb-lbl i, .moon-lbl i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; text-transform: uppercase; }
+  .orb-lbl i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* Machine-vision tracking: a pink target on a moving point, and a readout box that follows it */
+  .mark { position: absolute; width: 1.8cqw; height: 1.8cqw; translate: -50% -50%; border: 1px solid #FF4FA0; }
+  .mark::after { content: ""; position: absolute; inset: 0.45cqw; background: #FF4FA0; }
+  .trk { position: absolute; display: grid; gap: 0.5cqw; padding: 1cqw 1.4cqw 1.1cqw; background: rgb(17 17 17 / 0.9); color: #F3F2EE; border: 1px solid rgb(255 255 255 / 0.12); white-space: nowrap; translate: 1.6cqw 1.6cqw; }
+  .trk.flip { translate: calc(-100% - 1.6cqw) 1.6cqw; text-align: right; }
+  .trk em { font: 500 1.6cqw var(--mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.65; font-variant-numeric: tabular-nums; }
+  .trk strong { font: 400 3.6cqw/1 var(--sans); letter-spacing: -0.02em; }
+  .trk i { font: 500 1.8cqw var(--mono); font-style: normal; letter-spacing: 0.05em; color: #FF7DB8; text-transform: uppercase; }
+  .links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .links line { stroke: #fff; stroke-opacity: 0.9; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+  .slide.active .trk, .slide.active .mark, .slide.active .links line { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
+  /* Catchphrase chips: count cell, phrase cell, readout strip on top; a tick ties each to its node */
+  .chip { position: absolute; display: flex; translate: 3.4cqw -50%; white-space: nowrap; }
+  .chip.flip { translate: calc(-100% - 3.4cqw) -50%; }
+  .chip::before { content: ""; position: absolute; right: 100%; top: 50%; width: 3.4cqw; height: 1px; background: #fff; }
+  .chip.flip::before { right: auto; left: 100%; }
+  .chip em { position: absolute; left: 0; bottom: 100%; padding: 0.35cqw 0.9cqw; background: #111; color: rgb(243 242 238 / 0.7); font: 500 1.5cqw/1.2 var(--mono); font-style: normal; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+  .chip b { display: flex; align-items: center; padding: 0.8cqw 1.3cqw; background: #E9E6DF; color: #111; font: 500 2.4cqw/1 var(--mono); letter-spacing: 0.02em; }
+  .chip strong { padding: 0.7cqw 1.6cqw 0.9cqw; background: rgb(17 17 17 / 0.92); color: #F3F2EE; font: 400 var(--fs)/1 var(--sans); letter-spacing: -0.025em; }
+  .chip.lead em { color: #FF7DB8; }
+  .chip.lead b { background: #FF4FA0; color: #fff; }
+  /* Dot-plot grid: row guides, tick columns, axis, ranked labels */
+  .rowg { position: absolute; left: 0; right: 0; border-top: 1px dashed rgb(22 22 22 / 0.2); }
+  .colg { position: absolute; border-left: 1px dashed rgb(22 22 22 / 0.14); }
+  .axis { position: absolute; translate: -50% -140%; font: 500 1.7cqw var(--mono); letter-spacing: 0.05em; opacity: 0.6; }
+  .plabel { position: absolute; left: 5.5cqw; translate: 0 -50%; display: flex; align-items: baseline; gap: 1.6cqw; color: var(--ink); max-width: 29cqw; }
+  .plabel i { font: 500 1.8cqw var(--mono); font-style: normal; letter-spacing: 0.06em; opacity: 0.55; }
+  .plabel strong { font: 400 var(--fs)/1 var(--sans); letter-spacing: -0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plabel.lead i { color: #D4126B; opacity: 1; }
+  .slide.active .plabel { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 90ms + 150ms); }
+  .slide.active .chip { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
+  .mostyou { font: 400 7.4cqw/1 var(--sans); letter-spacing: -0.035em; color: color-mix(in srgb, var(--c3) 45%, #1F0B45); text-wrap: balance; }
 
   /* Fingerprint axes and pole names */
   .fp { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -249,6 +288,7 @@
   <div class="sheet"></div>
   <div class="progress" id="progress"></div>
   <div id="slides"></div>
+  <canvas id="burn" aria-hidden="true"></canvas>
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
   <div class="grain" id="grain"></div>
 </main>
@@ -335,6 +375,41 @@ function swarmLayout(age) {
 const toStage = (v) => -0.05 + v * 1.1;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const easeOut = (k) => 1 - Math.pow(1 - clamp01(k), 3);
+// Cover ASCII: the heat field redrawn as a dense type grid, light to heavy glyphs, with bands that pulse outward.
+// Two planes: a big, soft, faint one zoomed out behind, and a small crisp one in front. Hotter cells are more opaque.
+const RAMP = " ·-:/+=<>!?I3254968A0ON";
+const ASCII = [
+  { cls: "back", size: 0.036, alpha: 0.28, zoom: 1.16, pulse: -1.1 },
+  { cls: "front", size: 0.021, alpha: 0.7, zoom: 1, pulse: 1.6 },
+];
+const asciiLayer = () => `<div class="ascii" aria-hidden="true">${ASCII.map((L) => `<canvas class="${L.cls}"></canvas>`).join("")}</div>`;
+function asciiTick(el, age) {
+  const W = el.clientWidth, H = el.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), fade = tw.speed ? easeOut(age / 1.8) : 1;
+  const cx = toStage(SWARM.x), cy = toStage(SWARM.y), LV = 4;
+  el.querySelectorAll(".ascii canvas").forEach((c, li) => {
+    const L = ASCII[li], w = c.clientWidth, h = c.clientHeight;
+    if (!w || !h) return;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const x = c.getContext("2d"), fs = L.size * W;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+    x.font = `400 ${fs.toFixed(2)}px "Geist Mono", ui-monospace, monospace`;
+    x.textBaseline = "top"; x.fillStyle = "#fff";
+    const adv = x.measureText("N").width, lh = fs * 1.2, cols = Math.ceil(w / adv), rows = Math.ceil(h / lh);
+    // Each row is drawn as a few strings, one per opacity level, so the grid stays monospaced and cheap.
+    for (let r = 0; r < rows; r++) {
+      const lines = [...Array(LV)].map(() => Array(cols).fill(" "));
+      const sy = cy + (((r + 0.5) * lh) / H - cy) * L.zoom;
+      for (let col = 0; col < cols; col++) {
+        const g = heatAt(cx + (((col + 0.5) * adv) / W - cx) * L.zoom, sy);
+        // Light → heavy → light rings that travel outward, fading out where the heat runs out.
+        const v = (0.5 - 0.5 * Math.cos(g * Math.PI * 3.2 - age * L.pulse)) * clamp01(g / 0.25);
+        const i = Math.round(v * (RAMP.length - 1));
+        if (i) lines[Math.min(LV - 1, Math.floor(v * LV))][col] = RAMP[i];
+      }
+      lines.forEach((ln, k) => { x.globalAlpha = L.alpha * fade * (0.3 + (0.7 * (k + 1)) / LV); x.fillText(ln.join(""), 0, r * lh); });
+    }
+  });
+}
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthName = (key) => MONTHS[+key.slice(5, 7) - 1];
 const byKey = (o) => Object.entries(o ?? {}).sort(([a], [b]) => a.localeCompare(b));
@@ -346,8 +421,8 @@ const months = byKey(S.time.byMonth).slice(-6), monthMax = Math.max(1, ...months
 function growthLayout(age) {
   const n = months.length;
   return months.map(([, v], i) => {
-    const s = Math.sqrt(v / monthMax), e = easeOut((age - 0.3 - i * 0.55) / 1.4);
-    const swell = i === n - 1 ? easeOut((age - 0.9 - n * 0.55) / 2.6) : 0;
+    const s = Math.sqrt(v / monthMax), e = easeOut((age - 0.1 - i * 0.16) / 0.6);
+    const swell = i === n - 1 ? easeOut((age - 0.4 - n * 0.16) / 2) : 0;
     const pulse = 1 + 0.06 * e * Math.sin(age * 1.8 + i * 0.9);
     return { x: n === 1 ? 0.5 : 0.16 + (i * 0.68) / (n - 1), y: GROW_Y, r: (0.02 + (0.05 + 0.15 * s) * e + 0.1 * swell * s) * pulse, w: ((0.3 + 0.95 * s) * e + 0.3 * swell) * pulse };
   });
@@ -361,12 +436,16 @@ const planetLayout = (age) => [{ x: 0.5, y: ORBIT_Y, r: planetR * (1 + 0.03 * Ma
 const orbitR = (j) => planetR * 1.1 + 0.08 + (j - 1) * 0.06;
 const moonAngle = (age, j) => -(0.6 + (age * 0.32) / j + (j - 1) * 2.2);
 
-// Catchphrases: each phrase a hotspot sized by use, drifting slowly.
+// Catchphrases: a dot plot. One row per phrase in rank order; each hotspot travels from zero to its count, then pulses in place.
 const phrases = S.phrases.catchphrases.slice(0, 6), phraseMax = phrases[0]?.count || 1;
-const CLOUD = [[0.3, 0.25], [0.7, 0.27], [0.5, 0.42], [0.24, 0.53], [0.76, 0.53], [0.5, 0.15]];
+const PLOT = { x0: 36, x1: 88, top: 0.22, bottom: 0.58 }; // x in stage %, rows in field heights
+const plotStep = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => phraseMax / st <= 6) ?? 1000;
+const plotMax = Math.max(plotStep, Math.ceil(phraseMax / plotStep) * plotStep);
+const rowY = (i) => PLOT.top + ((PLOT.bottom - PLOT.top) * i) / Math.max(1, phrases.length - 1);
+const plotX = (v) => PLOT.x0 + ((PLOT.x1 - PLOT.x0) * v) / plotMax;
 const phraseLayout = (age) => phrases.map((p, i) => {
-  const s = Math.sqrt(p.count / phraseMax), [cx, cy] = CLOUD[i];
-  return { x: cx + 0.035 * Math.sin(age * 0.4 + i * 1.7), y: cy + 0.02 * Math.cos(age * 0.33 + i * 2.3), r: 0.06 + 0.1 * s, w: 0.55 + 0.6 * s };
+  const s = Math.sqrt(p.count / phraseMax), e = easeOut((age - 0.3 - i * 0.12) / 1.5), beat = 1 + 0.08 * e * Math.sin(age * 2 + i * 1.1);
+  return { x: fromStage(plotX(p.count * e) / 100), y: rowY(i), r: (0.022 + 0.04 * s) * beat, w: (0.4 + 0.85 * s) * (0.3 + 0.7 * e) * beat };
 });
 const opener = S.phrases.topOpeners.find((o) => o.name.length > 1)?.name;
 const mostYou = [opener, ...phrases.slice(0, 5).map((p) => p.name)].filter(Boolean).join(" … ") + "…";
@@ -465,7 +544,7 @@ function planetLayer() {
       ${moons.map((_, j) => `${j ? "" : `<path class="arc" id="arc-${j}"/><text class="dl deg" id="deg-${j}" text-anchor="middle"></text>`}<line class="ray" id="ray-${j}" x1="${cx}" y1="${cy.toFixed(1)}" x2="${cx}" y2="${cy.toFixed(1)}"/><circle class="moon" id="moon-${j}" cx="${cx}" cy="${cy.toFixed(1)}" r="${(9 + 14 * Math.sqrt(moons[j][1].prompts / total)).toFixed(1)}"/>`).join("")}
     </svg>
     <span class="orb-lbl" style="left:50%;top:${(cy / VH) * 100}%"><b>${SOURCE_LABEL[k0] ?? k0}</b><i class="roll">${fmt(v0.prompts)} prompts</i></span>
-    ${moons.map(([k, v], j) => `<span class="moon-lbl" id="ml-${j}" style="opacity:0"><b>${SOURCE_LABEL[k] ?? k}</b><i>${fmt(v.prompts)} prompts</i></span>`).join("")}
+    ${moons.map(([k, v], j) => `<i class="mark" id="mm-${j}" style="--d:${j + 2}"></i><span class="trk" id="ml-${j}" style="--d:${j + 2}"><em class="rd">A${j + 2} · 000.0° · 00.0,00.0</em><strong>${SOURCE_LABEL[k] ?? k}</strong><i>${fmt(v.prompts)} prompts · ${((v.prompts / total) * 100).toFixed(1)}%</i></span>`).join("")}
   </div>`;
 }
 
@@ -477,11 +556,13 @@ function planetTick(el, age) {
     const q = (id) => el.querySelector(`#${id}-${j}`);
     q("moon").setAttribute("cx", x.toFixed(1)); q("moon").setAttribute("cy", y.toFixed(1));
     q("ray").setAttribute("x2", x.toFixed(1)); q("ray").setAttribute("y2", y.toFixed(1));
-    const lbl = q("ml"), right = x / VW > 0.66;
-    lbl.style.left = (x / VW) * 100 + "%"; lbl.style.top = (y / VH) * 100 + "%"; lbl.style.opacity = 1;
-    lbl.style.translate = right ? "calc(-100% - 3.4cqw) -50%" : "3.4cqw -50%"; lbl.style.textAlign = right ? "right" : "left";
+    const deg = (((-a * 180) / Math.PI) % 360 + 360) % 360, sx = (x / VW) * 100, sy = (y / VH) * 100;
+    const mark = q("mm"), lbl = q("ml");
+    mark.style.left = lbl.style.left = sx + "%"; mark.style.top = lbl.style.top = sy + "%";
+    lbl.classList.toggle("flip", sx > 62);
+    lbl.querySelector(".rd").textContent = `A${j + 2} · ${deg.toFixed(1).padStart(5, "0")}° · ${sx.toFixed(1)},${sy.toFixed(1)}`;
     if (j) return;
-    const deg = (((-a * 180) / Math.PI) % 360 + 360) % 360, ra = R * 0.3, ex = cx + Math.cos(a) * ra, ey = cy + Math.sin(a) * ra, mid = (-deg / 2) * (Math.PI / 180);
+    const ra = R * 0.3, ex = cx + Math.cos(a) * ra, ey = cy + Math.sin(a) * ra, mid = (-deg / 2) * (Math.PI / 180);
     q("arc").setAttribute("d", `M ${cx + ra} ${cy} A ${ra} ${ra} 0 ${deg > 180 ? 1 : 0} 0 ${ex.toFixed(1)} ${ey.toFixed(1)}`);
     const d = q("deg"); d.textContent = deg.toFixed(1) + "°";
     d.setAttribute("x", (cx + Math.cos(mid) * ra * 1.45).toFixed(1)); d.setAttribute("y", (cy + Math.sin(mid) * ra * 1.45 + 7).toFixed(1));
@@ -489,8 +570,27 @@ function planetTick(el, age) {
 }
 
 function phraseLayer() {
-  const L = phraseLayout(0);
-  return `<div class="abs">${phrases.map((p, i) => hot(i, L[i], p.name, `${fmt(p.count)}×`, 3.4 + 3.6 * Math.sqrt(p.count / phraseMax))).join("")}</div>`;
+  const y = (i) => toStage(rowY(i)) * 100, yTop = y(0) - 6, yEnd = y(phrases.length - 1);
+  const ticks = [...Array(plotMax / plotStep + 1)].map((_, k) => k * plotStep);
+  return `<div class="abs">
+    ${phrases.map((_, i) => `<i class="rowg" style="top:${y(i)}%"></i>`).join("")}
+    ${ticks.map((v) => `<i class="colg" style="left:${plotX(v)}%;top:${yTop}%;height:${yEnd - yTop + 3}%"></i><span class="axis" style="left:${plotX(v)}%;top:${yTop}%">${fmt(v)}</span>`).join("")}
+    <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${phrases.map((_, i) => `<line id="ps-${i}" style="stroke:#161616;stroke-opacity:0.55;stroke-width:1.4" x1="${PLOT.x0}" x2="${PLOT.x0}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
+    ${phrases.map((p, i) => `<span class="plabel${i ? "" : " lead"}" style="top:${y(i)}%;--fs:${(5.4 - i * 0.45).toFixed(2)}cqw;--d:${i}"><i>P${i + 1}</i><strong>${esc(p.name)}</strong></span>`).join("")}
+    ${phrases.map((p, i) => `<i class="mark" id="pm-${i}" style="--d:${i}"></i><span class="chip${i ? "" : " lead"}" id="pb-${i}" style="--d:${i}"><em class="rd">00.0,00.0</em><b class="roll">${fmt(p.count)}×</b></span>`).join("")}
+  </div>`;
+}
+
+// Stems grow from zero with their hotspots; each count readout rides its node, flipping left if it would run off.
+function phraseTick(el) {
+  phrases.forEach((_, i) => {
+    const x = toStage(blobs[i].x) * 100, y = toStage(blobs[i].y) * 100;
+    const m = el.querySelector(`#pm-${i}`), b = el.querySelector(`#pb-${i}`), st = el.querySelector(`#ps-${i}`);
+    m.style.left = b.style.left = x + "%"; m.style.top = b.style.top = y + "%";
+    st.setAttribute("x2", Math.max(PLOT.x0, x));
+    b.classList.toggle("flip", x + (b.offsetWidth / el.clientWidth) * 100 + 3.4 > 97);
+    b.querySelector(".rd").textContent = `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
 }
 
 function projectLayer() {
@@ -606,7 +706,7 @@ function traitsBlock() {
 
 const slides = [
   {
-    pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0),
+    pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0), extra: asciiLayer, tick: asciiTick,
     top: () => [
       `<div class="hud"><span>How I AI · Wrapped</span><span>${ymd(S.totals.firstDate)} — ${ymd(S.totals.lastDate)}</span></div>`,
       `<div class="grow"></div>`,
@@ -684,14 +784,16 @@ const slides = [
     ],
   },
   {
-    pal: "peach", sheet: 30, fg: "#161616", still: true, live: phraseLayout, field: () => phraseLayout(0), extra: phraseLayer,
-    top: () => [hud("06", "Lexicon"), `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`],
-    bottom: () => [
-      head("Your most-you prompt"),
-      `<p class="quote" style="font-size:5.6cqw">“${esc(mostYou)}”</p>`,
+    pal: "peach", sheet: 0, fg: "#161616", still: true, live: phraseLayout, field: () => phraseLayout(0), extra: phraseLayer, tick: phraseTick,
+    top: () => [
+      hud("06", "Lexicon"),
+      `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`,
       `<div class="grow"></div>`,
-      `<p class="body">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
+      `<p class="lbl">Your most-you prompt</p>`,
+      `<p class="mostyou">“${esc(mostYou)}”</p>`,
+      `<p class="body" style="max-width:76cqw">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
     ],
+    bottom: () => [],
   },
   {
     pal: "sky", sheet: 60, fg: "#161616", field: () => scatter(31, 4, [0, 0, 1, 0.38]),
@@ -788,6 +890,14 @@ function lutFrom(stops) {
 }
 const blobs = [...Array(NB)].map(() => ({ x: 0.5, y: 0.4, r: 0.2, w: 0, p: 0, tx: 0.5, ty: 0.4, tr: 0.2, tw: 0, tp: 0 }));
 const tw = { pal: "", mode: "", speed: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1 };
+let fieldAct = [], fieldGain = 1.3;
+// Heat (0..1) at a stage point: the same sum the field draws, minus the warp.
+function heatAt(sx, sy) {
+  const u = fromStage(sx), v = fromStage(sy) * AR;
+  let f = 0;
+  for (let q = 0; q < fieldAct.length; q += 4) { const dx = u - fieldAct[q], dy = v - fieldAct[q + 1]; f += fieldAct[q + 3] * Math.exp(-(dx * dx + dy * dy) * fieldAct[q + 2]); }
+  return 1 - Math.exp(-fieldGain * f);
+}
 let lut = lutFrom(PALETTES.dusk.stops), lutFromArr = lut, lutTo = lut, lutK = 1, bands = 0, bandsTarget = 0, still = 0, stillTarget = 0, heat = 0, heatTarget = 0, live = null, liveFrom = 0, t = 0, last = 0;
 
 function setField(s) {
@@ -839,6 +949,7 @@ function frame(now) {
     const r = b.r * (1 + 0.22 * b.p * beat);
     act.push(x, y * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * beat));
   });
+  fieldAct = act; fieldGain = gain;
   const warp = 0.035 * drift;
   const d = img.data, n = act.length;
   let p = 0;
@@ -979,6 +1090,66 @@ function rollNumbers(slide) {
   });
 }
 
+// ---------- burn: cover → volume ----------
+
+// A wavy front sweeps left to right with a dark chromatic fringe (navy, magenta, the next palette's orange and yellow),
+// leaving a streaky wash. Then the next slide is swapped in underneath and the wash clears the same way.
+const burnEl = document.getElementById("burn"), BW = 160, T_BURN = 1.15, T_CLEAR = 0.95;
+let burning = null;
+const smooth = (k) => k * k * (3 - 2 * k);
+function burn(to) {
+  const BH = Math.round(BW * AR), bx = burnEl.getContext("2d");
+  burnEl.width = BW; burnEl.height = BH; burnEl.style.display = "block";
+  const img = bx.createImageData(BW, BH), d = img.data, pal = PALETTES[tw.pal || slides[to].pal].stops.map(hex), paper = hex("#F3F2EE");
+  const NAVY = hex("#1B1F6E"), MAG = hex("#E0357F"), CYAN = hex("#3FA0F0");
+  const FR = [[0, NAVY], [0.3, MAG], [0.5, pal[3]], [0.68, pal[4]]];
+  const col = [0, 0, 0], mix = (a, b, k) => { col[0] = a[0] + (b[0] - a[0]) * k; col[1] = a[1] + (b[1] - a[1]) * k; col[2] = a[2] + (b[2] - a[2]) * k; return col; };
+  const start = performance.now();
+  let swapped = false;
+  const step = (now) => {
+    const s = (now - start) / 1000;
+    if (!swapped && s >= T_BURN) { swapped = true; burning = null; go(to, true); burning = step; }
+    if (burning !== step) return;
+    const F = -0.3 + 1.6 * smooth(clamp01(s / T_BURN)), Tl = swapped ? -0.3 + 1.6 * smooth(clamp01((s - T_BURN) / T_CLEAR)) : -9;
+    let p = 0;
+    for (let j = 0; j < BH; j++) {
+      const y = (j / (BH - 1)) * AR;
+      // A scalloped edge; the dark core pools in each bulge and the fringe runs wider there.
+      const lobe = Math.abs(Math.sin(y * 11 + s * 0.8 + Math.sin(y * 3)));
+      const front = F + 0.03 * Math.sin(y * 5 + s * 1.5) + 0.03 * lobe + 0.008 * Math.sin(y * 41 + s * 4), fw = 0.12 + 0.09 * lobe;
+      const streak = Math.pow(0.5 + 0.5 * Math.sin(y * 8.5 + 1.6 * Math.sin(y * 2.3)), 2), tail = Tl + 0.04 * Math.sin(y * 6 - s * 1.2) + 0.02 * Math.sin(y * 15 + s);
+      const near = mix(paper, pal[2], 0.3 + 0.6 * streak).slice();
+      for (let i = 0; i < BW; i++, p += 4) {
+        const u = i / (BW - 1), dd = front - u;
+        let a = 1;
+        if (dd < -0.014) { d[p + 3] = 0; continue; }
+        if (dd < 0) { mix(CYAN, CYAN, 0); a = 0.75 * (1 + dd / 0.014); }
+        else {
+          const q = dd / fw;
+          if (q < 0.68) {
+            let k = 1; while (FR[k][0] < q && k < FR.length - 1) k++;
+            mix(FR[k - 1][1], FR[k][1], clamp01((q - FR[k - 1][0]) / (FR[k][0] - FR[k - 1][0])));
+            if (q < 0.3) { const c = col.slice(); mix(c, MAG, (1 - lobe) * 0.75 * (1 - q / 0.3)); }
+          } else if (q < 1) mix(pal[4], near, (q - 0.68) / 0.32);
+          else {
+            // Wash: pink bleeding just behind the fringe, settling into lavender and butter streaks across the paper.
+            const w = clamp01((q - 1) / 3), tint = mix(pal[1], Math.sin(y * 4.3) > 0.4 ? pal[4] : pal[2], 0.5 + 0.5 * Math.sin(y * 3 + u * 4)).slice();
+            const far = mix(paper, tint, 0.18 + 0.55 * streak).slice();
+            mix(near, far, w);
+          }
+        }
+        if (dd > 0 && tail > u) a *= 1 - smooth(clamp01((tail - u) / 0.2));
+        d[p] = col[0]; d[p + 1] = col[1]; d[p + 2] = col[2]; d[p + 3] = a * 255;
+      }
+    }
+    bx.putImageData(img, 0, 0);
+    if (s < T_BURN + T_CLEAR) requestAnimationFrame(step);
+    else { burnEl.style.display = "none"; burning = null; }
+  };
+  burning = step;
+  requestAnimationFrame(step);
+}
+
 // ---------- player ----------
 
 const root = document.getElementById("slides"), progress = document.getElementById("progress"), stage = document.getElementById("stage");
@@ -1009,6 +1180,8 @@ new ResizeObserver(() => {
 function go(i, force) {
   i = Math.max(0, Math.min(slides.length - 1, i));
   if (i === cur && !force) return;
+  if (burning && !force) return;
+  if (cur === 0 && i === 1 && !force && tw.speed) return burn(i);
   els[cur]?.classList.remove("active");
   cur = i;
   const el = els[cur], s = slides[cur];
