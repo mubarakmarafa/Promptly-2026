@@ -45,6 +45,8 @@
   #field { position: absolute; inset: -5%; width: 110%; height: 110%; filter: blur(var(--blur)); }
   .sheet { position: absolute; inset: auto 0 0; height: var(--sheet, 40%); background: var(--paper); transition: height 820ms var(--ease-out); }
   /* Cover → volume: the page bleeds away like ink on wet paper */
+  .burn-cover { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+  .burn-cover canvas { position: absolute; inset: -5%; width: 110%; height: 110%; filter: blur(var(--blur)); }
   #burn { position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%; pointer-events: none; filter: blur(0.7px); display: none; }
   .grain { position: absolute; inset: -40%; z-index: 9; pointer-events: none; opacity: var(--grain); mix-blend-mode: overlay; background-size: 220px; animation: grain 1s steps(5) infinite; }
   @keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -2%); } 60% { transform: translate(-2%, -4%); } 80% { transform: translate(4%, 2%); } }
@@ -85,10 +87,9 @@
 
 
   /* Labels that ride on hotspots; positions are set every frame from the field */
-  .hot { position: absolute; translate: -50% -50%; display: grid; justify-items: center; gap: 0.6cqw; color: #fff; mix-blend-mode: difference; text-align: center; white-space: nowrap; }
-  .hot b { font: 400 4.6cqw/1 var(--sans); letter-spacing: -0.03em; }
-  .hot i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hot.dim { opacity: 0.6; }
+  .hot { position: absolute; translate: -50% -50%; display: flex; flex-direction: column; align-items: flex-start; white-space: nowrap; }
+  .hot i { padding: 0.35cqw 0.9cqw; background: #111; color: rgb(243 242 238 / 0.7); font: 500 1.5cqw/1.2 var(--mono); font-style: normal; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+  .hot b { padding: 0.8cqw 1.5cqw 1cqw; background: #E9E6DF; color: #111; font: 400 4.6cqw/1 var(--sans); letter-spacing: -0.03em; }
 
   /* Cover: ASCII on three depth planes behind the title; the far ones are softer */
   .ascii { position: absolute; inset: 0 0 var(--sheet); pointer-events: none; -webkit-mask-image: linear-gradient(#000 50%, transparent 92%); mask-image: linear-gradient(#000 50%, transparent 92%); }
@@ -108,36 +109,26 @@
   .slide.active .mlabel { animation: fade-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 160ms + 200ms); }
   @keyframes fade-in { to { opacity: 1; } }
 
-  /* Agents: a star chart */
+  /* Agents: nested circles on a crosshair */
   .orbit { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .orbit circle, .orbit line, .orbit path { fill: none; stroke: #fff; stroke-width: 2.2; }
   .orbit .faint { stroke-opacity: 0.55; stroke-width: 1.4; }
-  .orbit .dash { stroke-dasharray: 3 9; }
-  .orbit .tick { stroke-opacity: 0.85; stroke-width: 1.4; }
+  .orbit .dash { stroke-dasharray: 6 8; stroke-opacity: 0.95; stroke-width: 1.6; }
   .orbit .ring { stroke-dasharray: 1; stroke-dashoffset: 1; }
-  .slide.active .orbit .ring { animation: draw-line 1600ms var(--ease-out) forwards 200ms; }
-  .orbit .ray { stroke-opacity: 0.8; stroke-width: 1.4; }
-  .orbit .arc { stroke-width: 1.6; }
-  .orbit .moon { fill: #fff; stroke: none; filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.9)); }
-  .orbit .dl { fill: var(--ink); stroke: none; font: 500 19px var(--mono); letter-spacing: 0.04em; opacity: 0.6; }
-  .orbit .deg { opacity: 0.85; }
-  .orb-lbl { position: absolute; translate: -50% -50%; display: grid; gap: 0.5cqw; color: var(--ink); white-space: nowrap; }
-  .orb-lbl { justify-items: center; }
-  .orb-lbl b { font: 400 6.4cqw/1 var(--sans); letter-spacing: -0.03em; }
-  .orb-lbl i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; text-transform: uppercase; }
+  .slide.active .orbit .ring { animation: draw-line 1600ms var(--ease-out) forwards; animation-delay: calc(var(--d, 0) * 300ms + 200ms); }
+  /* Agent names set along their circles */
+  .orbit text { stroke: none; fill: var(--ink); }
+  .orbit .agl { font: 500 24px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .orbit .agl .n { opacity: 0.5; }
+  .slide.active .orbit text { animation: fade-in 700ms var(--ease-out) both 500ms; }
 
-  /* Machine-vision tracking: a pink target on a moving point, and a readout box that follows it */
+  /* Machine-vision tracking: a pink target on a moving point */
   .mark { position: absolute; width: 1.8cqw; height: 1.8cqw; translate: -50% -50%; border: 1px solid #FF4FA0; }
   .mark::after { content: ""; position: absolute; inset: 0.45cqw; background: #FF4FA0; }
-  .trk { position: absolute; display: grid; gap: 0.5cqw; padding: 1cqw 1.4cqw 1.1cqw; background: rgb(17 17 17 / 0.9); color: #F3F2EE; border: 1px solid rgb(255 255 255 / 0.12); white-space: nowrap; translate: 1.6cqw 1.6cqw; }
-  .trk.flip { translate: calc(-100% - 1.6cqw) 1.6cqw; text-align: right; }
-  .trk em { font: 500 1.6cqw var(--mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.65; font-variant-numeric: tabular-nums; }
-  .trk strong { font: 400 3.6cqw/1 var(--sans); letter-spacing: -0.02em; }
-  .trk i { font: 500 1.8cqw var(--mono); font-style: normal; letter-spacing: 0.05em; color: #FF7DB8; text-transform: uppercase; }
   .links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .links line { stroke: #fff; stroke-opacity: 0.9; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
-  .slide.active .trk, .slide.active .mark, .slide.active .links line { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
-  /* Catchphrase chips: count cell, phrase cell, readout strip on top; a tick ties each to its node */
+  .slide.active .mark, .slide.active .links line { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
+  /* Readout chips: a value cell with a readout strip on top; a tick ties each to its node */
   .chip { position: absolute; display: flex; translate: 3.4cqw -50%; white-space: nowrap; }
   .chip.flip { translate: calc(-100% - 3.4cqw) -50%; }
   .chip::before { content: ""; position: absolute; right: 100%; top: 50%; width: 3.4cqw; height: 1px; background: #fff; }
@@ -147,15 +138,12 @@
   .chip strong { padding: 0.7cqw 1.6cqw 0.9cqw; background: rgb(17 17 17 / 0.92); color: #F3F2EE; font: 400 var(--fs)/1 var(--sans); letter-spacing: -0.025em; }
   .chip.lead em { color: #FF7DB8; }
   .chip.lead b { background: #FF4FA0; color: #fff; }
+  /* Catchphrases: the phrase itself fills the cell, the count rides in the strip */
+  .chip.word b { padding: 0.9cqw 1.6cqw 1.1cqw; font: 400 var(--fs)/1 var(--sans); letter-spacing: -0.03em; }
   /* Dot-plot grid: row guides, tick columns, axis, ranked labels */
   .rowg { position: absolute; left: 0; right: 0; border-top: 1px dashed rgb(22 22 22 / 0.2); }
   .colg { position: absolute; border-left: 1px dashed rgb(22 22 22 / 0.14); }
   .axis { position: absolute; translate: -50% -140%; font: 500 1.7cqw var(--mono); letter-spacing: 0.05em; opacity: 0.6; }
-  .plabel { position: absolute; left: 5.5cqw; translate: 0 -50%; display: flex; align-items: baseline; gap: 1.6cqw; color: var(--ink); max-width: 29cqw; }
-  .plabel i { font: 500 1.8cqw var(--mono); font-style: normal; letter-spacing: 0.06em; opacity: 0.55; }
-  .plabel strong { font: 400 var(--fs)/1 var(--sans); letter-spacing: -0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .plabel.lead i { color: #D4126B; opacity: 1; }
-  .slide.active .plabel { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 90ms + 150ms); }
   .slide.active .chip { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
   .mostyou { font: 400 7.4cqw/1 var(--sans); letter-spacing: -0.035em; color: color-mix(in srgb, var(--c3) 45%, #1F0B45); text-wrap: balance; }
 
@@ -236,16 +224,15 @@
   @keyframes num-in { from { opacity: 0; translate: -50% -60%; } to { opacity: 1; translate: -50% -100%; } }
   .chart .day { position: absolute; bottom: 0; transform: translateX(-50%); font: 500 2cqw var(--mono); text-transform: uppercase; opacity: 0.7; }
 
-  /* Brand-slider traits */
-  .traits { position: relative; width: 100%; height: 108cqw; }
-  .traits svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .traits .end { position: absolute; transform: translateY(-50%); font: 500 2.1cqw var(--mono); text-transform: uppercase; letter-spacing: 0.05em; padding: 1cqw 1.6cqw; border-radius: 5cqw; white-space: nowrap; }
-  .traits .end.l { right: calc(100% - 19cqw); } .traits .end.r { left: 70cqw; }
-  .traits .end.hi { background: #E3E0D9; }
-  .traits .note { position: absolute; left: 21cqw; width: 47cqw; font: 400 2.5cqw/1.35 var(--sans); opacity: 0.6; text-wrap: pretty; }
-  .slide.active .traits .glow { animation: draw 1600ms var(--ease-out) 300ms both; }
-  @keyframes draw { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
-  .slide.active .traits .dot { animation: pop 600ms var(--ease-out) both; animation-delay: calc(var(--d) * 140ms + 400ms); transform-box: fill-box; transform-origin: center; }
+  /* Vibe check: pole names over each dial, a note under it */
+  .vline { position: absolute; height: 0; border-top: 1px dashed rgb(22 22 22 / 0.2); }
+  .vend { position: absolute; width: 1.6cqw; height: 1.6cqw; translate: -50% -50%; border-radius: 50%; background: var(--ink); }
+  .vend.mid { width: 1.1cqw; height: 1.1cqw; }
+  .vpole { position: absolute; translate: 0 2.8cqw; font: 400 3.1cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; }
+  .vpole.l { left: 5.2cqw; } .vpole.r { right: 5.2cqw; }
+  .vnote { position: absolute; left: 5.2cqw; width: 74cqw; translate: 0 8.6cqw; font: 400 3.3cqw/1.3 var(--sans); color: var(--ink); opacity: 0.45; text-wrap: pretty; }
+  .slide.active .vpole, .slide.active .vnote { animation: rise-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 150ms); }
+  @keyframes rise-in { from { opacity: 0; } }
   @keyframes pop { from { transform: scale(0); } }
 
   .top > *, .panel > * { opacity: 0; transform: translateY(2.4cqw); }
@@ -254,7 +241,7 @@
   @keyframes rise { to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
     .slide.active .top > *, .slide.active .panel > * { animation: none; opacity: 1; transform: none; }
-    .slide.active .traits .glow, .slide.active .traits .dot, .slide.active .chart .pill { animation: none; }
+    .slide.active .vpole, .slide.active .vnote, .slide.active .chart .pill { animation: none; }
     .slide.active .chart .num { animation: none; opacity: 1; }
     .slide.active .receipt, .slide.active .spec-glow, .slide.active .mood svg, .slide.active .mline, .slide.active .orbit .ring, .slide.active .mnode { animation: none; stroke-dashoffset: 0; }
     .mlabel { opacity: 1; }
@@ -335,6 +322,17 @@ const PALETTES = {
   dawn: { name: "blush, tangerine & iris", stops: ["#EEECE8", "#F6DAE3", "#FFAE8A", "#958BF4", "#EEECE8"] },
   ember: { name: "scarlet, orange & violet", stops: ["#FFD9B8", "#FFA45E", "#FF5E3D", "#DD2F57", "#6438CC"] },
   mint: { name: "mint, sea & lilac", stops: ["#E9F4EF", "#A8E8D3", "#7CC6F0", "#B79CF2", "#F6C5E4"] },
+  // Heat ramps for hotspots that sit side by side (one per project). Each travels through its own run of hues from rim
+  // to core, the way the cover does, and no two share a core.
+  lagoon: { name: "lilac, sky, teal & lime", stops: ["#F3F2EE", "#CDBDFF", "#6EC3F5", "#3FD3B0", "#C8EF5A"] },
+  orchid: { name: "sky, lavender, magenta & pink", stops: ["#F3F2EE", "#9CD0FF", "#A98BFF", "#E04FD0", "#FF7AA8"] },
+  citrus: { name: "mint, lime, yellow & orange", stops: ["#F3F2EE", "#A6EBCD", "#C8EB55", "#FFD93D", "#FF8A2A"] },
+  rose: { name: "peach, coral, magenta & plum", stops: ["#F3F2EE", "#FFC6AE", "#FF7C70", "#E83C8C", "#7A2C9E"] },
+  cobalt: { name: "mint, aqua, cobalt & violet", stops: ["#F3F2EE", "#B0EEDF", "#5CC8E8", "#4A6DF0", "#7A3DDB"] },
+  lime: { name: "butter, lime, green & teal", stops: ["#F3F2EE", "#FFF0A0", "#A8E05A", "#3CC28A", "#1E9BA8"] },
+  // Two single-hue ramps for slides that colour each hotspot by who it belongs to.
+  glacier: { name: "paper to sky", stops: ["#F3F2EE", "#E2F0F4", "#CDEAF6", "#B4DDF3", "#94CDEF"] },
+  lilac: { name: "paper to lilac", stops: ["#F3F2EE", "#E4DEF6", "#D2C4F4", "#C0ADF1", "#A98DEB"] },
 };
 
 // ---------- field layouts (x, y in 0..1 of the stage) ----------
@@ -352,11 +350,21 @@ function layoutDial(sheet = 0.38) {
   const top = 0.16 / AR, bottom = 1 - sheet - 0.07 / AR, room = ((bottom - top) * AR) / 2;
   DIAL = { x: 0.5, y: (top + bottom) / 2, R: Math.max(0.12, Math.min(0.33, (room - 0.025) / 1.3)) };
 }
-const hourAngle = (h) => (h / 24) * Math.PI * 2 - Math.PI / 2 + Math.PI / 24;
-const ring = () => S.time.byHour.map((v, h) => {
-  const a = hourAngle(h), R = DIAL.R / 1.1;
-  return { x: 0.5 + Math.cos(a) * R, y: fromStage(DIAL.y) + (Math.sin(a) * R) / AR, r: 0.052, w: 0.06 + 1.05 * (v / maxHour), p: h === S.time.peakHour ? 1 : 0 };
-});
+// 12am points straight up.
+const hourAngle = (h) => (h / 24) * Math.PI * 2 - Math.PI / 2;
+// Neighbouring hours overlap and add up, so a run of busy hours would outshine a lone peak. Solve for the weights that make
+// the field at each hour match that hour's own count, with the peak hour set a step hotter than everything else.
+const ring = () => {
+  const R = DIAL.R / 1.1, r = 0.052, n = 24, peak = S.time.peakHour;
+  const target = S.time.byHour.map((v, h) => (h === peak ? 1.3 : 0.06 + 0.9 * Math.pow(v / maxHour, 1.3)));
+  const K = [...Array(n)].map((_, i) => [...Array(n)].map((_, j) => { const d = 2 * R * Math.sin((Math.PI * Math.abs(i - j)) / n); return Math.exp(-(d * d) / (r * r)); }));
+  const w = target.slice();
+  for (let it = 0; it < 30; it++) for (let h = 0; h < n; h++) w[h] = Math.max(0, w[h] + target[h] - K[h].reduce((f, k, j) => f + k * w[j], 0));
+  return w.map((wh, h) => {
+    const a = hourAngle(h);
+    return { x: 0.5 + Math.cos(a) * R, y: fromStage(DIAL.y) + (Math.sin(a) * R) / AR, r, w: wh, p: h === peak ? 1 : 0 };
+  });
+};
 
 
 // Cover: your hotspot grows while smaller ones drift in from the edges, curl around and merge into it.
@@ -428,17 +436,20 @@ function growthLayout(age) {
   });
 }
 
-// Agents: your main agent is a planet of heat; the others are white moons on drawn orbits.
 const outTokens = sources.reduce((a, [, v]) => a + (v.outputTokens ?? 0), 0), wordsBack = Math.round(outTokens * 0.75);
-const ORBIT_Y = 0.31, planetR = 0.09 + 0.14 * Math.sqrt(sources[0][1].prompts / total);
-const planetLayout = (age) => [{ x: 0.5, y: ORBIT_Y, r: planetR * (1 + 0.03 * Math.sin(age * 1.4)), w: 1.25 }];
-// Moon j (1-based): its orbit radius in stage widths, and its angle, counter-clockwise like a star chart.
-const orbitR = (j) => planetR * 1.1 + 0.08 + (j - 1) * 0.06;
-const moonAngle = (age, j) => -(0.6 + (age * 0.32) / j + (j - 1) * 2.2);
+
+// Agents: one circle per agent, nested and centred, each its own colour. Areas follow prompt counts, so the
+// biggest agent is the outer circle and a small one is a small disc in the middle.
+const ORBIT_Y = 0.31, AGENT_R = 0.3; // centre in field heights; the outer circle's radius in stage widths
+const agents = sources.slice(0, 4);
+const agentR = (v) => Math.max(0.16, Math.sqrt(v.prompts / agents[0][1].prompts)) * AGENT_R;
+const planetLayout = (age) => agents.map(([, v], i) => ({
+  x: 0.5, y: ORBIT_Y, r: (agentR(v) / 1.1) * (i ? 1.05 : 0.95) * (1 + 0.03 * Math.sin(age * 1.4 + i * 2)), w: i ? 1.4 : 0.85, c: i ? 1 : 0,
+}));
 
 // Catchphrases: a dot plot. One row per phrase in rank order; each hotspot travels from zero to its count, then pulses in place.
 const phrases = S.phrases.catchphrases.slice(0, 6), phraseMax = phrases[0]?.count || 1;
-const PLOT = { x0: 36, x1: 88, top: 0.22, bottom: 0.58 }; // x in stage %, rows in field heights
+const PLOT = { x0: 8, x1: 88, top: 0.22, bottom: 0.58 }; // x in stage %, rows in field heights
 const plotStep = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => phraseMax / st <= 6) ?? 1000;
 const plotMax = Math.max(plotStep, Math.ceil(phraseMax / plotStep) * plotStep);
 const rowY = (i) => PLOT.top + ((PLOT.bottom - PLOT.top) * i) / Math.max(1, phrases.length - 1);
@@ -450,13 +461,15 @@ const phraseLayout = (age) => phrases.map((p, i) => {
 const opener = S.phrases.topOpeners.find((o) => o.name.length > 1)?.name;
 const mostYou = [opener, ...phrases.slice(0, 5).map((p) => p.name)].filter(Boolean).join(" … ") + "…";
 
-// Projects: a map, the main project as the sun and the rest as islands around it.
+// Projects: a map, the main project as the sun and the rest as islands around it. Each is a hotspot with its own heat
+// palette; they sit close enough to bleed into each other, and drift a little so the blends keep shifting.
 const projects = S.projects.slice(0, 7), projMax = projects[0]?.count || 1;
+const PROJECT_PALS = ["flare", "lagoon", "orchid", "citrus", "rose", "cobalt", "lime"];
 const projectLayout = (age) => projects.map((p, i) => {
   const s = Math.sqrt(p.count / projMax);
-  if (!i) return { x: 0.5 + 0.01 * Math.sin(age * 0.5), y: 0.3, r: 0.08 + 0.12 * s, w: 1.1 };
-  const a = i * 2.4 + 0.3, d = 0.22 + 0.033 * i + 0.015 * Math.sin(age * 0.4 + i);
-  return { x: 0.5 + Math.cos(a) * d, y: 0.3 + (Math.sin(a) * d * 1.25) / AR, r: 0.03 + 0.1 * s, w: 0.5 + 0.6 * s };
+  if (!i) return { x: 0.5 + 0.01 * Math.sin(age * 0.5), y: 0.34, r: 0.08 + 0.12 * s, w: 1.1, c: 0 };
+  const a = i * 2.4 + 0.3 + 0.08 * Math.sin(age * 0.3 + i * 1.7), d = 0.14 + 0.022 * i + 0.025 * Math.sin(age * 0.4 + i);
+  return { x: 0.5 + Math.cos(a) * d, y: 0.34 + (Math.sin(a) * d * 1.3) / AR, r: 0.07 + 0.1 * s, w: 0.75 + 0.5 * s, c: i };
 });
 
 // Archetype: the four traits pull a blob along their own axes, morphing a circle into a shape that's only yours.
@@ -475,13 +488,30 @@ function fingerprintLayout(age) {
   return out;
 }
 
+// Vibe check: one row per trait. Heat streams out from the midpoint toward the side you lean, so each row reads on its own.
+const VIBE = { x0: 6, x1: 94, top: 0.2, bottom: 0.77, lift: 0.012, n: 7 }; // x in stage %, rows in stage heights
+const vibeY = (i) => VIBE.top + ((VIBE.bottom - VIBE.top) * i) / Math.max(1, traits.length - 1);
+const vibeX = (v) => VIBE.x0 + ((VIBE.x1 - VIBE.x0) * v) / 100;
+function vibeLayout(age) {
+  const c = vibeX(50) / 100;
+  return traits.flatMap((t, i) => {
+    const m = Math.abs(t.value - 50) / 50, e = easeOut((age - 0.3 - i * 0.15) / 1.4), beat = 1 + 0.06 * e * Math.sin(age * 2 + i * 1.3);
+    const head = c + (vibeX(Math.min(96, Math.max(4, t.value))) / 100 - c) * e, y = fromStage(vibeY(i) - VIBE.lift);
+    // A comet: hottest at your mark, thinning back to the midpoint.
+    return [...Array(VIBE.n)].map((_, k) => {
+      const f = 1 - k / (VIBE.n - 1);
+      return { x: fromStage(c + (head - c) * f), y, r: (0.026 + (0.017 + 0.012 * m) * f) * beat, w: (0.25 + (0.55 + 0.35 * m) * f) * (0.4 + 0.6 * e) * beat };
+    });
+  });
+}
+
 // ---------- panel helpers ----------
 
 const head = (title, right = ymd(S.totals.lastDate)) => `<div class="ph"><p class="lbl">${title}</p><p class="lbl">${right}</p></div>`;
 const hud = (code, title) => `<div class="hud"><span>${code} · ${title}</span><span>${serial}</span></div>`;
 const cell = (label, value, sub = "") => `<div class="cell"><div><p class="micro" style="opacity:0.7">${label}</p><p class="val roll">${value}${sub ? `<span class="sub">${sub}</span>` : ""}</p></div></div>`;
 // A label that rides on hotspot `i`; `at` is its starting spot so nothing jumps before the first frame.
-const hot = (i, at, name, count, size = 4.6) => `<span class="hot" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0"><b style="font-size:${size}cqw">${esc(name)}</b>${count == null ? "" : `<i class="roll">${count}</i>`}</span>`;
+const hot = (i, at, name, count, size = 4.6) => `<span class="hot" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0">${count == null ? "" : `<i class="roll">${count}</i>`}<b style="font-size:${size}cqw">${esc(name)}</b></span>`;
 const typed = (text, size) => `<p class="quote blend type" style="font-size:${size}cqw">${[...text].map((c) => `<span class="ch">${esc(c)}</span>`).join("")}</p>`;
 const smoothPath = (pts) => pts.map(([x, y], i) => {
   if (!i) return `M ${x} ${y}`;
@@ -527,46 +557,18 @@ function growthLayer() {
 }
 
 function planetLayer() {
-  const VW = 1000, VH = 1000 * AR, cx = 500, cy = toStage(ORBIT_Y) * VH, moons = sources.slice(1, 4);
-  const Rs = moons.map((_, j) => orbitR(j + 1) * VW), R0 = Rs[0] ?? planetR * 1.1 * VW + 80, Rmax = Rs.at(-1) ?? R0;
-  const P = (a, r) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r].map((v) => v.toFixed(1));
-  const ticks = [...Array(72)].map((_, k) => { const a = (k / 72) * Math.PI * 2, [x0, y0] = P(a, R0), [x1, y1] = P(a, R0 + (k % 18 ? (k % 6 ? 7 : 14) : 24)); return `<line class="tick" x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}"/>`; }).join("");
-  const degs = [0, 90, 180, 270].map((d) => { const [x, y] = P((-d * Math.PI) / 180, R0 + 48); return `<text class="dl" x="${x}" y="${y}" dy="7" text-anchor="middle">${d}°</text>`; }).join("");
-  const [k0, v0] = sources[0];
+  const VW = 1000, VH = 1000 * AR, cx = 500, cy = toStage(ORBIT_Y) * VH, R0 = AGENT_R * VW, reach = R0 + 130;
+  // Each name starts at twelve o'clock and runs clockwise just outside its circle.
+  const around = (id, r) => `<path id="${id}" d="M ${cx} ${(cy - r).toFixed(1)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${cx} ${(cy + r).toFixed(1)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${cx} ${(cy - r).toFixed(1)}"/>`;
   return `<div class="abs" style="clip-path:inset(0 0 var(--sheet) 0)">
     <svg class="orbit" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true">
-      <line class="faint dash" x1="0" y1="${cy.toFixed(1)}" x2="${VW}" y2="${cy.toFixed(1)}"/>
-      <line class="faint dash" x1="${cx}" y1="${(cy - Rmax - 110).toFixed(1)}" x2="${cx}" y2="${(cy + Rmax + 110).toFixed(1)}"/>
-      <circle class="faint ring" pathLength="1" cx="${cx}" cy="${cy.toFixed(1)}" r="${(planetR * 1.1 * VW * 0.9).toFixed(1)}"/>
-      ${Rs.map((r) => `<circle class="ring" pathLength="1" cx="${cx}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}"/>`).join("")}
-      <circle class="faint ring" pathLength="1" cx="${cx}" cy="${cy.toFixed(1)}" r="${(Rmax + 70).toFixed(1)}"/>
-      ${ticks}${degs}
-      ${moons.map((_, j) => `${j ? "" : `<path class="arc" id="arc-${j}"/><text class="dl deg" id="deg-${j}" text-anchor="middle"></text>`}<line class="ray" id="ray-${j}" x1="${cx}" y1="${cy.toFixed(1)}" x2="${cx}" y2="${cy.toFixed(1)}"/><circle class="moon" id="moon-${j}" cx="${cx}" cy="${cy.toFixed(1)}" r="${(9 + 14 * Math.sqrt(moons[j][1].prompts / total)).toFixed(1)}"/>`).join("")}
+      <defs>${agents.map(([, v], i) => around(`agent-${i}`, agentR(v) * VW + 12)).join("")}</defs>
+      <line class="faint dash" x1="${cx - reach}" y1="${cy.toFixed(1)}" x2="${cx + reach}" y2="${cy.toFixed(1)}"/>
+      <line class="faint dash" x1="${cx}" y1="${(cy - reach).toFixed(1)}" x2="${cx}" y2="${(cy + reach).toFixed(1)}"/>
+      ${agents.map(([, v], i) => `<circle class="ring" pathLength="1" cx="${cx}" cy="${cy.toFixed(1)}" r="${(agentR(v) * VW).toFixed(1)}" style="--d:${i}"/>`).join("")}
+      ${agents.map(([k, v], i) => `<text class="agl"><textPath href="#agent-${i}" startOffset="6">${esc(SOURCE_LABEL[k] ?? k)}<tspan class="n"> · ${fmt(v.prompts)}</tspan></textPath></text>`).join("")}
     </svg>
-    <span class="orb-lbl" style="left:50%;top:${(cy / VH) * 100}%"><b>${SOURCE_LABEL[k0] ?? k0}</b><i class="roll">${fmt(v0.prompts)} prompts</i></span>
-    ${moons.map(([k, v], j) => `<i class="mark" id="mm-${j}" style="--d:${j + 2}"></i><span class="trk" id="ml-${j}" style="--d:${j + 2}"><em class="rd">A${j + 2} · 000.0° · 00.0,00.0</em><strong>${SOURCE_LABEL[k] ?? k}</strong><i>${fmt(v.prompts)} prompts · ${((v.prompts / total) * 100).toFixed(1)}%</i></span>`).join("")}
   </div>`;
-}
-
-// Moves the moons, their rays and the angle readout each frame.
-function planetTick(el, age) {
-  const VW = 1000, VH = 1000 * AR, cx = 500, cy = toStage(ORBIT_Y) * VH;
-  sources.slice(1, 4).forEach((_, j) => {
-    const R = orbitR(j + 1) * VW, a = moonAngle(age, j + 1), x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
-    const q = (id) => el.querySelector(`#${id}-${j}`);
-    q("moon").setAttribute("cx", x.toFixed(1)); q("moon").setAttribute("cy", y.toFixed(1));
-    q("ray").setAttribute("x2", x.toFixed(1)); q("ray").setAttribute("y2", y.toFixed(1));
-    const deg = (((-a * 180) / Math.PI) % 360 + 360) % 360, sx = (x / VW) * 100, sy = (y / VH) * 100;
-    const mark = q("mm"), lbl = q("ml");
-    mark.style.left = lbl.style.left = sx + "%"; mark.style.top = lbl.style.top = sy + "%";
-    lbl.classList.toggle("flip", sx > 62);
-    lbl.querySelector(".rd").textContent = `A${j + 2} · ${deg.toFixed(1).padStart(5, "0")}° · ${sx.toFixed(1)},${sy.toFixed(1)}`;
-    if (j) return;
-    const ra = R * 0.3, ex = cx + Math.cos(a) * ra, ey = cy + Math.sin(a) * ra, mid = (-deg / 2) * (Math.PI / 180);
-    q("arc").setAttribute("d", `M ${cx + ra} ${cy} A ${ra} ${ra} 0 ${deg > 180 ? 1 : 0} 0 ${ex.toFixed(1)} ${ey.toFixed(1)}`);
-    const d = q("deg"); d.textContent = deg.toFixed(1) + "°";
-    d.setAttribute("x", (cx + Math.cos(mid) * ra * 1.45).toFixed(1)); d.setAttribute("y", (cy + Math.sin(mid) * ra * 1.45 + 7).toFixed(1));
-  });
 }
 
 function phraseLayer() {
@@ -576,26 +578,27 @@ function phraseLayer() {
     ${phrases.map((_, i) => `<i class="rowg" style="top:${y(i)}%"></i>`).join("")}
     ${ticks.map((v) => `<i class="colg" style="left:${plotX(v)}%;top:${yTop}%;height:${yEnd - yTop + 3}%"></i><span class="axis" style="left:${plotX(v)}%;top:${yTop}%">${fmt(v)}</span>`).join("")}
     <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${phrases.map((_, i) => `<line id="ps-${i}" style="stroke:#161616;stroke-opacity:0.55;stroke-width:1.4" x1="${PLOT.x0}" x2="${PLOT.x0}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
-    ${phrases.map((p, i) => `<span class="plabel${i ? "" : " lead"}" style="top:${y(i)}%;--fs:${(5.4 - i * 0.45).toFixed(2)}cqw;--d:${i}"><i>P${i + 1}</i><strong>${esc(p.name)}</strong></span>`).join("")}
-    ${phrases.map((p, i) => `<i class="mark" id="pm-${i}" style="--d:${i}"></i><span class="chip${i ? "" : " lead"}" id="pb-${i}" style="--d:${i}"><em class="rd">00.0,00.0</em><b class="roll">${fmt(p.count)}×</b></span>`).join("")}
+    ${phrases.map((p, i) => `<i class="mark" id="pm-${i}" style="--d:${i}"></i><span class="chip word${i ? "" : " lead"}" id="pb-${i}" style="--d:${i};--fs:${(5 - i * 0.35).toFixed(2)}cqw"><em class="rd">0×</em><b>${esc(p.name)}</b></span>`).join("")}
   </div>`;
 }
 
-// Stems grow from zero with their hotspots; each count readout rides its node, flipping left if it would run off.
+// Stems grow from zero with their hotspots; each phrase chip rides its node, flipping left if it would run off.
 function phraseTick(el) {
-  phrases.forEach((_, i) => {
+  phrases.forEach((p, i) => {
     const x = toStage(blobs[i].x) * 100, y = toStage(blobs[i].y) * 100;
     const m = el.querySelector(`#pm-${i}`), b = el.querySelector(`#pb-${i}`), st = el.querySelector(`#ps-${i}`);
     m.style.left = b.style.left = x + "%"; m.style.top = b.style.top = y + "%";
     st.setAttribute("x2", Math.max(PLOT.x0, x));
     b.classList.toggle("flip", x + (b.offsetWidth / el.clientWidth) * 100 + 3.4 > 97);
-    b.querySelector(".rd").textContent = `${x.toFixed(1)},${y.toFixed(1)}`;
+    // The count ticks up as the node travels out to it.
+    const n = Math.min(p.count, Math.round(((x - PLOT.x0) / (PLOT.x1 - PLOT.x0)) * plotMax));
+    b.querySelector(".rd").textContent = `${fmt(Math.max(0, n))}×`;
   });
 }
 
 function projectLayer() {
   const L = projectLayout(0);
-  return `<div class="abs">${projects.map((p, i) => hot(i, L[i], p.name.slice(0, 18), fmt(p.count), i ? 2.8 + 2 * Math.sqrt(p.count / projMax) : 6.4)).join("")}</div>`;
+  return `<div class="abs">${projects.map((p, i) => hot(i, L[i], p.name.slice(0, 18), `${fmt(p.count)} prompts`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2)).join("")}</div>`;
 }
 
 function fingerprintLayer() {
@@ -680,26 +683,34 @@ function weekChart() {
   </div>`;
 }
 
-function traitsBlock() {
-  const traits = (P.traits ?? []).slice(0, 4), pitch = 27, x0 = 21, x1 = 68;
-  const pts = traits.map((t, i) => [x0 + (x1 - x0) * Math.min(96, Math.max(4, t.value)) / 100, 4 + i * pitch]);
-  const hi = traits.reduce((b, t, i) => (Math.abs(t.value - 50) > Math.abs(traits[b].value - 50) ? i : b), 0);
-  const path = pts.map(([x, y], i) => (i ? `C ${pts[i - 1][0]} ${pts[i - 1][1] + pitch / 2}, ${x} ${y - pitch / 2}, ${x} ${y}` : `M ${x} ${y}`)).join(" ");
-  return `<div class="traits">
-    <svg viewBox="0 0 89 108" aria-hidden="true">
-      <defs><filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
-      ${pts.map(([, y]) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="#161616" stroke-opacity="0.22" stroke-width="0.25"/>`).join("")}
-      ${pts.map(([, y]) => [0.25, 0.5, 0.75].map((f) => `<circle cx="${x0 + (x1 - x0) * f}" cy="${y}" r="0.7" fill="#161616" opacity="0.25"/>`).join("")).join("")}
-      <path class="glow" d="${path}" fill="none" style="stroke:var(--c3)" stroke-width="6" stroke-linecap="round" filter="url(#soft)" opacity="0.75" stroke-dasharray="400"/>
-      ${pts.map(([x, y], i) => i === hi
-        ? `<g class="dot" style="--d:${i}"><circle cx="${x}" cy="${y}" r="4.2" style="fill:var(--c2)" filter="url(#soft)"/><circle cx="${x}" cy="${y}" r="2.6" style="fill:var(--c2)"/><circle cx="${x}" cy="${y}" r="1.3" fill="#161616"/></g>`
-        : `<circle class="dot" style="--d:${i}" cx="${x}" cy="${y}" r="2.4" fill="#161616"/>`).join("")}
-    </svg>
-    ${traits.map((t, i) => {
-      const y = 4 + i * pitch, cls = i === hi ? " hi" : "";
-      return `<span class="end l${cls}" style="top:${y}cqw">${esc(t.left)}</span><span class="end r${cls}" style="top:${y}cqw">${esc(t.right)}</span>${t.note ? `<p class="note" style="top:${y + 4}cqw">${esc(t.note)}</p>` : ""}`;
-    }).join("")}
+// How far a 0..100 reading leans, in words, pointing at the side it leans to.
+function leanWord(v) {
+  const p = Math.max(v, 100 - v), w = p >= 80 ? "Strong lean" : p >= 65 ? "Clear lean" : p >= 55 ? "Slight lean" : "Dead even";
+  return p < 55 ? w : v < 50 ? `← ${w}` : `${w} →`;
+}
+
+function vibeLayer() {
+  const y = (i) => vibeY(i) * 100, mid = vibeX(50);
+  return `<div class="abs">
+    ${traits.map((_, i) => `<i class="vline" style="left:${vibeX(0)}%;width:${vibeX(100) - vibeX(0)}%;top:${y(i)}%"></i>`).join("")}
+    <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${traits.map((_, i) => `<line id="vs-${i}" style="stroke:#161616;stroke-opacity:0.55;stroke-width:1.4" x1="${mid}" x2="${mid}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
+    ${traits.map((t, i) => `<span class="vpole l" style="top:${y(i)}%;--d:${i}">${esc(t.left)}</span><span class="vpole r" style="top:${y(i)}%;--d:${i}">${esc(t.right)}</span>${t.note ? `<p class="vnote" style="top:${y(i)}%;--d:${i}">${esc(t.note)}</p>` : ""}`).join("")}
+    ${traits.map((_, i) => [0, 50, 100].map((v) => `<i class="vend${v === 50 ? " mid" : ""}" style="left:${vibeX(v)}%;top:${y(i)}%"></i>`).join("")).join("")}
+    ${traits.map((t, i) => `<i class="mark" id="vm-${i}" style="--d:${i}"></i><span class="chip" id="vc-${i}" style="--d:${i}"><em class="rd">Dead even</em><b class="roll">${Math.round(Math.max(t.value, 100 - t.value))}%</b></span>`).join("")}
   </div>`;
+}
+
+// Each mark rides its row's hottest point along the line; the readout points away from the midpoint unless it would run off the edge.
+function vibeTick(el) {
+  traits.forEach((_, i) => {
+    const x = toStage(blobs[i * VIBE.n].x) * 100, y = vibeY(i) * 100;
+    const m = el.querySelector(`#vm-${i}`), c = el.querySelector(`#vc-${i}`);
+    m.style.left = c.style.left = x + "%"; m.style.top = c.style.top = y + "%";
+    el.querySelector(`#vs-${i}`).setAttribute("x2", x);
+    const w = (c.offsetWidth / el.clientWidth) * 100 + 3.4;
+    c.classList.toggle("flip", x < vibeX(50) ? x - w > 3 : x + w > 97);
+    c.querySelector(".rd").textContent = leanWord(((x - VIBE.x0) / (VIBE.x1 - VIBE.x0)) * 100);
+  });
 }
 
 // ---------- slides ----------
@@ -737,7 +748,7 @@ const slides = [
     ],
   },
   {
-    pal: "mint", sheet: 48, fg: "#161616", still: true, live: planetLayout, field: () => planetLayout(0), extra: planetLayer, tick: planetTick,
+    pal: "glacier", pals: ["glacier", "lilac"], sheet: 48, fg: "#161616", still: true, live: planetLayout, field: () => planetLayout(0), extra: planetLayer,
     top: () => [hud("02", "Routing")],
     bottom: () => [
       head("Agents in rotation"),
@@ -808,7 +819,7 @@ const slides = [
   },
   {
     skip: !S.projects.length,
-    pal: "sky", sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
+    pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
     top: () => [hud("08", "Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went</p>`],
     bottom: () => [head("Workload", `${projects.length} projects`), `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`],
   },
@@ -825,15 +836,9 @@ const slides = [
     bottom: () => [head("Greatest hits"), `<p class="body">${esc(q.caption)}</p>`],
   })),
   {
-    pal: "infra", sheet: 100, fg: "#161616", field: () => scatter(2),
-    top: () => [],
-    bottom: () => [
-      `<div style="height:3cqw"></div>`,
-      head("Vibe check", "4 / 4"),
-      `<h2 class="display" style="font-size:12cqw">Vibe check</h2>`,
-      `<div class="grow"></div>`,
-      traitsBlock(),
-    ],
+    pal: "infra", sheet: 0, fg: "#161616", still: true, live: vibeLayout, field: () => vibeLayout(0), extra: vibeLayer, tick: vibeTick,
+    top: () => [hud("12", "Vibe check"), `<p class="micro" style="opacity:0.7">Where you sit on each dial</p>`],
+    bottom: () => [],
   },
   {
     pal: "ember", sheet: 28, fg: "#FFFFFF", field: () => scatter(9, 6, [0, 0, 1, 0.66]),
@@ -875,7 +880,7 @@ const slides = [
 // ---------- colour field ----------
 
 const field = document.getElementById("field"), fctx = field.getContext("2d");
-const FW = field.width, NB = 24;
+const FW = field.width, NB = 32;
 let FH = field.height, img = fctx.createImageData(FW, FH);
 // Match the field's pixel grid to the stage shape.
 function sizeField() { FH = Math.round(FW * AR); field.height = FH; img = fctx.createImageData(FW, FH); }
@@ -888,6 +893,24 @@ function lutFrom(stops) {
   }
   return lut;
 }
+// OKLab, so where two hotspot colours overlap the blend stays bright instead of going muddy.
+const toLin = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+function rgbToOk(r, g, b) {
+  r = toLin(r); g = toLin(g); b = toLin(b);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b), s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s];
+}
+const GAMMA = Uint8ClampedArray.from({ length: 4096 }, (_, i) => { const x = i / 4095; return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055); });
+const toGam = (x) => GAMMA[Math.min(4095, Math.max(0, (x * 4095) | 0))];
+function okToRgb(L, A, B, d, p) {
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
+  d[p] = toGam(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
+  d[p + 1] = toGam(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
+  d[p + 2] = toGam(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s);
+}
+const okLut = (lut) => { const o = new Float32Array(768); for (let i = 0; i < 768; i += 3) o.set(rgbToOk(lut[i], lut[i + 1], lut[i + 2]), i); return o; };
+// A palette with its coolest stop swapped for paper, so every hotspot rises out of the same page.
+const stopsOf = (name) => ["#F3F2EE", ...PALETTES[name].stops.slice(1)];
 const blobs = [...Array(NB)].map(() => ({ x: 0.5, y: 0.4, r: 0.2, w: 0, p: 0, tx: 0.5, ty: 0.4, tr: 0.2, tw: 0, tp: 0 }));
 const tw = { pal: "", mode: "", speed: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1 };
 let fieldAct = [], fieldGain = 1.3;
@@ -898,19 +921,28 @@ function heatAt(sx, sy) {
   for (let q = 0; q < fieldAct.length; q += 4) { const dx = u - fieldAct[q], dy = v - fieldAct[q + 1]; f += fieldAct[q + 3] * Math.exp(-(dx * dx + dy * dy) * fieldAct[q + 2]); }
   return 1 - Math.exp(-fieldGain * f);
 }
-let lut = lutFrom(PALETTES.dusk.stops), lutFromArr = lut, lutTo = lut, lutK = 1, bands = 0, bandsTarget = 0, still = 0, stillTarget = 0, heat = 0, heatTarget = 0, live = null, liveFrom = 0, t = 0, last = 0;
+let lut = lutFrom(PALETTES.dusk.stops), lutFromArr = lut, lutTo = lut, multi = null, multiFrom = null, multiTo = null, multiEnds = false, lutK = 1, bands = 0, bandsTarget = 0, still = 0, stillTarget = 0, heat = 0, heatTarget = 0, live = null, liveFrom = 0, t = 0, last = 0;
 
 function setField(s) {
   const pal = PALETTES[tw.pal || s.pal];
   const layout = s.field();
   blobs.forEach((b, i) => {
     const L = layout[i];
-    if (L) Object.assign(b, { tx: L.x, ty: L.y, tr: L.r, tw: L.w, tp: L.p ?? 0 });
+    if (L) Object.assign(b, { tx: L.x, ty: L.y, tr: L.r, tw: L.w, tp: L.p ?? 0, c: L.c ?? 0 });
     else Object.assign(b, { tw: 0, tp: 0 });
   });
   lutFromArr = lut.slice(); lutTo = lutFrom(pal.stops); lutK = 0;
   // Some slides wash the field toward paper so the data on top keeps its colour.
   if (s.fade) { const paper = hex("#F3F2EE"); for (let i = 0; i < 768; i++) lutTo[i] += (paper[i % 3] - lutTo[i]) * s.fade; }
+  // Slides with `pals` colour each hotspot by its `c` index, one palette each. Every palette morphs in from what's on
+  // screen, and leaving such a slide morphs them all back into the next one before switching off.
+  const pals = s.pals && !tw.pal ? s.pals.map(stopsOf) : null, n = pals ? pals.length : multi ? multi.length : 0;
+  if (n) {
+    const base = okLut(lut), next = okLut(lutTo);
+    multiFrom = [...Array(n)].map((_, i) => multi?.[i]?.slice() ?? base);
+    multiTo = [...Array(n)].map((_, i) => (pals ? okLut(lutFrom(pals[i])) : next));
+    multi = multiFrom.map((m) => m.slice()); multiEnds = !pals;
+  }
   // `bands` can be true or a 0..1 mix, for a softer hint of contour.
   bandsTarget = tw.mode ? +(tw.mode === "bands") : typeof s.bands === "number" ? s.bands : +!!s.bands;
   stillTarget = +!!s.still;
@@ -926,7 +958,7 @@ function frame(now) {
   if (now - last < 33) return;
   const dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt * tw.speed;
   const k = 1 - Math.exp(-dt * 3.2);
-  if (live) live(t - liveFrom).forEach((L, i) => Object.assign(blobs[i], { tx: L.x, ty: L.y, tr: L.r, tw: L.w }));
+  if (live) live(t - liveFrom).forEach((L, i) => Object.assign(blobs[i], { tx: L.x, ty: L.y, tr: L.r, tw: L.w, c: L.c ?? 0 }));
   const kp = live ? 1 - Math.exp(-dt * 8) : k;
   for (const b of blobs) { b.x += (b.tx - b.x) * kp; b.y += (b.ty - b.y) * kp; b.r += (b.tr - b.r) * k; b.w += (b.tw - b.w) * kp; b.p += (b.tp - b.p) * k; }
   if (lutK < 1) {
@@ -934,21 +966,26 @@ function frame(now) {
     const e = 1 - Math.pow(1 - lutK, 3);
     lut = new Float32Array(768);
     for (let i = 0; i < 768; i++) lut[i] = lutFromArr[i] + (lutTo[i] - lutFromArr[i]) * e;
+    if (multi) for (let m = 0; m < multi.length; m++) for (let i = 0; i < 768; i++) multi[m][i] = multiFrom[m][i] + (multiTo[m][i] - multiFrom[m][i]) * e;
+    if (lutK === 1 && multiEnds) multi = null;
   }
   bands += (bandsTarget - bands) * k;
   still += (stillTarget - still) * k;
   heat += (heatTarget - heat) * k;
   const gain = 1.3 + 0.8 * heat, rings = Math.PI * (3.2 - 0.6 * heat);
-  const act = [];
+  const act = [], cs = [];
   // Free slides drift and warp; "still" slides keep each hotspot where it belongs and only bob it in place.
   const drift = 1 - still, bob = 0.006 * still, beat = Math.sin(t * 2.4);
   blobs.forEach((b, n) => {
     if (b.w <= 0.01) return;
     const x = b.x + 0.035 * drift * Math.sin(t * 0.35 + n * 1.3) + bob * Math.sin(t * 1.7 + n * 2.3);
     const y = b.y + 0.03 * drift * Math.cos(t * 0.3 + n * 2.1) + bob * Math.cos(t * 1.3 + n * 1.7);
-    const r = b.r * (1 + 0.22 * b.p * beat);
-    act.push(x, y * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * beat));
+    // The peak hotspot only swells, never dips, so it stays the hottest thing on screen.
+    const r = b.r * (1 + 0.22 * b.p * (0.5 + 0.5 * beat));
+    act.push(x, y * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * (0.5 + 0.5 * beat)));
+    cs.push(b.c | 0);
   });
+  const nm = multi ? multi.length : 0, fc = new Float32Array(nm || 1);
   fieldAct = act; fieldGain = gain;
   const warp = 0.035 * drift;
   const d = img.data, n = act.length;
@@ -959,11 +996,27 @@ function frame(now) {
       const u0 = i / (FW - 1);
       const u = u0 + warp * Math.sin(v0 * 4.2 + t * 0.6), v = v0 + warp * Math.cos(u0 * 5.1 + t * 0.45);
       let f = 0;
-      for (let q = 0; q < n; q += 4) { const dx = u - act[q], dy = v - act[q + 1]; f += act[q + 3] * Math.exp(-(dx * dx + dy * dy) * act[q + 2]); }
+      if (nm) fc.fill(0);
+      for (let q = 0; q < n; q += 4) { const dx = u - act[q], dy = v - act[q + 1], e = act[q + 3] * Math.exp(-(dx * dx + dy * dy) * act[q + 2]); f += e; if (nm) fc[Math.min(nm - 1, cs[q >> 2])] += e; }
       let g = 1 - Math.exp(-gain * f);
       if (bands > 0.01) g += (0.5 - 0.5 * Math.cos(g * rings) - g) * bands;
       const li = Math.min(255, Math.max(0, (g * 255) | 0)) * 3;
-      d[p] = lut[li]; d[p + 1] = lut[li + 1]; d[p + 2] = lut[li + 2]; d[p + 3] = 255; p += 4;
+      if (nm) {
+        // Each palette is read at its own hotspot's heat, so every hotspot keeps its whole rim-to-core ramp instead of
+        // all of them being pushed to the same hot middle; a lone hotspot runs hotter so even small ones reach their
+        // core. Where they meet, they mix in OKLab, weighted by heat
+        // squared so each one holds its own colour until it's close to the boundary.
+        let L = 0, A = 0, B = 0, ws = 0;
+        for (let m = 0; m < nm; m++) {
+          const fm = fc[m];
+          if (fm < 1e-5) continue;
+          const w2 = fm * fm, lm = Math.min(255, ((1 - Math.exp(-gain * 1.6 * fm)) * 255) | 0) * 3, M = multi[m];
+          L += M[lm] * w2; A += M[lm + 1] * w2; B += M[lm + 2] * w2; ws += w2;
+        }
+        if (ws) okToRgb(L / ws, A / ws, B / ws, d, p);
+        else okToRgb(multi[0][0], multi[0][1], multi[0][2], d, p);
+      } else { d[p] = lut[li]; d[p + 1] = lut[li + 1]; d[p + 2] = lut[li + 2]; }
+      d[p + 3] = 255; p += 4;
     }
   }
   fctx.putImageData(img, 0, 0);
@@ -1092,59 +1145,103 @@ function rollNumbers(slide) {
 
 // ---------- burn: cover → volume ----------
 
-// A wavy front sweeps left to right with a dark chromatic fringe (navy, magenta, the next palette's orange and yellow),
-// leaving a streaky wash. Then the next slide is swapped in underneath and the wash clears the same way.
-const burnEl = document.getElementById("burn"), BW = 160, T_BURN = 1.15, T_CLEAR = 0.95;
+// The cover's hottest point ignites and a wavy ring spreads out from it with a dark chromatic fringe (navy, magenta,
+// the next palette's orange and yellow). The next slide is already live underneath, so the ring burns the cover away
+// to reveal it: a frozen copy of the cover rides on top with a hole cut out just behind the fringe.
+const burnEl = document.getElementById("burn"), BW = 160, NA = 512, T_BURN = 0.9;
 let burning = null;
 const smooth = (k) => k * k * (3 - 2 * k);
+// Where the field is hottest right now, in stage units.
+function hottest() {
+  const n = 48, m = Math.round(n * AR);
+  let best = -1, bx = 0.5, by = 0.5;
+  for (let j = 0; j <= m; j++) for (let i = 0; i <= n; i++) {
+    const h = heatAt(i / n, j / m);
+    if (h > best) { best = h; bx = i / n; by = j / m; }
+  }
+  // Before the field's first frame there's nothing to sample; fall back to the main hotspot.
+  return best > 0 ? { x: bx, y: by } : { x: toStage(blobs[0].tx), y: toStage(blobs[0].ty) };
+}
 function burn(to) {
   const BH = Math.round(BW * AR), bx = burnEl.getContext("2d");
   burnEl.width = BW; burnEl.height = BH; burnEl.style.display = "block";
-  const img = bx.createImageData(BW, BH), d = img.data, pal = PALETTES[tw.pal || slides[to].pal].stops.map(hex), paper = hex("#F3F2EE");
+  const img = bx.createImageData(BW, BH), d = img.data, pal = PALETTES[tw.pal || slides[to].pal].stops.map(hex);
   const NAVY = hex("#1B1F6E"), MAG = hex("#E0357F"), CYAN = hex("#3FA0F0");
   const FR = [[0, NAVY], [0.3, MAG], [0.5, pal[3]], [0.68, pal[4]]];
   const col = [0, 0, 0], mix = (a, b, k) => { col[0] = a[0] + (b[0] - a[0]) * k; col[1] = a[1] + (b[1] - a[1]) * k; col[2] = a[2] + (b[2] - a[2]) * k; return col; };
+  // Each pixel's distance and angle from the origin; the edge's shape is a function of angle, so it wraps seamlessly.
+  const o = hottest(), ox = o.x, oy = o.y * AR, R = new Float32Array(BW * BH), A = new Uint16Array(BW * BH);
+  let reach = 0;
+  for (let j = 0, p = 0; j < BH; j++) for (let i = 0; i < BW; i++, p++) {
+    const dx = i / (BW - 1) - ox, dy = (j / (BH - 1)) * AR - oy;
+    R[p] = Math.hypot(dx, dy); reach = Math.max(reach, R[p]);
+    A[p] = Math.floor(((Math.atan2(dy, dx) / (2 * Math.PI) + 1) % 1) * NA) % NA;
+  }
+  const lobeA = new Float32Array(NA), frontA = new Float32Array(NA), fwA = new Float32Array(NA);
+
+  // Freeze the cover (its field, paper sheet and slide) into a layer above the slides, then go to the next slide under it.
+  const oldEl = els[cur], home = oldEl.nextSibling, cover = document.createElement("div");
+  cover.className = "burn-cover";
+  const fc = document.createElement("canvas");
+  fc.width = field.width; fc.height = field.height; fc.getContext("2d").drawImage(field, 0, 0);
+  const sh = document.createElement("div");
+  sh.className = "sheet"; sh.style.cssText = `height:${slides[cur].sheet}%;transition:none`;
+  cover.append(fc, sh, oldEl);
+  // Going on stops the cover's counters mid-roll, so land them first.
+  oldEl.querySelectorAll(".roll").forEach((n) => { if (n.dataset.final && n.firstChild?.nodeType === 3) n.firstChild.textContent = n.dataset.final; });
+  stage.insertBefore(cover, burnEl);
+  go(to, true, true);
+
   const start = performance.now();
-  let swapped = false;
   const step = (now) => {
-    const s = (now - start) / 1000;
-    if (!swapped && s >= T_BURN) { swapped = true; burning = null; go(to, true); burning = step; }
     if (burning !== step) return;
-    const F = -0.3 + 1.6 * smooth(clamp01(s / T_BURN)), Tl = swapped ? -0.3 + 1.6 * smooth(clamp01((s - T_BURN) / T_CLEAR)) : -9;
-    let p = 0;
-    for (let j = 0; j < BH; j++) {
-      const y = (j / (BH - 1)) * AR;
+    const s = (now - start) / 1000, W = stage.clientWidth, H = stage.clientHeight;
+    const F = -0.02 + (reach + 0.3) * smooth(clamp01(s / T_BURN));
+    // The edge starts as a round spark and grows its scallops as it spreads.
+    const wob = clamp01(F / 0.3);
+    let hole = "";
+    for (let k = 0; k < NA; k++) {
+      const th = (k / NA) * 2 * Math.PI;
       // A scalloped edge; the dark core pools in each bulge and the fringe runs wider there.
-      const lobe = Math.abs(Math.sin(y * 11 + s * 0.8 + Math.sin(y * 3)));
-      const front = F + 0.03 * Math.sin(y * 5 + s * 1.5) + 0.03 * lobe + 0.008 * Math.sin(y * 41 + s * 4), fw = 0.12 + 0.09 * lobe;
-      const streak = Math.pow(0.5 + 0.5 * Math.sin(y * 8.5 + 1.6 * Math.sin(y * 2.3)), 2), tail = Tl + 0.04 * Math.sin(y * 6 - s * 1.2) + 0.02 * Math.sin(y * 15 + s);
-      const near = mix(paper, pal[2], 0.3 + 0.6 * streak).slice();
-      for (let i = 0; i < BW; i++, p += 4) {
-        const u = i / (BW - 1), dd = front - u;
-        let a = 1;
-        if (dd < -0.014) { d[p + 3] = 0; continue; }
-        if (dd < 0) { mix(CYAN, CYAN, 0); a = 0.75 * (1 + dd / 0.014); }
-        else {
-          const q = dd / fw;
-          if (q < 0.68) {
-            let k = 1; while (FR[k][0] < q && k < FR.length - 1) k++;
-            mix(FR[k - 1][1], FR[k][1], clamp01((q - FR[k - 1][0]) / (FR[k][0] - FR[k - 1][0])));
-            if (q < 0.3) { const c = col.slice(); mix(c, MAG, (1 - lobe) * 0.75 * (1 - q / 0.3)); }
-          } else if (q < 1) mix(pal[4], near, (q - 0.68) / 0.32);
-          else {
-            // Wash: pink bleeding just behind the fringe, settling into lavender and butter streaks across the paper.
-            const w = clamp01((q - 1) / 3), tint = mix(pal[1], Math.sin(y * 4.3) > 0.4 ? pal[4] : pal[2], 0.5 + 0.5 * Math.sin(y * 3 + u * 4)).slice();
-            const far = mix(paper, tint, 0.18 + 0.55 * streak).slice();
-            mix(near, far, w);
-          }
-        }
-        if (dd > 0 && tail > u) a *= 1 - smooth(clamp01((tail - u) / 0.2));
-        d[p] = col[0]; d[p + 1] = col[1]; d[p + 2] = col[2]; d[p + 3] = a * 255;
+      const lobe = Math.abs(Math.sin(th * 6 + s * 0.8 + Math.sin(th * 2)));
+      lobeA[k] = lobe;
+      frontA[k] = F + wob * (0.03 * Math.sin(th * 5 + s * 1.5) + 0.03 * lobe + 0.008 * Math.sin(th * 41 + s * 4));
+      fwA[k] = 0.12 + 0.09 * lobe;
+      // The hole sits under the fringe's yellow, so its hard edge never shows.
+      if (k % 2 === 0) {
+        const rh = Math.max(0, frontA[k] - 0.72 * fwA[k]);
+        hole += `${k ? "L" : "M"}${((ox + rh * Math.cos(th)) * W).toFixed(1)} ${((oy + rh * Math.sin(th)) * W).toFixed(1)}`;
       }
     }
+    cover.style.clipPath = `path(evenodd, "M-1 -1H${W + 1}V${H + 1}H-1Z${hole}Z")`;
+    let p = 0;
+    for (let n = 0; n < BW * BH; n++, p += 4) {
+      const k = A[n], dd = frontA[k] - R[n];
+      let a = 1;
+      if (dd < -0.014) { d[p + 3] = 0; continue; }
+      if (dd < 0) { mix(CYAN, CYAN, 0); a = 0.75 * (1 + dd / 0.014); }
+      else {
+        const q = dd / fwA[k];
+        if (q > 1.3) { d[p + 3] = 0; continue; }
+        if (q < 0.68) {
+          let f = 1; while (FR[f][0] < q && f < FR.length - 1) f++;
+          mix(FR[f - 1][1], FR[f][1], clamp01((q - FR[f - 1][0]) / (FR[f][0] - FR[f - 1][0])));
+          if (q < 0.3) { const c = col.slice(); mix(c, MAG, (1 - lobeA[k]) * 0.75 * (1 - q / 0.3)); }
+        } else {
+          // Behind the fringe the yellow glows off into the revealed slide.
+          mix(pal[4], pal[3], 0.25 * clamp01((q - 0.68) / 0.6));
+          a = 1 - smooth(clamp01((q - 0.76) / 0.54));
+        }
+      }
+      d[p] = col[0]; d[p + 1] = col[1]; d[p + 2] = col[2]; d[p + 3] = a * 255;
+    }
     bx.putImageData(img, 0, 0);
-    if (s < T_BURN + T_CLEAR) requestAnimationFrame(step);
-    else { burnEl.style.display = "none"; burning = null; }
+    if (s < T_BURN) return requestAnimationFrame(step);
+    // Done: put the cover slide back where it lives, hidden.
+    oldEl.classList.remove("active");
+    root.insertBefore(oldEl, home);
+    cover.remove();
+    burnEl.style.display = "none"; burning = null;
   };
   burning = step;
   requestAnimationFrame(step);
@@ -1177,12 +1274,13 @@ new ResizeObserver(() => {
   }, 150);
 }).observe(stage);
 
-function go(i, force) {
+// `keep` leaves the outgoing slide showing; the burn hides it itself once it has burned away.
+function go(i, force, keep) {
   i = Math.max(0, Math.min(slides.length - 1, i));
   if (i === cur && !force) return;
   if (burning && !force) return;
   if (cur === 0 && i === 1 && !force && tw.speed) return burn(i);
-  els[cur]?.classList.remove("active");
+  if (!keep) els[cur]?.classList.remove("active");
   cur = i;
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
