@@ -1,0 +1,11 @@
+{
+  "name": "how-i-ai",
+  "owner": { "name": "Mubarak Marafa" },
+  "plugins": [
+    {
+      "name": "how-i-ai",
+      "source": "./",
+      "description": "Spotify Wrapped for your prompting: /wrapped turns your local AI chat history into a shareable personality story."
+    }
+  ]
+}

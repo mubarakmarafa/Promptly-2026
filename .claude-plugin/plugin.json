@@ -1,0 +1,8 @@
+{
+  "name": "how-i-ai",
+  "description": "Spotify Wrapped for your prompting. Reads your local Claude Code, Codex and Cursor history and turns it into a shareable personality story.",
+  "version": "0.1.0",
+  "author": { "name": "Mubarak Marafa" },
+  "repository": "https://github.com/mubarakmarafa/how-i-ai",
+  "license": "MIT"
+}

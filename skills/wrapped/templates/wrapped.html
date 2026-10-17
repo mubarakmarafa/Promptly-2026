@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How I AI · Wrapped</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #121212;
+    --paper: #F4F1EA;
+    --lime: #C6F432;
+    --orange: #FF5B2E;
+    --blue: #1E3DFF;
+    --yellow: #FFD23F;
+    --pink: #FFB4E6;
+    --red: #C2161F;
+    --navy: #0B1F3A;
+    --green: #0F5B3A;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --serif: "Instrument Serif", ui-serif, Georgia, serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #0A0A0A;
+    color: var(--paper);
+    font-family: var(--display);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .stage {
+    position: relative;
+    height: min(100dvh - 32px, 920px);
+    aspect-ratio: 9 / 16;
+    border-radius: 20px;
+    overflow: hidden;
+    container-type: size;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.5);
+  }
+  @media (max-width: 560px) {
+    .stage { height: 100dvh; width: 100vw; aspect-ratio: auto; border-radius: 0; }
+  }
+
+  .progress {
+    position: absolute; inset: 0 0 auto 0; z-index: 10;
+    display: flex; gap: 4px; padding: 12px 12px 0;
+  }
+  .progress span {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--fg) 25%, transparent);
+    overflow: hidden;
+  }
+  .progress span i {
+    display: block; height: 100%; width: 0;
+    background: var(--fg);
+  }
+  .progress span.done i { width: 100%; }
+  .progress span.active i { width: 100%; transition: width 400ms var(--ease-out); }
+
+  .brand {
+    position: absolute; z-index: 10; top: 26px; left: 16px;
+    font: 500 11px/1 var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--fg); opacity: 0.7;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    padding: 64px 7cqw 52px;
+    display: flex; flex-direction: column; gap: 3cqw;
+    background: var(--bg); color: var(--fg);
+    visibility: hidden;
+  }
+  .slide.active { visibility: visible; }
+
+  .reveal > * {
+    position: relative;
+    opacity: 0; transform: translateY(18px);
+  }
+  .slide.active .reveal > * {
+    animation: rise 600ms var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 110ms + 80ms);
+  }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .reveal > * { animation: none; opacity: 1; transform: none; }
+  }
+
+  .kicker { font: 500 3.2cqw/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; }
+  .h1 { font-weight: 800; font-size: 12cqw; line-height: 0.92; letter-spacing: -0.035em; text-wrap: balance; }
+  .h2 { font-weight: 800; font-size: 8.4cqw; line-height: 0.98; letter-spacing: -0.03em; text-wrap: balance; }
+  .giant { font-weight: 800; font-size: 26cqw; line-height: 0.85; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .serif { font-family: var(--serif); font-weight: 400; font-style: italic; letter-spacing: -0.01em; }
+  .caption { font-size: 4.4cqw; line-height: 1.3; font-weight: 400; text-wrap: pretty; max-width: 34ch; }
+  .accent { color: var(--accent); }
+  .grow { flex: 1; }
+  .stack { display: flex; flex-direction: column; gap: 3cqw; }
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 3cqw; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw 4cqw; }
+  .stat b { display: block; font-size: 11cqw; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { font: 500 3cqw/1.3 var(--mono); text-transform: uppercase; opacity: 0.75; }
+
+  .bar-list { display: flex; flex-direction: column; gap: 3.4cqw; }
+  .bar-item .row { font-size: 4.6cqw; font-weight: 600; margin-bottom: 1.4cqw; }
+  .bar-item .row small { font: 500 3.4cqw var(--mono); opacity: 0.8; }
+  .bar { height: 5cqw; border-radius: 1.4cqw; background: color-mix(in srgb, var(--fg) 14%, transparent); overflow: hidden; }
+  .bar i {
+    display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--accent);
+    transform-origin: left; transform: scaleX(0);
+  }
+  .slide.active .bar i { transition: transform 900ms var(--ease-out) calc(var(--d, 0) * 90ms + 350ms); transform: scaleX(1); }
+
+  .clock { width: 78cqw; align-self: center; }
+  .week { display: flex; align-items: flex-end; gap: 2cqw; height: 32cqw; }
+  .week div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1.6cqw; height: 100%; justify-content: flex-end; }
+  .week div i { width: 100%; border-radius: 1.4cqw; background: var(--accent); height: var(--h); transform-origin: bottom; transform: scaleY(0); }
+  .slide.active .week div i { transition: transform 700ms var(--ease-out) calc(var(--d) * 70ms + 300ms); transform: scaleY(1); }
+  .week div span { font: 500 3cqw var(--mono); }
+
+  .phrase-list { padding: 0; counter-reset: p; display: flex; flex-direction: column; gap: 1.2cqw; }
+  .phrase-list li { list-style: none; display: flex; align-items: baseline; gap: 3cqw; font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; }
+  .phrase-list li::before { counter-increment: p; content: counter(p); font: 500 3.2cqw var(--mono); opacity: 0.6; width: 4cqw; }
+  .phrase-list li small { margin-left: auto; font: 500 3.4cqw var(--mono); opacity: 0.75; letter-spacing: 0; }
+
+  .meter { position: relative; height: 3cqw; border-radius: 99px; background: color-mix(in srgb, var(--fg) 16%, transparent); margin: 3cqw 0 1.6cqw; }
+  .meter b {
+    position: absolute; top: 50%; left: var(--v); width: 7cqw; height: 7cqw; border-radius: 50%;
+    background: var(--accent); border: 0.8cqw solid var(--bg); transform: translate(-50%, -50%) scale(0);
+  }
+  .slide.active .meter b { transition: transform 600ms var(--ease-out) calc(var(--d, 0) * 120ms + 400ms); transform: translate(-50%, -50%) scale(1); }
+  .meter-labels { display: flex; justify-content: space-between; font: 500 3.2cqw var(--mono); text-transform: uppercase; opacity: 0.85; }
+  .trait-note { font-size: 3.8cqw; line-height: 1.3; opacity: 0.85; margin-top: 1cqw; }
+
+  .quote {
+    padding: 4.5cqw 5cqw; border-radius: 4cqw;
+    background: color-mix(in srgb, var(--fg) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  }
+  .quote p { font-family: var(--serif); font-size: 6cqw; line-height: 1.08; }
+  .quote small { display: block; margin-top: 2.4cqw; font: 500 3.1cqw/1.35 var(--mono); opacity: 0.75; }
+
+  .tag {
+    display: inline-flex; align-self: flex-start; padding: 1.6cqw 3.2cqw; border-radius: 99px;
+    font: 500 3.2cqw var(--mono); text-transform: uppercase; letter-spacing: 0.04em;
+    background: var(--accent); color: var(--bg);
+  }
+
+  .blob { position: absolute; border-radius: 50%; pointer-events: none; }
+
+  .share-card { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; align-self: center; aspect-ratio: 9/16; border-radius: 3cqw; display: block; box-shadow: 0 12px 40px rgb(0 0 0 / 0.25); }
+  .actions { display: flex; gap: 3cqw; }
+  .btn {
+    flex: 1; appearance: none; border: 0; cursor: pointer;
+    padding: 4cqw; border-radius: 99px; font: 600 4cqw var(--display);
+    background: var(--fg); color: var(--bg);
+    transition: transform 160ms var(--ease-out);
+  }
+  .btn.ghost { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 2px var(--fg); }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
+  .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
+  .nav button:first-child { flex: 0 0 30%; }
+  .slide .actions { position: relative; z-index: 6; }
+  .hint { position: absolute; bottom: 14px; inset-inline: 0; text-align: center; font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg); opacity: 0.5; z-index: 4; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage" aria-live="polite">
+  <div class="progress" id="progress"></div>
+  <div class="brand">How I AI · Wrapped</div>
+  <div id="slides"></div>
+  <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
+  <div class="hint" id="hint">Tap or press → to continue</div>
+</main>
+
+<script id="wrapped-data" type="application/json">/*__WRAPPED_DATA__*/</script>
+<script>
+const D = JSON.parse(document.getElementById("wrapped-data").textContent);
+const S = D.stats, P = D.persona;
+
+const SOURCE_LABEL = { "claude-code": "Claude Code", codex: "Codex", cursor: "Cursor" };
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const fmt = (n) => Number(n).toLocaleString("en-US");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const hourLabel = (h) => (h % 12 || 12) + (h < 12 ? "am" : "pm");
+const dateLabel = (d) => new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const cap = (key, fallback) => esc(P.captions?.[key] ?? fallback);
+const withIndex = (h, i) => (/^<\w+[^>]*\sstyle="/.test(h) ? h.replace('style="', `style="--i:${i};`) : h.replace(/^<(\w+)/, `<$1 style="--i:${i}"`));
+const reveal = (items) => `<div class="reveal" style="display:contents">${items.map(withIndex).join("")}</div>`;
+
+const sources = Object.entries(D.sources).filter(([, v]) => v.prompts > 0).sort((a, b) => b[1].prompts - a[1].prompts);
+const totalPrompts = S.totals.prompts;
+const novels = (S.totals.words / 90000).toFixed(1);
+
+const theme = (bg, fg, accent) => `--bg:${bg};--fg:${fg};--accent:${accent}`;
+
+function clockSvg(byHour, accent) {
+  const max = Math.max(...byHour), cx = 100, cy = 100, r0 = 34, r1 = 92;
+  const bars = byHour.map((v, h) => {
+    const a = (h / 24) * Math.PI * 2 - Math.PI / 2 + Math.PI / 24;
+    const len = r0 + (r1 - r0) * (v / max || 0);
+    const x1 = cx + Math.cos(a) * r0, y1 = cy + Math.sin(a) * r0;
+    const x2 = cx + Math.cos(a) * len, y2 = cy + Math.sin(a) * len;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${h === S.time.peakHour ? accent : "currentColor"}" stroke-opacity="${h === S.time.peakHour ? 1 : 0.55}" stroke-width="5.2" stroke-linecap="round"/>`;
+  }).join("");
+  const marks = [[0, "12am"], [6, "6am"], [12, "12pm"], [18, "6pm"]].map(([h, l]) => {
+    const a = (h / 24) * Math.PI * 2 - Math.PI / 2;
+    return `<text x="${cx + Math.cos(a) * 22}" y="${cy + Math.sin(a) * 22 + 2.5}" font-size="6.5" text-anchor="middle" fill="currentColor" opacity="0.7" font-family="JetBrains Mono, monospace">${l}</text>`;
+  }).join("");
+  return `<svg class="clock" viewBox="0 0 200 200" role="img" aria-label="Prompts by hour of day, peak at ${hourLabel(S.time.peakHour)}">${bars}${marks}</svg>`;
+}
+
+const nightOwl = S.time.peakHour >= 21 || S.time.peakHour < 4;
+const earlyBird = S.time.peakHour >= 5 && S.time.peakHour < 10;
+const maxDay = Math.max(...S.time.byWeekday);
+const telegramness = Math.min(96, Math.max(4, (Math.log(S.style.medianWords + 1) / Math.log(200)) * 100));
+
+const slides = [
+  {
+    t: theme("#121212", "#F4F1EA", "#C6F432"),
+    html: () => `
+      <div class="blob" style="width:72cqw;height:72cqw;background:var(--accent);right:-22cqw;top:30cqw"></div>
+      ${reveal([
+        `<p class="kicker">${esc(D.name ? `Hey ${D.name}` : "Hey you")} · ${dateLabel(S.totals.firstDate)} → ${dateLabel(S.totals.lastDate)}</p>`,
+        `<div class="grow"></div>`,
+        `<h1 class="h1">This is how<br>you <span class="serif accent">AI'd.</span></h1>`,
+        `<p class="caption">${cap("intro", "We read every prompt you sent your agents. Every single one. Let's talk about it.")}</p>`,
+      ])}`,
+  },
+  {
+    t: theme("#FF5B2E", "#160B05", "#FFE7A0"),
+    html: () => reveal([
+      `<p class="kicker">The big number</p>`,
+      `<div class="giant num" data-count="${totalPrompts}">0</div>`,
+      `<p class="h2">prompts sent.</p>`,
+      `<div class="grow"></div>`,
+      `<div class="stat-grid">
+        <div class="stat"><b class="num">${fmt(S.totals.words)}</b><span>words typed (${novels} novels)</span></div>
+        <div class="stat"><b class="num">${fmt(S.totals.sessions)}</b><span>conversations</span></div>
+        <div class="stat"><b class="num">${fmt(S.totals.activeDays)}</b><span>days active</span></div>
+        <div class="stat"><b class="num">${fmt(S.time.avgPromptsPerActiveDay)}</b><span>prompts a day</span></div>
+      </div>`,
+      `<p class="caption">${cap("numbers", "That's a lot of talking to robots.")}</p>`,
+    ]),
+  },
+  {
+    t: theme("#1E3DFF", "#F4F1EA", "#FFB4E6"),
+    html: () => reveal([
+      `<p class="kicker">Your agents</p>`,
+      `<h2 class="h2">You played <span class="serif">the field.</span></h2>`,
+      `<div class="grow"></div>`,
+      `<div class="bar-list">${sources.map(([k, v], i) => `
+        <div class="bar-item">
+          <div class="row"><span>${SOURCE_LABEL[k] ?? k}</span><small>${Math.round((v.prompts / totalPrompts) * 100)}% · ${fmt(v.prompts)}</small></div>
+          <div class="bar"><i style="--w:${(v.prompts / sources[0][1].prompts) * 100}%;--d:${i}"></i></div>
+          ${v.models?.[0] ? `<small class="kicker" style="display:block;margin-top:1.4cqw;font-size:2.8cqw">Fave model: ${esc(v.models[0].name)}</small>` : ""}
+        </div>`).join("")}</div>`,
+      `<div class="grow"></div>`,
+      `<p class="caption">${cap("tools", `${SOURCE_LABEL[sources[0][0]]} got most of your attention. The others noticed.`)}</p>`,
+    ]),
+  },
+  {
+    t: theme("#0B1F3A", "#F4F1EA", "#FFD23F"),
+    html: () => reveal([
+      `<p class="kicker">When you prompt</p>`,
+      `<h2 class="h2">Peak hour: <span class="accent">${hourLabel(S.time.peakHour)}</span></h2>`,
+      `<div class="grow"></div>`,
+      clockSvg(S.time.byHour, "#FFD23F"),
+      `<div class="grow"></div>`,
+      `<p class="caption">${cap("clock", nightOwl ? `A certified night owl. ${S.time.lateNightPct}% of your prompts landed between midnight and 5am.` : earlyBird ? "Up with the sun and already delegating." : "Strictly business hours. Mostly.")}</p>`,
+    ]),
+  },
+  {
+    t: theme("#FFD23F", "#141414", "#1E3DFF"),
+    html: () => reveal([
+      `<p class="kicker">Your rhythm</p>`,
+      `<div class="giant num" data-count="${S.time.longestStreak.length}">0</div>`,
+      `<p class="h2">day streak. <span class="serif">No days off.</span></p>`,
+      `<div class="grow"></div>`,
+      `<div class="week">${S.time.byWeekday.map((v, i) => `<div><i style="--h:${Math.max(4, (v / maxDay) * 100)}%;--d:${i}"></i><span>${DAYS[i][0]}</span></div>`).join("")}</div>`,
+      `<p class="caption">${cap("rhythm", `Your biggest day was ${dateLabel(S.time.busiestDay.date)}: ${S.time.busiestDay.prompts} prompts in one day.`)}</p>`,
+    ]),
+  },
+  {
+    t: theme("#F4F1EA", "#141414", "#FF5B2E"),
+    html: () => reveal([
+      `<p class="kicker">How you write</p>`,
+      `<h2 class="h2">Typical prompt: <span class="accent num">${S.style.medianWords}</span> words.</h2>`,
+      `<div style="--d:0"><div class="meter" style="--v:${telegramness}%"><b></b></div><div class="meter-labels"><span>Telegram</span><span>Novelist</span></div></div>`,
+      `<div class="grow"></div>`,
+      `<div class="stat-grid">
+        <div class="stat"><b class="num">${S.style.lowercaseStartPct}%</b><span>start in lowercase</span></div>
+        <div class="stat"><b class="num">${S.style.questionPct}%</b><span>are questions</span></div>
+        <div class="stat"><b class="num">${fmt(S.style.longestPromptWords)}</b><span>words, longest prompt</span></div>
+        <div class="stat"><b class="num">${S.style.novelPct}%</b><span>are essays (150+ words)</span></div>
+      </div>`,
+      `<p class="caption">${cap("style", "You give your agents context. Lots of it.")}</p>`,
+    ]),
+  },
+  {
+    t: theme("#C6F432", "#0E0E0E", "#1E3DFF"),
+    html: () => {
+      const phrases = S.phrases.catchphrases.slice(0, 5);
+      const top = phrases[0]?.count || 1;
+      return reveal([
+        `<p class="kicker">Your catchphrases</p>`,
+        `<h2 class="h2">You said <span class="serif">“${esc(phrases[0]?.name)}”</span> ${fmt(phrases[0]?.count)} times.</h2>`,
+        `<div class="grow"></div>`,
+        `<ol class="phrase-list">${phrases.map((p) => `<li style="font-size:${(6 + 4 * (p.count / top)).toFixed(1)}cqw">${esc(p.name)}<small>${fmt(p.count)}×</small></li>`).join("")}</ol>`,
+        `<div class="grow"></div>`,
+        `<p class="caption">${cap("phrases", `Favourite opening word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
+      ]);
+    },
+  },
+  {
+    t: theme("#FFB4E6", "#1A0E14", "#C2161F"),
+    html: () => reveal([
+      `<p class="kicker">Manners check</p>`,
+      `<div class="giant num">${S.style.pleasePct}%</div>`,
+      `<p class="h2">of prompts said please.</p>`,
+      `<div class="grow"></div>`,
+      `<div class="stat-grid">
+        <div class="stat"><b class="num">${S.style.thanksPct}%</b><span>said thanks</span></div>
+        <div class="stat"><b class="num">${fmt(S.style.praiseCount)}</b><span>compliments given</span></div>
+        <div class="stat"><b class="num">${fmt(S.style.frustrationCount)}</b><span>“still broken” moments</span></div>
+        <div class="stat"><b class="num">${fmt(S.style.swearCount + S.style.capsRageCount)}</b><span>swears + ALL CAPS</span></div>
+      </div>`,
+      `<p class="caption">${cap("manners", "When the robots take over, they'll remember this.")}</p>`,
+    ]),
+  },
+  {
+    skip: !S.projects.length,
+    t: theme("#0F5B3A", "#F4F1EA", "#C6F432"),
+    html: () => {
+      const projects = S.projects.slice(0, 5);
+      return reveal([
+        `<p class="kicker">Where you spent it</p>`,
+        `<h2 class="h2">Top project: <span class="serif accent">${esc(projects[0]?.name ?? "everything")}</span></h2>`,
+        `<div class="grow"></div>`,
+        `<div class="bar-list">${projects.map((p, i) => `
+          <div class="bar-item"><div class="row"><span>${esc(p.name)}</span><small>${fmt(p.count)}</small></div>
+          <div class="bar"><i style="--w:${(p.count / projects[0].count) * 100}%;--d:${i}"></i></div></div>`).join("")}</div>`,
+        `<div class="grow"></div>`,
+        `<p class="caption">${cap("projects", "Some projects got your heart. Others got a single “fix it”.")}</p>`,
+      ]);
+    },
+  },
+  ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
+    t: [theme("#121212", "#F4F1EA", "#FF5B2E"), theme("#1E3DFF", "#F4F1EA", "#FFD23F"), theme("#FF5B2E", "#160B05", "#FFE7A0")][i],
+    html: () => reveal([
+      `<p class="kicker">Greatest hits · ${i + 1} of ${Math.min(3, P.quotes.length)}</p>`,
+      `<div class="grow"></div>`,
+      `<span class="tag">${esc(q.title ?? "A real prompt")}</span>`,
+      `<div class="quote"><p>“${esc(q.text)}”</p>${q.meta ? `<small>${esc(q.meta)}</small>` : ""}</div>`,
+      `<p class="caption">${esc(q.caption)}</p>`,
+      `<div class="grow"></div>`,
+    ]),
+  })),
+  {
+    t: theme("#1E3DFF", "#F4F1EA", "#FFD23F"),
+    html: () => reveal([
+      `<p class="kicker">Your prompting DNA</p>`,
+      `<h2 class="h2">The <span class="serif">vibe</span> check.</h2>`,
+      `<div class="grow"></div>`,
+      ...(P.traits ?? []).slice(0, 4).map((t, i) => `
+        <div style="--d:${i}">
+          <div class="meter" style="--v:${Math.min(95, Math.max(5, t.value))}%"><b></b></div>
+          <div class="meter-labels"><span>${esc(t.left)}</span><span>${esc(t.right)}</span></div>
+          ${t.note ? `<p class="trait-note">${esc(t.note)}</p>` : ""}
+        </div>`),
+      `<div class="grow"></div>`,
+    ]),
+  },
+  {
+    t: theme("#C2161F", "#FFF6F0", "#FFD23F"),
+    html: () => reveal([
+      `<p class="kicker">Your agents asked us to pass this on</p>`,
+      `<div class="grow"></div>`,
+      `<span class="tag">The roast</span>`,
+      `<p class="h2" style="font-size:7cqw;line-height:1.05">${esc(P.roast)}</p>`,
+      `<div class="grow"></div>`,
+      `<span class="tag">But also</span>`,
+      `<p class="caption" style="font-size:5cqw">${esc(P.compliment)}</p>`,
+    ]),
+  },
+  {
+    t: theme("#C6F432", "#121212", "#121212"),
+    html: () => reveal([
+      `<p class="kicker">Your prompting personality is…</p>`,
+      `<h1 class="h1" style="font-size:${P.archetype.name.length > 18 ? 12 : 14.5}cqw;margin-top:2cqw">${esc(P.archetype.name)}</h1>`,
+      `<div class="grow"></div>`,
+      `<p class="h2 serif" style="font-weight:400;font-size:8.4cqw">${esc(P.archetype.tagline)}</p>`,
+      `<p class="caption">${esc(P.archetype.description)}</p>`,
+      P.prediction ? `<p class="kicker" style="font-size:2.9cqw;line-height:1.5;margin-top:2cqw">Next year: ${esc(P.prediction)}</p>` : "",
+    ]),
+  },
+  {
+    t: theme("#F4F1EA", "#141414", "#FF5B2E"),
+    html: () => reveal([
+      `<p class="kicker">Share it</p>`,
+      `<canvas class="share-card" id="share" width="1080" height="1920" aria-label="Shareable summary card"></canvas>`,
+      `<div class="actions"><button class="btn" id="dl">Save image</button><button class="btn ghost" id="replay">Replay</button></div>`,
+    ]),
+  },
+].filter((s) => !s.skip);
+
+// ---------- share card ----------
+
+function drawShare() {
+  const c = document.getElementById("share");
+  if (!c || c.dataset.drawn) return;
+  c.dataset.drawn = 1;
+  const x = c.getContext("2d");
+  const W = 1080, H = 1920, pad = 84;
+  x.fillStyle = "#121212"; x.fillRect(0, 0, W, H);
+  x.fillStyle = "#C6F432"; x.beginPath(); x.roundRect(28, 28, W - 56, 1180, 40); x.fill();
+
+  const font = (w, s, f = "Bricolage Grotesque") => `${w} ${s}px "${f}", system-ui, sans-serif`;
+  const wrap = (text, maxW, lh, y, max = 4) => {
+    const words = text.split(" "); let line = "", lines = [];
+    for (const w of words) { const t = line ? line + " " + w : w; if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+    lines.push(line);
+    lines.slice(0, max).forEach((l, i) => x.fillText(l, pad, y + i * lh));
+    return y + Math.min(lines.length, max) * lh;
+  };
+
+  x.fillStyle = "#121212"; x.font = font(500, 30, "JetBrains Mono");
+  x.fillText("HOW I AI · WRAPPED", pad, 130);
+  x.font = font(500, 32, "JetBrains Mono"); x.fillText("MY PROMPTING PERSONALITY", pad, 300);
+  x.font = font(800, 124);
+  let y = wrap(P.archetype.name, W - pad * 2, 118, 430, 4);
+  x.font = `italic 60px "Instrument Serif", Georgia, serif`;
+  wrap(P.archetype.tagline, W - pad * 2, 66, Math.max(y + 60, 1000), 2);
+
+  const stats = [
+    [fmt(totalPrompts), "prompts"],
+    [hourLabel(S.time.peakHour), "peak hour"],
+    [`${S.time.longestStreak.length} days`, "longest streak"],
+    [`“${S.phrases.catchphrases[0]?.name ?? "…"}”`, "catchphrase"],
+  ];
+  const top = 1300;
+  stats.forEach(([v, l], i) => {
+    const cx = pad + (i % 2) * ((W - pad * 2) / 2), cy = top + Math.floor(i / 2) * 200;
+    x.fillStyle = "#F4F1EA"; x.font = font(800, 76); x.fillText(v, cx, cy + 70);
+    x.globalAlpha = 0.7; x.font = font(500, 26, "JetBrains Mono"); x.fillText(l.toUpperCase(), cx, cy + 116); x.globalAlpha = 1;
+  });
+  x.fillStyle = "#F4F1EA"; x.globalAlpha = 0.6; x.font = font(500, 24, "JetBrains Mono");
+  x.fillText(sources.map(([k, v]) => `${SOURCE_LABEL[k]} ${Math.round((v.prompts / totalPrompts) * 100)}%`).join("  ·  ").toUpperCase(), pad, H - 90);
+  x.globalAlpha = 1;
+}
+
+// ---------- player ----------
+
+const root = document.getElementById("slides");
+const progress = document.getElementById("progress");
+root.innerHTML = slides.map((s) => `<section class="slide" style="${s.t}">${s.html()}</section>`).join("");
+progress.innerHTML = slides.map(() => "<span><i></i></span>").join("");
+const els = [...root.children], bars = [...progress.children];
+let cur = -1;
+
+function countUp(el) {
+  const target = Number(el.dataset.count);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = fmt(target); return; }
+  const t0 = performance.now(), dur = 1100;
+  const tick = (t) => {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+    el.textContent = fmt(Math.round(target * e));
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function go(i) {
+  i = Math.max(0, Math.min(slides.length - 1, i));
+  if (i === cur) return;
+  els[cur]?.classList.remove("active");
+  cur = i;
+  const el = els[cur];
+  // Restart entrance animations when revisiting a slide.
+  el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
+  document.getElementById("stage").setAttribute("style", slides[cur].t);
+  bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
+  el.querySelectorAll("[data-count]").forEach(countUp);
+  document.getElementById("hint").style.display = cur === 0 ? "" : "none";
+  document.getElementById("nav").style.display = cur === slides.length - 1 ? "none" : "";
+  if (cur === slides.length - 1) document.fonts.ready.then(drawShare);
+}
+
+const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
+prevBtn.onclick = () => go(cur - 1);
+nextBtn.onclick = () => go(cur + 1);
+addEventListener("keydown", (e) => {
+  if (["ArrowRight", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (e.key === "ArrowLeft") go(cur - 1);
+});
+root.addEventListener("click", (e) => {
+  if (e.target.id === "dl") {
+    const a = document.createElement("a");
+    a.download = "how-i-ai-wrapped.png";
+    a.href = document.getElementById("share").toDataURL("image/png");
+    a.click();
+  }
+  if (e.target.id === "replay") go(0);
+});
+go(0);
+</script>
+</body>
+</html>
