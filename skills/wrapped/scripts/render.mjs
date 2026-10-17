@@ -45,7 +45,7 @@ const payload = {
   persona,
 };
 
-const THEMES = ["classic", "graphic"];
+const THEMES = ["classic", "graphic", "gradient", "editorial"];
 const theme = args.theme ?? persona.theme ?? "classic";
 if (!THEMES.includes(theme)) {
   console.error(`unknown theme "${theme}", expected one of: ${THEMES.join(", ")}`);

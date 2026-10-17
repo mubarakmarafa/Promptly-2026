@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How I AI · Wrapped</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161616;
+    --paper: #F3F2EE;
+    --sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --grain: 0.34;
+    --blur: 7px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #E4E2DD; color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    display: grid; place-items: center; overflow: hidden;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+
+  .stage {
+    position: relative;
+    height: min(100dvh - 32px, 920px);
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    container-type: size;
+    border-radius: 3cqw;
+    background: var(--paper);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.06), 0 30px 70px -24px rgb(0 0 0 / 0.3);
+  }
+  @media (max-width: 560px) {
+    .stage { height: 100dvh; width: 100vw; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+  }
+
+  /* Morphing colour field, rendered small and blurred up */
+  #field { position: absolute; inset: -5%; width: 110%; height: 110%; filter: blur(var(--blur)); }
+  .sheet { position: absolute; inset: auto 0 0; height: var(--sheet, 40%); background: var(--paper); transition: height 820ms var(--ease-out); }
+  .grain { position: absolute; inset: -40%; z-index: 9; pointer-events: none; opacity: var(--grain); mix-blend-mode: overlay; background-size: 220px; animation: grain 1s steps(5) infinite; }
+  @keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -2%); } 60% { transform: translate(-2%, -4%); } 80% { transform: translate(4%, 2%); } }
+
+  .progress { position: absolute; z-index: 10; inset: 3cqw 5.5cqw auto; display: flex; gap: 1cqw; }
+  .progress span { flex: 1; height: 0.5cqw; border-radius: 1cqw; background: color-mix(in srgb, var(--fg) 25%, transparent); transition: background 300ms; }
+  .progress span.done, .progress span.active { background: var(--fg); }
+
+  /* No z-index here: slides must not form their own stacking context, or blend modes can't see the field. */
+  .slide { position: absolute; inset: 0; visibility: hidden; }
+  .slide.active { visibility: visible; }
+  .top { position: absolute; inset: 0 0 auto; height: calc(100% - var(--sheet)); padding: 7.5cqw 5.5cqw 4.6cqw; display: flex; flex-direction: column; gap: 2.2cqw; color: var(--fg); }
+  .panel { position: absolute; inset: auto 0 0; height: var(--sheet); padding: 4.8cqw 5.5cqw 5.5cqw; display: flex; flex-direction: column; gap: 2.8cqw; color: var(--ink); }
+  .abs { position: absolute; inset: 0; pointer-events: none; color: var(--ink); }
+  .grow { flex: 1; min-height: 0; }
+
+  .hud { display: flex; justify-content: space-between; gap: 3cqw; font: 500 2.2cqw/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .hud span:last-child { opacity: 0.6; }
+  .lbl { font: 500 2.5cqw/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .micro { font: 400 1.75cqw/1.35 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.55; }
+  .body { font: 400 3.5cqw/1.42 var(--sans); text-wrap: pretty; }
+  .display { font: 300 11cqw/0.92 var(--sans); letter-spacing: -0.045em; text-wrap: balance; }
+  .roll { font-variant-numeric: tabular-nums; }
+  /* White + difference: near-black on paper, the heat's opposite colour wherever a hotspot passes behind */
+  .blend { color: #fff; mix-blend-mode: difference; }
+  .big { font: 300 30cqw/0.82 var(--sans); letter-spacing: -0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mid { font: 300 15cqw/0.85 var(--sans); letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+  .unit { font: 300 0.22em var(--sans); letter-spacing: -0.01em; opacity: 0.6; margin-left: 0.25em; }
+  .quote { font: 400 8cqw/1.05 var(--sans); letter-spacing: -0.03em; text-wrap: pretty; }
+
+  .ph { display: flex; justify-content: space-between; align-items: flex-start; gap: 3cqw; padding-bottom: 2.2cqw; border-bottom: 0.25cqw solid color-mix(in srgb, var(--ink) 12%, transparent); }
+
+  .cells { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw 5cqw; }
+  .cell { display: flex; justify-content: space-between; align-items: flex-end; gap: 2cqw; }
+  .cell .val { font: 400 5.6cqw/1.05 var(--sans); letter-spacing: -0.02em; margin-top: 0.8cqw; font-variant-numeric: tabular-nums; }
+  .cell .sub { font: 400 2.6cqw var(--sans); opacity: 0.55; margin-left: 0.4em; letter-spacing: 0; }
+
+  /* Bars, slide-4 style on their side: a crisp cap at the value, the body blurring back toward zero.
+     Each slides in from zero, then its number lands just past the cap. */
+  .gbars { display: flex; flex-direction: column; gap: 1.2cqw; }
+  .gbar { position: relative; height: 10.6cqw; --cap: var(--c3); --body: var(--c2); }
+  .gbar span { position: absolute; left: 0; top: 0; font: 500 2.1cqw var(--mono); text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
+  .gbar i { position: absolute; left: 0; top: 4cqw; height: 5.6cqw; width: calc(var(--w) * 0.8); }
+  .gbar b { position: absolute; top: 4cqw; height: 5.6cqw; display: flex; align-items: center; left: calc(var(--w) * 0.8 + 2.4cqw); font: 400 4.6cqw var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; opacity: 0; }
+  .gbar i::after, .rows .m i::after { content: ""; position: absolute; inset: 0 1.5cqw 0 -1cqw; border-radius: 3cqw; filter: blur(1.4cqw);
+    background: linear-gradient(to left, var(--cap), var(--body) 18%, var(--body) 50%, color-mix(in srgb, var(--body) 45%, transparent) 80%, transparent); }
+  .gbar i::before, .rows .m i::before { content: ""; position: absolute; z-index: 1; inset: 0 0 0 auto; width: min(100%, 11cqw); border-radius: 0 2.8cqw 2.8cqw 0;
+    background: linear-gradient(to left, var(--cap) 0 36%, var(--body)); -webkit-mask-image: linear-gradient(to left, #000 45%, transparent); mask-image: linear-gradient(to left, #000 45%, transparent); }
+  .slide.active .gbar i, .slide.active .rows .m i { animation: from-zero 1100ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 90ms + 320ms); }
+  @keyframes from-zero { from { translate: -100% 0; opacity: 0; } 30% { opacity: 1; } }
+  .slide.active .gbar b { animation: lands 600ms var(--ease-out) forwards; animation-delay: calc(var(--d, 0) * 70ms + 1150ms); }
+  @keyframes lands { from { opacity: 0; translate: -1.6cqw 0; } to { opacity: 1; translate: 0 0; } }
+
+  /* The original solid bars, kept for comparison (Tweak → Bars) */
+  .solid-bars .gbars { gap: 1.8cqw; }
+  .solid-bars .gbar { height: 8cqw; border-radius: 1.6cqw; overflow: hidden; background: color-mix(in srgb, var(--c3) 16%, #fff); }
+  .solid-bars .gbar i { inset: 0 auto 0 0; height: auto; width: var(--w); border-radius: inherit; background: linear-gradient(90deg, var(--c2), var(--c3) 70%, var(--c4)); transform-origin: left; }
+  .solid-bars .gbar i::before, .solid-bars .gbar i::after, .solid-bars .rows .m i::before, .solid-bars .rows .m i::after { content: none; }
+  .solid-bars .gbar b { left: 2.4cqw; top: 50%; height: auto; translate: 0 -50%; font-size: 4.4cqw; opacity: 1; }
+  .solid-bars .gbar span { left: auto; right: 2.4cqw; top: 50%; translate: 0 -50%; font-size: 2.2cqw; }
+  .solid-bars .slide.active .gbar i, .solid-bars .slide.active .rows .m i { animation: grow-x 900ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 90ms + 380ms); }
+  .solid-bars .slide.active .gbar b { animation: none; }
+  @keyframes grow-x { from { transform: scaleX(0); } }
+
+  .rows { list-style: none; display: flex; flex-direction: column; }
+  .rows li { display: grid; grid-template-columns: 5cqw 1fr 22cqw 9cqw; align-items: center; gap: 2cqw; padding: 1.5cqw 0; border-bottom: 0.25cqw solid color-mix(in srgb, var(--ink) 10%, transparent); }
+  .rows .n { font: 400 2.2cqw var(--mono); opacity: 0.5; }
+  .rows .w { font: 400 5cqw/1 var(--sans); letter-spacing: -0.03em; }
+  .rows .c { font: 400 2.6cqw var(--mono); text-align: right; }
+  .rows .m { position: relative; height: 2.6cqw; --cap: var(--c3); --body: var(--c2); }
+  .rows .m i { position: absolute; inset: 0 auto 0 0; width: var(--w); }
+  .rows .m i::after { inset: 0 0.8cqw 0 -0.6cqw; filter: blur(0.7cqw); }
+  .rows .m i::before { width: min(100%, 5cqw); border-radius: 0 1.3cqw 1.3cqw 0; }
+  .solid-bars .rows .m { height: 1.2cqw; border-radius: 1cqw; background: color-mix(in srgb, var(--c3) 16%, #fff); overflow: hidden; }
+  .solid-bars .rows .m i { display: block; position: static; height: 100%; background: linear-gradient(90deg, var(--c2), var(--c4)); transform-origin: left; }
+
+  /* Clock dial over the heat ring */
+  .dial { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .dial circle, .dial line { fill: none; stroke: #fff; vector-effect: non-scaling-stroke; }
+  .hr { position: absolute; transform: translate(-50%, -50%); font: 500 2.1cqw var(--mono); letter-spacing: 0.05em; opacity: 0.4; }
+  .hr.major { opacity: 0.85; }
+  .ring-c { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0.6cqw; text-align: center; }
+  .ring-c b { font: 300 10cqw/0.9 var(--sans); letter-spacing: -0.04em; }
+
+  /* Weekday pills: each rises into place over its day, then its number lands. */
+  .chart { position: relative; flex: 1; min-height: 0; margin: 2cqw 0 0; --H: calc(100% - 6cqw); }
+  .chart .pill { position: absolute; width: 6.4cqw; translate: -50% 0; --cap: var(--c3); --body: var(--c2); }
+  .chart .pill.wknd { --cap: color-mix(in srgb, var(--c1) 35%, #F27BA6); --body: var(--c3); }
+  .chart .pill::after { content: ""; position: absolute; inset: 2.5cqw -0.4cqw 0; border-radius: 3.2cqw; filter: blur(1.5cqw);
+    background: linear-gradient(to bottom, var(--cap), var(--body) 12cqw, var(--body) 55%, color-mix(in srgb, var(--body) 45%, transparent) 85%, transparent); }
+  .chart .pill::before { content: ""; position: absolute; z-index: 1; inset: 0 0 auto; height: 12cqw; border-radius: 3.2cqw 3.2cqw 0 0;
+    background: linear-gradient(to bottom, var(--cap) 0 38%, var(--body));
+    -webkit-mask-image: linear-gradient(#000 45%, transparent); mask-image: linear-gradient(#000 45%, transparent); }
+  .chart .num { position: absolute; translate: -50% -100%; font: 500 2.3cqw var(--mono); letter-spacing: 0.04em; }
+  .chart .num.peak { font-weight: 500; font-size: 2.8cqw; }
+  .slide.active .chart .pill { animation: pill-rise 1200ms var(--ease-out) both; animation-delay: calc(var(--d) * 90ms + 250ms); }
+  @keyframes pill-rise { from { translate: -50% var(--rise); opacity: 0; } 30% { opacity: 1; } }
+  .chart .num { opacity: 0; }
+  .slide.active .chart .num { animation: num-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 70ms + 1250ms); }
+  @keyframes num-in { from { opacity: 0; translate: -50% -60%; } to { opacity: 1; translate: -50% -100%; } }
+  .chart .day { position: absolute; bottom: 0; transform: translateX(-50%); font: 500 2cqw var(--mono); text-transform: uppercase; opacity: 0.7; }
+
+  /* Brand-slider traits */
+  .traits { position: relative; width: 100%; height: 108cqw; }
+  .traits svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .traits .end { position: absolute; transform: translateY(-50%); font: 500 2.1cqw var(--mono); text-transform: uppercase; letter-spacing: 0.05em; padding: 1cqw 1.6cqw; border-radius: 5cqw; white-space: nowrap; }
+  .traits .end.l { right: calc(100% - 19cqw); } .traits .end.r { left: 70cqw; }
+  .traits .end.hi { background: #E3E0D9; }
+  .traits .note { position: absolute; left: 21cqw; width: 47cqw; font: 400 2.5cqw/1.35 var(--sans); opacity: 0.6; text-wrap: pretty; }
+  .slide.active .traits .glow { animation: draw 1600ms var(--ease-out) 300ms both; }
+  @keyframes draw { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
+  .slide.active .traits .dot { animation: pop 600ms var(--ease-out) both; animation-delay: calc(var(--d) * 140ms + 400ms); transform-box: fill-box; transform-origin: center; }
+  @keyframes pop { from { transform: scale(0); } }
+
+  .top > *, .panel > * { opacity: 0; transform: translateY(2.4cqw); }
+  .slide.active .top > *, .slide.active .panel > * { animation: rise 620ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 80ms + 120ms); }
+  .slide.active .panel > * { animation-delay: calc(var(--i, 0) * 80ms + 320ms); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .top > *, .slide.active .panel > * { animation: none; opacity: 1; transform: none; }
+    .slide.active .gbar i, .slide.active .gbar b, .slide.active .rows .m i, .slide.active .traits .glow, .slide.active .traits .dot, .slide.active .chart .pill { animation: none; }
+    .slide.active .chart .num, .gbar b { animation: none; opacity: 1; }
+    .grain { animation: none; }
+  }
+
+  .share-card { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; align-self: center; aspect-ratio: 9/16; display: block; border-radius: 2cqw; box-shadow: 0 1cqw 4cqw rgb(0 0 0 / 0.18); }
+  .actions { display: flex; gap: 2.4cqw; position: relative; z-index: 6; }
+  .btn { flex: 1; appearance: none; border: 0; cursor: pointer; padding: 3.6cqw; border-radius: 2cqw; font: 500 3cqw var(--mono); text-transform: uppercase; letter-spacing: 0.05em; background: var(--ink); color: #fff; transition: transform 140ms var(--ease-out); }
+  .btn.alt { background: #fff; color: var(--ink); }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 0.6cqw solid var(--c3); outline-offset: 0.6cqw; }
+
+  .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
+  .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
+  .nav button:first-child { flex: 0 0 30%; }
+
+  /* Exploration controls */
+  .tweak-toggle { position: fixed; right: 16px; bottom: 16px; z-index: 20; appearance: none; border: 0; cursor: pointer; padding: 10px 14px; border-radius: 99px; background: #161616; color: #fff; font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .tweak { position: fixed; right: 16px; bottom: 60px; z-index: 20; width: 240px; padding: 14px; border-radius: 14px; background: rgb(255 255 255 / 0.92); backdrop-filter: blur(12px); box-shadow: 0 10px 40px -10px rgb(0 0 0 / 0.3); display: grid; gap: 10px; font: 400 12px var(--mono); }
+  .tweak[hidden] { display: none; }
+  .tweak label { display: grid; gap: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tweak select, .tweak input { width: 100%; font: inherit; }
+  @media (max-width: 560px) { .tweak-toggle { display: none; } }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <canvas id="field" width="90" height="160" aria-hidden="true"></canvas>
+  <div class="sheet"></div>
+  <div class="progress" id="progress"></div>
+  <div id="slides"></div>
+  <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
+  <div class="grain" id="grain"></div>
+</main>
+
+<button class="tweak-toggle" id="tweak-toggle">Tweak</button>
+<aside class="tweak" id="tweak" hidden>
+  <label>Palette <select id="tw-pal"><option value="">Per slide</option></select></label>
+  <label>Field <select id="tw-mode"><option value="">Per slide</option><option value="soft">Soft</option><option value="bands">Thermal bands</option></select></label>
+  <label>Grain <input type="range" id="tw-grain" min="0" max="0.8" step="0.01"></label>
+  <label>Blur <input type="range" id="tw-blur" min="0" max="24" step="1"></label>
+  <label>Speed <input type="range" id="tw-speed" min="0" max="4" step="0.1" value="1"></label>
+  <label>Bars <select id="tw-bars"><option value="pills">Soft pills</option><option value="solid">Solid bars</option></select></label>
+</aside>
+
+<script id="wrapped-data" type="application/json">/*__WRAPPED_DATA__*/</script>
+<script>
+const D = JSON.parse(document.getElementById("wrapped-data").textContent);
+const S = D.stats, P = D.persona;
+
+const SOURCE_LABEL = { "claude-code": "Claude Code", codex: "Codex", cursor: "Cursor" };
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const fmt = (n) => Number(n).toLocaleString("en-US");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const hourLabel = (h) => (h % 12 || 12) + (h < 12 ? " am" : " pm");
+const ymd = (d) => { const [y, m, day] = d.split("-"); return `${+day}/ ${m}/ ${y}`; };
+const cap = (key, fallback) => esc(P.captions?.[key] ?? fallback);
+const pad = (n, w = 2) => String(n).padStart(w, "0");
+// Fit long text by length: [maxChars, size] pairs.
+const fit = (text, steps) => (steps.find(([n]) => String(text ?? "").length <= n) ?? steps.at(-1))[1];
+
+const sources = Object.entries(D.sources).filter(([, v]) => v.prompts > 0).sort((a, b) => b[1].prompts - a[1].prompts);
+const total = S.totals.prompts;
+const who = D.name ?? "You";
+const serial = "HIA-" + (S.totals.lastDate ?? "").replace(/-/g, "").slice(2);
+const maxHour = Math.max(...S.time.byHour) || 1;
+const telegramness = Math.min(96, Math.max(4, (Math.log(S.style.medianWords + 1) / Math.log(200)) * 100));
+
+// ---------- palettes: low → high intensity ----------
+
+const PALETTES = {
+  flare: { name: "periwinkle, hot pink, orange & sun", stops: ["#F1ECF4", "#A9B2FF", "#FF5FA2", "#FF7A2A", "#FFE45C"] },
+  dusk: { name: "lavender, pink & marigold", stops: ["#ECE8F2", "#BFC6F2", "#F4A6C8", "#FF8F45", "#FFD95A"] },
+  infra: { name: "lilac, coral, magenta & plum", stops: ["#F1EFEC", "#D8D1F3", "#FF9C84", "#EE4577", "#3B1D5E"] },
+  peach: { name: "peach, salmon, orchid & sky", stops: ["#F6EEE6", "#FFD0B0", "#FFA3A3", "#C58CF0", "#8FD3F5"] },
+  sky: { name: "blue, butter & tangerine", stops: ["#8FBDF4", "#C4E1F6", "#FFF2B2", "#FFB65E", "#FF6A3D"] },
+  dawn: { name: "blush, tangerine & iris", stops: ["#EEECE8", "#F6DAE3", "#FFAE8A", "#958BF4", "#EEECE8"] },
+  ember: { name: "scarlet, orange & violet", stops: ["#FFD9B8", "#FFA45E", "#FF5E3D", "#DD2F57", "#6438CC"] },
+  mint: { name: "mint, sea & lilac", stops: ["#E9F4EF", "#A8E8D3", "#7CC6F0", "#B79CF2", "#F6C5E4"] },
+};
+
+// ---------- field layouts (x, y in 0..1 of the stage) ----------
+
+function rng(seed) { let s = seed * 9301 + 49297; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
+const scatter = (seed, n = 5, [x0, y0, x1, y1] = [0, 0, 1, 0.7]) => { const r = rng(seed); return [...Array(n)].map(() => ({ x: x0 + r() * (x1 - x0), y: y0 + r() * (y1 - y0), r: 0.2 + r() * 0.24, w: 0.7 + r() * 0.7 })); };
+// Stage height / width. Everything round is laid out from this, so circles stay circles on any screen shape.
+let AR = 16 / 9;
+const measure = () => { const st = document.getElementById("stage"); AR = st.clientHeight / st.clientWidth || 16 / 9; };
+// The field canvas overhangs the stage by 5% each side: field coord f maps to stage coord -0.05 + 1.1f.
+const fromStage = (v) => (v + 0.05) / 1.1;
+// Clock geometry in stage coords (x, R in widths; y in heights), fitted between the header and the panel.
+let DIAL = { x: 0.5, y: 0.34, R: 0.32 };
+function layoutDial(sheet = 0.38) {
+  const top = 0.16 / AR, bottom = 1 - sheet - 0.07 / AR, room = ((bottom - top) * AR) / 2;
+  DIAL = { x: 0.5, y: (top + bottom) / 2, R: Math.max(0.12, Math.min(0.33, (room - 0.025) / 1.3)) };
+}
+const hourAngle = (h) => (h / 24) * Math.PI * 2 - Math.PI / 2 + Math.PI / 24;
+const ring = () => S.time.byHour.map((v, h) => {
+  const a = hourAngle(h), R = DIAL.R / 1.1;
+  return { x: 0.5 + Math.cos(a) * R, y: fromStage(DIAL.y) + (Math.sin(a) * R) / AR, r: 0.052, w: 0.06 + 1.05 * (v / maxHour), p: h === S.time.peakHour ? 1 : 0 };
+});
+
+// Volume: a few hotspots wander on looping paths across the number, so its blend keeps shifting.
+const WANDER = [[0.42, 0.38, 0.32, 0.12, 0.37, 0.29, 0], [0.62, 0.4, 0.3, 0.1, 0.23, 0.41, 2.1], [0.35, 0.2, 0.24, 0.1, 0.31, 0.19, 4.2]];
+const wanderLayout = (age) => WANDER.map(([cx, cy, ax, ay, fx, fy, ph], i) => ({ x: cx + ax * Math.sin(age * fx + ph), y: cy + ay * Math.sin(age * fy + ph * 1.7), r: 0.15 + 0.03 * (i % 2), w: 0.95 - i * 0.12 }));
+
+// Cover: your hotspot grows while smaller ones drift in from the edges, curl around and merge into it.
+const SWARM = { x: 0.5, y: 0.3, n: 7 };
+function swarmLayout(age) {
+  const grow = 1 - Math.exp(-age / 2.5), breathe = Math.sin(age * 1.8);
+  const out = [{ x: SWARM.x + 0.02 * Math.sin(age * 0.7), y: SWARM.y + 0.015 * Math.cos(age * 0.6), r: 0.15 + 0.13 * grow + 0.012 * breathe, w: 1 + 0.75 * grow }];
+  for (let i = 1; i <= SWARM.n; i++) {
+    const period = 3.6 + i * 0.55, cyc = (age + i * 1.7) / period, ph = cyc % 1, lap = Math.floor(cyc);
+    const ang = i * 2.39 + lap * 2.1 + ph * 1.4, dist = 0.64 * (1 - ph * ph * (3 - 2 * ph)) + 0.02;
+    out.push({ x: SWARM.x + Math.cos(ang) * dist, y: SWARM.y + (Math.sin(ang) * dist * 1.3) / AR, r: 0.09 + 0.05 * Math.sin(ph * Math.PI), w: 0.9 * Math.sin(Math.min(1, ph * 1.1) * Math.PI) });
+  }
+  return out;
+}
+
+// ---------- panel helpers ----------
+
+const head = (title, right = ymd(S.totals.lastDate)) => `<div class="ph"><p class="lbl">${title}</p><p class="lbl">${right}</p></div>`;
+const hud = (code, title) => `<div class="hud"><span>${code} · ${title}</span><span>${serial}</span></div>`;
+const cell = (label, value, sub = "") => `<div class="cell"><div><p class="micro" style="opacity:0.7">${label}</p><p class="val roll">${value}${sub ? `<span class="sub">${sub}</span>` : ""}</p></div></div>`;
+const gbar = (w, chip, label, d = 0) => `<div class="gbar" style="--w:${Math.max(14, Math.min(100, w))}%;--d:${d}"><i></i><b class="roll">${chip}</b><span>${esc(label)}</span></div>`;
+const bigNum = (text, unit = "", size, cls = "") => `<p class="big roll ${cls}" style="font-size:${size ?? fit(text, [[3, 40], [5, 31], [7, 24], [Infinity, 18]])}cqw">${text}${unit ? `<span class="unit">${unit}</span>` : ""}</p>`;
+
+function clockLayer() {
+  const { x: cx, y: cy, R } = DIAL, VW = 1000, VH = 1000 * AR;
+  const at = (h, k) => [cx + Math.cos(hourAngle(h)) * R * k, cy + (Math.sin(hourAngle(h)) * R * k) / AR];
+  const ticks = [...Array(24)].map((_, h) => {
+    const major = h % 3 === 0, [x0, y0] = at(h, major ? 0.88 : 0.93), [x1, y1] = at(h, major ? 1.12 : 1.07);
+    return `<line x1="${x0 * VW}" y1="${y0 * VH}" x2="${x1 * VW}" y2="${y1 * VH}" stroke-width="${major ? 1.4 : 1}" stroke-opacity="${major ? 0.95 : 0.7}"/>`;
+  }).join("");
+  const name = (h) => (h % 12 || 12) + (h < 12 ? "A" : "P");
+  const labels = [0, 3, 6, 9, 12, 15, 18, 21].map((h) => {
+    const [x, y] = at(h, 1.3);
+    return `<span class="hr${h % 6 === 0 ? " major" : ""}" style="left:${x * 100}%;top:${y * 100}%">${name(h)}</span>`;
+  }).join("");
+  const peak = S.time.peakHour;
+  return `<div class="abs">
+    <svg class="dial" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true"><circle cx="${cx * VW}" cy="${(cy * VH).toFixed(1)}" r="${R * VW}" stroke-width="1.2"/>${ticks}</svg>
+    ${labels}
+    <div class="ring-c" style="left:${cx * 100}%;top:${cy * 100}%"><span class="micro" style="opacity:0.7">Hottest hour</span><b class="roll">${fmt(S.time.byHour[peak])}</b><span class="micro" style="opacity:0.7">prompts at ${hourLabel(peak)}</span></div>
+    <span class="micro" style="position:absolute;left:5.5cqw;top:11cqw;opacity:0.7">Heat by hour of day</span>
+    <span class="micro" style="position:absolute;right:5.5cqw;top:11cqw;opacity:0.7">${fmt(total)} prompts</span>
+    <span class="micro" style="position:absolute;left:5.5cqw;top:calc(100% - var(--sheet) - 5cqw);opacity:0.7">${S.time.lateNightPct}% after midnight</span>
+    <span class="micro" style="position:absolute;right:5.5cqw;top:calc(100% - var(--sheet) - 5cqw);opacity:0.7">${(S.totals.lastDate ?? "").slice(0, 4)}</span>
+  </div>`;
+}
+
+function weekChart() {
+  const order = [1, 2, 3, 4, 5, 6, 0], vals = order.map((d) => S.time.byWeekday[d]), max = Math.max(...vals) || 1, top = vals.indexOf(max);
+  const xs = vals.map((_, i) => 8 + (i / 6) * 84), ys = vals.map((v) => 0.92 - (v / max) * 0.7);
+  const at = (i) => `left:${xs[i]}%;--d:${i}`;
+  return `<div class="chart">
+    ${vals.map((_, i) => `<i class="pill${order[i] === 0 || order[i] === 6 ? " wknd" : ""}" style="${at(i)};top:calc(var(--H) * ${ys[i].toFixed(3)} - 8cqw);height:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 8cqw);--rise:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 6cqw)"></i>`).join("")}
+    ${vals.map((v, i) => `<span class="num roll${i === top ? " peak" : ""}" style="${at(i)};top:calc(var(--H) * ${ys[i].toFixed(3)} - 9.5cqw)">${v}</span>`).join("")}
+    ${order.map((d, i) => `<span class="day" style="left:${xs[i]}%">${DAYS[d]}</span>`).join("")}
+  </div>`;
+}
+
+function traitsBlock() {
+  const traits = (P.traits ?? []).slice(0, 4), pitch = 27, x0 = 21, x1 = 68;
+  const pts = traits.map((t, i) => [x0 + (x1 - x0) * Math.min(96, Math.max(4, t.value)) / 100, 4 + i * pitch]);
+  const hi = traits.reduce((b, t, i) => (Math.abs(t.value - 50) > Math.abs(traits[b].value - 50) ? i : b), 0);
+  const path = pts.map(([x, y], i) => (i ? `C ${pts[i - 1][0]} ${pts[i - 1][1] + pitch / 2}, ${x} ${y - pitch / 2}, ${x} ${y}` : `M ${x} ${y}`)).join(" ");
+  return `<div class="traits">
+    <svg viewBox="0 0 89 108" aria-hidden="true">
+      <defs><filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+      ${pts.map(([, y]) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="#161616" stroke-opacity="0.22" stroke-width="0.25"/>`).join("")}
+      ${pts.map(([, y]) => [0.25, 0.5, 0.75].map((f) => `<circle cx="${x0 + (x1 - x0) * f}" cy="${y}" r="0.7" fill="#161616" opacity="0.25"/>`).join("")).join("")}
+      <path class="glow" d="${path}" fill="none" style="stroke:var(--c3)" stroke-width="6" stroke-linecap="round" filter="url(#soft)" opacity="0.75" stroke-dasharray="400"/>
+      ${pts.map(([x, y], i) => i === hi
+        ? `<g class="dot" style="--d:${i}"><circle cx="${x}" cy="${y}" r="4.2" style="fill:var(--c2)" filter="url(#soft)"/><circle cx="${x}" cy="${y}" r="2.6" style="fill:var(--c2)"/><circle cx="${x}" cy="${y}" r="1.3" fill="#161616"/></g>`
+        : `<circle class="dot" style="--d:${i}" cx="${x}" cy="${y}" r="2.4" fill="#161616"/>`).join("")}
+    </svg>
+    ${traits.map((t, i) => {
+      const y = 4 + i * pitch, cls = i === hi ? " hi" : "";
+      return `<span class="end l${cls}" style="top:${y}cqw">${esc(t.left)}</span><span class="end r${cls}" style="top:${y}cqw">${esc(t.right)}</span>${t.note ? `<p class="note" style="top:${y + 4}cqw">${esc(t.note)}</p>` : ""}`;
+    }).join("")}
+  </div>`;
+}
+
+// ---------- slides ----------
+
+const slides = [
+  {
+    pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0),
+    top: () => [
+      `<div class="hud"><span>How I AI · Wrapped</span><span>${ymd(S.totals.firstDate)} — ${ymd(S.totals.lastDate)}</span></div>`,
+      `<div class="grow"></div>`,
+      `<h1 class="display blend" style="font-weight:500;font-size:12.5cqw;letter-spacing:-0.055em">This is how<br>you AI'd.</h1>`,
+    ],
+    bottom: () => [
+      head("Prompting report", esc(who)),
+      `<p class="body">${cap("intro", "Every prompt you sent your agents, measured like weather.")}</p>`,
+      `<div class="cells">${sources.slice(0, 2).map(([k, v]) => cell(SOURCE_LABEL[k] ?? k, fmt(v.prompts))).join("")}</div>`,
+      `<p class="micro">Tap or press → to continue</p>`,
+    ],
+  },
+  {
+    pal: "dusk", sheet: 46, fg: "#161616", live: wanderLayout, field: () => wanderLayout(0),
+    top: () => [hud("01", "Volume"), `<div class="grow"></div>`, `<p class="lbl">Total prompts</p>`, bigNum(fmt(total), "", undefined, "blend")],
+    bottom: () => [
+      head("Volume"),
+      `<div class="cells">
+        ${cell("Words", fmt(S.totals.words), `${(S.totals.words / 90000).toFixed(1)} novels`)}
+        ${cell("Conversations", fmt(S.totals.sessions))}
+        ${cell("Days active", fmt(S.totals.activeDays))}
+        ${cell("Prompts a day", fmt(S.time.avgPromptsPerActiveDay))}
+      </div>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("numbers", "That's a lot of talking to machines.")}</p>`,
+    ],
+  },
+  {
+    pal: "mint", sheet: 52, fg: "#161616", field: () => scatter(21, 4, [0, 0, 1, 0.5]),
+    top: () => {
+      const [k, v] = sources[0];
+      return [hud("02", "Routing"), `<div class="grow"></div>`, `<p class="lbl">${SOURCE_LABEL[k] ?? k}</p>`, bigNum(String(Math.round((v.prompts / total) * 100)), "%", 31, "blend")];
+    },
+    bottom: () => [
+      head("Agents in rotation"),
+      `<div class="gbars">${sources.map(([k, v], i) => gbar((v.prompts / sources[0][1].prompts) * 100, fmt(v.prompts), SOURCE_LABEL[k] ?? k, i)).join("")}</div>`,
+      `<p class="micro">${sources.map(([k, v]) => v.models?.[0]?.name).filter(Boolean).map(esc).join(" · ")}</p>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("tools", `${SOURCE_LABEL[sources[0][0]]} got most of your attention.`)}</p>`,
+    ],
+  },
+  {
+    pal: "infra", sheet: 38, fg: "#161616", field: ring, still: true, extra: clockLayer,
+    top: () => [hud("03", "Temporal")],
+    bottom: () => {
+      const h = S.time.peakHour;
+      return [
+        head("Peak hour"),
+        `<p class="mid roll">${h % 12 || 12}:00<span class="unit">${h < 12 ? "am" : "pm"}</span></p>`,
+        `<div class="grow"></div>`,
+        `<p class="body">${cap("clock", `${S.time.lateNightPct}% of prompts landed between midnight and 5am.`)}</p>`,
+      ];
+    },
+  },
+  {
+    pal: "dawn", sheet: 36, fg: "#161616", bands: true, fade: 0.5, field: () => scatter(5, 6, [0, 0, 1, 0.66]),
+    top: () => [hud("04", "Cadence"), weekChart()],
+    bottom: () => [
+      head("Longest streak"),
+      `<div class="cells">${cell("In a row", `${S.time.longestStreak.length}<span class="sub">days</span>`)}${cell("Busiest day", `${S.time.busiestDay.prompts}<span class="sub">on ${ymd(S.time.busiestDay.date).replace(/\/ \d{4}$/, "")}</span>`)}</div>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("rhythm", `Biggest day: ${ymd(S.time.busiestDay.date)}, ${S.time.busiestDay.prompts} prompts.`)}</p>`,
+    ],
+  },
+  {
+    pal: "ember", sheet: 52, fg: "#161616", field: () => scatter(8, 5, [0, 0, 1, 0.5]),
+    top: () => [hud("05", "Syntax"), `<div class="grow"></div>`, `<p class="lbl">Typical prompt</p>`, bigNum(String(S.style.medianWords), "words", 34, "blend")],
+    bottom: () => [
+      head("Prompt length"),
+      gbar(telegramness, `${S.style.medianWords}`, "Telegram → Novelist"),
+      `<div class="cells">
+        ${cell("Start lowercase", S.style.lowercaseStartPct + "%")}
+        ${cell("Are questions", S.style.questionPct + "%")}
+        ${cell("Longest prompt", fmt(S.style.longestPromptWords), "words")}
+        ${cell("Essays, 150+ words", S.style.novelPct + "%")}
+      </div>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("style", "You give your agents context. Lots of it.")}</p>`,
+    ],
+  },
+  {
+    pal: "peach", sheet: 60, fg: "#161616", field: () => scatter(14, 5, [0, 0, 1, 0.42]),
+    top: () => {
+      const p = S.phrases.catchphrases[0];
+      return [hud("06", "Lexicon"), `<div class="grow"></div>`, `<p class="lbl">Catchphrase no. 1 · ${fmt(p?.count ?? 0)}×</p>`, `<p class="big blend" style="font-size:${fit(p?.name, [[6, 22], [10, 16], [Infinity, 12]])}cqw">${esc(p?.name)}</p>`];
+    },
+    bottom: () => {
+      const list = S.phrases.catchphrases.slice(1, 6), top = S.phrases.catchphrases[0]?.count || 1;
+      return [
+        head("Catchphrases"),
+        `<ol class="rows">${list.map((p, i) => `<li><span class="n">${pad(i + 2)}</span><span class="w">${esc(p.name)}</span><span class="m"><i style="--w:${(p.count / top) * 100}%;--d:${i}"></i></span><span class="c roll">${fmt(p.count)}×</span></li>`).join("")}</ol>`,
+        `<div class="grow"></div>`,
+        `<p class="body">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
+      ];
+    },
+  },
+  {
+    pal: "sky", sheet: 44, fg: "#161616", field: () => scatter(31, 5, [0, 0, 1, 0.6]),
+    top: () => [hud("07", "Protocol"), `<div class="grow"></div>`, `<p class="lbl">Said please</p>`, bigNum(String(S.style.pleasePct), "%", 31, "blend")],
+    bottom: () => [
+      head("Manners"),
+      `<div class="cells">
+        ${cell("Said thanks", S.style.thanksPct + "%")}
+        ${cell("Compliments", fmt(S.style.praiseCount))}
+        ${cell("“Still broken”", fmt(S.style.frustrationCount))}
+        ${cell("Apologies", fmt(S.style.sorryCount))}
+      </div>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("manners", "The machines will remember this.")}</p>`,
+    ],
+  },
+  {
+    skip: !S.projects.length,
+    pal: "mint", sheet: 60, fg: "#161616", field: () => scatter(17, 5, [0, 0, 1, 0.42]),
+    top: () => {
+      const p = S.projects[0];
+      return [hud("08", "Workload"), `<div class="grow"></div>`, `<p class="lbl">Top project · ${fmt(p?.count ?? 0)} prompts</p>`, `<p class="big blend" style="font-size:${fit(p?.name, [[6, 22], [10, 15], [16, 10], [Infinity, 8]])}cqw">${esc(p?.name)}</p>`];
+    },
+    bottom: () => {
+      const list = S.projects.slice(0, 5), max = list[0]?.count || 1;
+      return [
+        head("Workload"),
+        `<div class="gbars">${list.map((p, i) => gbar((p.count / max) * 100, fmt(p.count), p.name.slice(0, 24), i)).join("")}</div>`,
+        `<div class="grow"></div>`,
+        `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`,
+      ];
+    },
+  },
+  ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
+    ...[{ pal: "dusk", fg: "#161616" }, { pal: "ember", fg: "#FFFFFF" }, { pal: "dawn", fg: "#161616" }][i],
+    sheet: 26, field: () => scatter(40 + i * 7, 6, [0, 0, 1, 0.74]),
+    top: () => [
+      hud(pad(9 + i), `Log ${i + 1}/${Math.min(3, P.quotes.length)}`),
+      `<div class="grow"></div>`,
+      `<p class="lbl">${esc(q.title ?? "Transmission")}</p>`,
+      `<p class="quote blend" style="font-size:${fit(q.text, [[40, 10], [80, 8], [140, 6.4], [Infinity, 5.2]])}cqw">“${esc(q.text)}”</p>`,
+      q.meta ? `<p class="micro" style="opacity:0.8">${esc(q.meta)}</p>` : "",
+    ],
+    bottom: () => [head("Greatest hits"), `<p class="body">${esc(q.caption)}</p>`],
+  })),
+  {
+    pal: "infra", sheet: 100, fg: "#161616", field: () => scatter(2),
+    top: () => [],
+    bottom: () => [
+      `<div style="height:3cqw"></div>`,
+      head("Vibe check", "4 / 4"),
+      `<h2 class="display" style="font-size:12cqw">Vibe check</h2>`,
+      `<div class="grow"></div>`,
+      traitsBlock(),
+    ],
+  },
+  {
+    pal: "ember", sheet: 34, fg: "#FFFFFF", field: () => scatter(9, 6, [0, 0, 1, 0.66]),
+    top: () => [
+      hud("13", "Warning"),
+      `<div class="grow"></div>`,
+      `<p class="lbl">The roast</p>`,
+      `<p class="quote blend" style="font-size:${fit(P.roast, [[160, 6.6], [260, 5.6], [380, 4.8], [Infinity, 4.2]])}cqw">${esc(P.roast)}</p>`,
+    ],
+    bottom: () => [head("But also"), `<p class="body">${esc(P.compliment)}</p>`],
+  },
+  {
+    pal: "dusk", sheet: 40, fg: "#161616", field: () => scatter(27, 6, [0, 0, 1, 0.6]),
+    top: () => [
+      hud("14", "Classification"),
+      `<p class="lbl">${esc(who)}${D.role ? " · " + esc(D.role) : ""}</p>`,
+      `<div class="grow"></div>`,
+      `<h1 class="display blend" style="font-size:${fit(P.archetype.name, [[16, 13], [24, 11], [Infinity, 9]])}cqw">${esc(P.archetype.name)}</h1>`,
+      `<p class="body" style="font-size:4.4cqw">${esc(P.archetype.tagline)}</p>`,
+    ],
+    bottom: () => [
+      head("Prompting personality"),
+      `<p class="body">${esc(P.archetype.description)}</p>`,
+      `<div class="grow"></div>`,
+      P.prediction ? `<p class="micro" style="opacity:0.75">Forecast: ${esc(P.prediction)}</p>` : "",
+    ],
+  },
+  {
+    pal: "dusk", sheet: 0, fg: "#161616", field: () => scatter(27, 6, [0, 0, 1, 1]),
+    top: () => [
+      hud("15", "Export"),
+      `<canvas class="share-card" id="share" width="1080" height="1920" aria-label="Shareable summary card"></canvas>`,
+      `<div class="actions"><button class="btn" id="dl">Save image</button><button class="btn alt" id="replay">Replay</button></div>`,
+    ],
+    bottom: () => [],
+  },
+].filter((s) => !s.skip);
+
+// ---------- colour field ----------
+
+const field = document.getElementById("field"), fctx = field.getContext("2d");
+const FW = field.width, NB = 24;
+let FH = field.height, img = fctx.createImageData(FW, FH);
+// Match the field's pixel grid to the stage shape.
+function sizeField() { FH = Math.round(FW * AR); field.height = FH; img = fctx.createImageData(FW, FH); }
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+function lutFrom(stops) {
+  const c = stops.map(hex), lut = new Float32Array(768);
+  for (let i = 0; i < 256; i++) {
+    const p = (i / 255) * (c.length - 1), k = Math.min(c.length - 2, Math.floor(p)), f = p - k;
+    for (let ch = 0; ch < 3; ch++) lut[i * 3 + ch] = c[k][ch] + (c[k + 1][ch] - c[k][ch]) * f;
+  }
+  return lut;
+}
+const blobs = [...Array(NB)].map(() => ({ x: 0.5, y: 0.4, r: 0.2, w: 0, p: 0, tx: 0.5, ty: 0.4, tr: 0.2, tw: 0, tp: 0 }));
+const tw = { pal: "", mode: "", speed: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1 };
+let lut = lutFrom(PALETTES.dusk.stops), lutFromArr = lut, lutTo = lut, lutK = 1, bands = 0, bandsTarget = 0, still = 0, stillTarget = 0, heat = 0, heatTarget = 0, live = null, liveFrom = 0, t = 0, last = 0;
+
+function setField(s) {
+  const pal = PALETTES[tw.pal || s.pal];
+  const layout = s.field();
+  blobs.forEach((b, i) => {
+    const L = layout[i];
+    if (L) Object.assign(b, { tx: L.x, ty: L.y, tr: L.r, tw: L.w, tp: L.p ?? 0 });
+    else Object.assign(b, { tw: 0, tp: 0 });
+  });
+  lutFromArr = lut.slice(); lutTo = lutFrom(pal.stops); lutK = 0;
+  // Some slides wash the field toward paper so the data on top keeps its colour.
+  if (s.fade) { const paper = hex("#F3F2EE"); for (let i = 0; i < 768; i++) lutTo[i] += (paper[i % 3] - lutTo[i]) * s.fade; }
+  // `bands` can be true or a 0..1 mix, for a softer hint of contour.
+  bandsTarget = tw.mode ? +(tw.mode === "bands") : typeof s.bands === "number" ? s.bands : +!!s.bands;
+  stillTarget = +!!s.still;
+  heatTarget = s.heat ?? 0;
+  // Slides with `live` re-lay out their hotspots every frame instead of drifting around a fixed layout.
+  live = s.live ?? null; liveFrom = t;
+  const st = document.getElementById("stage").style;
+  pal.stops.forEach((c, i) => st.setProperty(`--c${i}`, c));
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (now - last < 33) return;
+  const dt = Math.min(0.1, (now - last) / 1000); last = now; t += dt * tw.speed;
+  const k = 1 - Math.exp(-dt * 3.2);
+  if (live) live(t - liveFrom).forEach((L, i) => Object.assign(blobs[i], { tx: L.x, ty: L.y, tr: L.r, tw: L.w }));
+  const kp = live ? 1 - Math.exp(-dt * 8) : k;
+  for (const b of blobs) { b.x += (b.tx - b.x) * kp; b.y += (b.ty - b.y) * kp; b.r += (b.tr - b.r) * k; b.w += (b.tw - b.w) * kp; b.p += (b.tp - b.p) * k; }
+  if (lutK < 1) {
+    lutK = Math.min(1, lutK + dt / 0.9);
+    const e = 1 - Math.pow(1 - lutK, 3);
+    lut = new Float32Array(768);
+    for (let i = 0; i < 768; i++) lut[i] = lutFromArr[i] + (lutTo[i] - lutFromArr[i]) * e;
+  }
+  bands += (bandsTarget - bands) * k;
+  still += (stillTarget - still) * k;
+  heat += (heatTarget - heat) * k;
+  const gain = 1.3 + 0.8 * heat, rings = Math.PI * (3.2 - 0.6 * heat);
+  const act = [];
+  // Free slides drift and warp; "still" slides keep each hotspot where it belongs and only bob it in place.
+  const drift = 1 - still, bob = 0.006 * still, beat = Math.sin(t * 2.4);
+  blobs.forEach((b, n) => {
+    if (b.w <= 0.01) return;
+    const x = b.x + 0.035 * drift * Math.sin(t * 0.35 + n * 1.3) + bob * Math.sin(t * 1.7 + n * 2.3);
+    const y = b.y + 0.03 * drift * Math.cos(t * 0.3 + n * 2.1) + bob * Math.cos(t * 1.3 + n * 1.7);
+    const r = b.r * (1 + 0.22 * b.p * beat);
+    act.push(x, y * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * beat));
+  });
+  const warp = 0.035 * drift;
+  const d = img.data, n = act.length;
+  let p = 0;
+  for (let j = 0; j < FH; j++) {
+    const v0 = (j / (FH - 1)) * AR;
+    for (let i = 0; i < FW; i++) {
+      const u0 = i / (FW - 1);
+      const u = u0 + warp * Math.sin(v0 * 4.2 + t * 0.6), v = v0 + warp * Math.cos(u0 * 5.1 + t * 0.45);
+      let f = 0;
+      for (let q = 0; q < n; q += 4) { const dx = u - act[q], dy = v - act[q + 1]; f += act[q + 3] * Math.exp(-(dx * dx + dy * dy) * act[q + 2]); }
+      let g = 1 - Math.exp(-gain * f);
+      if (bands > 0.01) g += (0.5 - 0.5 * Math.cos(g * rings) - g) * bands;
+      const li = Math.min(255, Math.max(0, (g * 255) | 0)) * 3;
+      d[p] = lut[li]; d[p + 1] = lut[li + 1]; d[p + 2] = lut[li + 2]; d[p + 3] = 255; p += 4;
+    }
+  }
+  fctx.putImageData(img, 0, 0);
+}
+
+// Film grain tile.
+const noise = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0.6 0.6 0.6 0 -0.4 0.6 0.6 0.6 0 -0.4 0.6 0.6 0.6 0 -0.4 0 0 0 0 1"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`;
+document.getElementById("grain").style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(noise)}")`;
+
+// ---------- share card ----------
+
+function drawShare() {
+  const c = document.getElementById("share");
+  if (!c || c.dataset.drawn) return;
+  c.dataset.drawn = 1;
+  const x = c.getContext("2d"), W = 1080, H = 1920, m = 72, ink = "#161616";
+  const mono = (s, w = 500) => `${w} ${s}px "Geist Mono", ui-monospace, monospace`;
+  const sans = (s, w = 300) => `${w} ${s}px Geist, system-ui, sans-serif`;
+
+  x.filter = "blur(36px)";
+  x.drawImage(field, -80, -80, W + 160, H + 160);
+  x.filter = "none";
+
+  const py = 1240;
+  x.fillStyle = "#F3F2EE"; x.fillRect(0, py, W, H - py);
+
+  x.fillStyle = ink; x.font = mono(28);
+  x.fillText("HOW I AI · WRAPPED", m, 128);
+  x.textAlign = "right"; x.fillText(ymd(S.totals.lastDate), W - m, 128); x.textAlign = "left";
+
+  // Archetype name, wrapped and sat on the gradient.
+  const words = P.archetype.name.split(" ");
+  let size = 150, lines = [];
+  for (; size >= 80; size -= 6) {
+    x.font = sans(size);
+    lines = []; let line = "";
+    for (const w of words) { const tt = line ? line + " " + w : w; if (x.measureText(tt).width > W - m * 2 && line) { lines.push(line); line = w; } else line = tt; }
+    lines.push(line);
+    if (lines.length <= 3 && Math.max(...lines.map((l) => x.measureText(l).width)) <= W - m * 2) break;
+  }
+  x.font = sans(size);
+  try { x.letterSpacing = `${-size * 0.04}px`; } catch {}
+  lines.forEach((l, i) => x.fillText(l, m, py - 70 - (lines.length - 1 - i) * size * 0.95));
+  try { x.letterSpacing = "0px"; } catch {}
+
+  x.font = mono(26);
+  x.fillText([who.toUpperCase(), D.role?.toUpperCase(), "PROMPTING PERSONALITY"].filter(Boolean).join("  ·  "), m, py + 84);
+  x.fillStyle = "rgb(22 22 22 / 0.12)"; x.fillRect(m, py + 120, W - m * 2, 2);
+
+  const stats = [[fmt(total), "PROMPTS"], [hourLabel(S.time.peakHour), "PEAK HOUR"], [S.time.longestStreak.length + " days", "STREAK"], [String(S.style.medianWords), "WORDS / PROMPT"]];
+  stats.forEach(([v, l], i) => {
+    const cx = m + (i % 2) * ((W - m * 2) / 2), cy = py + 170 + Math.floor(i / 2) * 190;
+    x.fillStyle = ink; x.font = mono(24); x.globalAlpha = 0.6; x.fillText(l, cx, cy + 20); x.globalAlpha = 1;
+    x.font = sans(96); x.fillText(v, cx, cy + 116);
+  });
+  x.font = mono(24); x.globalAlpha = 0.55;
+  x.fillText(sources.map(([k, v]) => `${(SOURCE_LABEL[k] ?? k).toUpperCase()} ${Math.round((v.prompts / total) * 100)}%`).join("   ·   "), m, H - 72);
+  x.globalAlpha = 1;
+
+  // Grain.
+  const g = document.createElement("canvas"); g.width = g.height = 256;
+  const gx = g.getContext("2d"), gd = gx.createImageData(256, 256);
+  for (let i = 0; i < gd.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 150; gd.data[i] = gd.data[i + 1] = gd.data[i + 2] = v; gd.data[i + 3] = 255; }
+  gx.putImageData(gd, 0, 0);
+  x.globalCompositeOperation = "overlay"; x.globalAlpha = 0.22;
+  x.fillStyle = x.createPattern(g, "repeat"); x.fillRect(0, 0, W, H);
+  x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+}
+
+// ---------- rolling numbers ----------
+
+// Each .roll number counts up through its values and lands on the real one, starting when it is revealed.
+const revealDelay = (n, slide) => {
+  for (; n && n !== slide; n = n.parentElement) {
+    const d = getComputedStyle(n).animationDelay.split(",")[0];
+    const ms = parseFloat(d) * (d.endsWith("ms") ? 1 : 1000);
+    if (ms > 0) return ms;
+  }
+  return 0;
+};
+let rollGen = 0;
+function rollNumbers(slide) {
+  const gen = ++rollGen, still = tw.speed === 0;
+  slide.querySelectorAll(".roll").forEach((n) => {
+    const node = n.firstChild;
+    if (node?.nodeType !== 3) return;
+    const text = (n.dataset.final ??= node.textContent), m = text.match(/\d[\d,]*(\.\d+)?/);
+    if (!m) return;
+    const target = parseFloat(m[0].replace(/,/g, "")), dec = m[1] ? m[1].length - 1 : 0, commas = m[0].includes(",");
+    const show = (v) => { node.textContent = text.slice(0, m.index) + (commas ? v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }) : v.toFixed(dec)) + text.slice(m.index + m[0].length); };
+    if (still) return show(target);
+    show(0);
+    const start = performance.now() + revealDelay(n, slide), dur = 1200;
+    const tick = (now) => {
+      if (gen !== rollGen) return;
+      const k = Math.min(1, Math.max(0, (now - start) / dur)), e = 1 - Math.pow(1 - k, 4);
+      show(k < 1 ? Math.round(target * e * 10 ** dec) / 10 ** dec : target);
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+// ---------- player ----------
+
+const root = document.getElementById("slides"), progress = document.getElementById("progress"), stage = document.getElementById("stage");
+const withIndex = (h, i) => (!h ? "" : /^\s*<\w+[^>]*\sstyle="/.test(h) ? h.replace('style="', `style="--i:${i};`) : h.replace(/^(\s*)<(\w+)/, `$1<$2 style="--i:${i}"`));
+let els = [], bars = [], cur = -1;
+function build() {
+  measure(); sizeField(); layoutDial();
+  root.innerHTML = slides.map((s) => `
+    <section class="slide" style="--sheet:${s.sheet}%;--fg:${s.fg}">
+      ${s.extra ? s.extra() : ""}
+      <div class="top">${s.top().map(withIndex).join("")}</div>
+      <div class="panel">${s.bottom().map(withIndex).join("")}</div>
+    </section>`).join("");
+  progress.innerHTML = slides.map(() => "<span></span>").join("");
+  els = [...root.children]; bars = [...progress.children];
+}
+// Re-lay out when the stage changes shape (rotating a phone, resizing a window).
+let resizeTimer;
+new ResizeObserver(() => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const st = document.getElementById("stage"), next = st.clientHeight / st.clientWidth;
+    if (!els.length || Math.abs(next - AR) < 0.01) return;
+    const at = cur; build(); cur = -1; go(at);
+  }, 150);
+}).observe(stage);
+
+function go(i, force) {
+  i = Math.max(0, Math.min(slides.length - 1, i));
+  if (i === cur && !force) return;
+  els[cur]?.classList.remove("active");
+  cur = i;
+  const el = els[cur], s = slides[cur];
+  el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
+  stage.style.setProperty("--sheet", s.sheet + "%");
+  stage.style.setProperty("--fg", s.fg);
+  setField(s);
+  rollNumbers(el);
+  bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
+  document.getElementById("nav").style.display = cur === slides.length - 1 ? "none" : "";
+  if (cur === slides.length - 1) document.fonts.ready.then(() => setTimeout(drawShare, 1000));
+}
+
+const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
+prevBtn.onclick = () => go(cur - 1);
+nextBtn.onclick = () => go(cur + 1);
+addEventListener("keydown", (e) => {
+  if (e.target.closest?.(".tweak")) return;
+  if (["ArrowRight", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (e.key === "ArrowLeft") go(cur - 1);
+});
+root.addEventListener("click", (e) => {
+  if (e.target.id === "dl") {
+    const a = document.createElement("a");
+    a.download = "how-i-ai-wrapped.png";
+    a.href = document.getElementById("share").toDataURL("image/png");
+    a.click();
+  }
+  if (e.target.id === "replay") go(0);
+});
+
+// ---------- tweak panel ----------
+
+const $ = (id) => document.getElementById(id), css = getComputedStyle(document.documentElement);
+$("tw-pal").innerHTML += Object.keys(PALETTES).map((k) => `<option value="${k}">${k}</option>`).join("");
+$("tw-grain").value = parseFloat(css.getPropertyValue("--grain"));
+$("tw-blur").value = parseFloat(css.getPropertyValue("--blur"));
+$("tw-speed").value = tw.speed;
+$("tweak-toggle").onclick = () => { $("tweak").hidden = !$("tweak").hidden; };
+$("tw-pal").onchange = (e) => { tw.pal = e.target.value; setField(slides[cur]); };
+$("tw-mode").onchange = (e) => { tw.mode = e.target.value; setField(slides[cur]); };
+$("tw-grain").oninput = (e) => document.documentElement.style.setProperty("--grain", e.target.value);
+$("tw-blur").oninput = (e) => document.documentElement.style.setProperty("--blur", e.target.value + "px");
+$("tw-speed").oninput = (e) => { tw.speed = +e.target.value; };
+$("tw-bars").onchange = (e) => { stage.classList.toggle("solid-bars", e.target.value === "solid"); go(cur, true); };
+
+build();
+go(parseInt(location.hash.slice(1)) || 0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
