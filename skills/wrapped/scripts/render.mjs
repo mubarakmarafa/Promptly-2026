@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--theme classic|graphic] [--out file.html] [--hide-projects]
+// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode light|dark] [--out file.html] [--hide-projects]
 
 import fs from "node:fs";
 import os from "node:os";
@@ -45,14 +45,18 @@ const payload = {
   persona,
 };
 
-const THEMES = ["classic", "graphic", "gradient"];
-const theme = args.theme ?? persona.theme ?? "classic";
-if (!THEMES.includes(theme)) {
-  console.error(`unknown theme "${theme}", expected one of: ${THEMES.join(", ")}`);
-  process.exit(1);
+// The user's colour preferences. Flags override what the agent put in persona.json.
+const LOOKS = { mood: ["mixed", "warm", "cool", "electric"], mode: ["light", "dark"] };
+const look = { mood: args.mood ?? persona.look?.mood ?? "mixed", mode: args.mode ?? persona.look?.mode ?? "light" };
+for (const [key, allowed] of Object.entries(LOOKS)) {
+  if (!allowed.includes(look[key])) {
+    console.error(`unknown ${key} "${look[key]}", expected one of: ${allowed.join(", ")}`);
+    process.exit(1);
+  }
 }
-const template = fs.readFileSync(path.join(here, "..", "templates", `${theme}.html`), "utf8");
+payload.look = look;
+const template = fs.readFileSync(path.join(here, "..", "templates", "wrapped.html"), "utf8");
 const json = JSON.stringify(payload).replace(/</g, "\\u003c");
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, template.replace("/*__WRAPPED_DATA__*/", () => json));
-console.log(`wrote ${out} (${theme})`);
+console.log(`wrote ${out} (${look.mood}, ${look.mode})`);

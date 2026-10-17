@@ -17,6 +17,13 @@
     --grain: 0.34;
     --blur: 7px;
   }
+  :root.dark { --ink: #EEECE8; --paper: #151515; }
+  :root.dark body { background: #0A0A0A; }
+  :root.dark .receipt { background: #1F1F1F; }
+  :root.dark .btn { color: var(--paper); }
+  :root.dark .btn.alt { background: #262626; color: var(--ink); }
+  /* Difference blending goes muddy over a dark field, so dark mode uses plain ink. */
+  :root.dark .blend, :root.dark .hot { mix-blend-mode: normal; color: var(--ink); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
@@ -335,7 +342,28 @@ const PALETTES = {
   dawn: { name: "blush, tangerine & iris", stops: ["#EEECE8", "#F6DAE3", "#FFAE8A", "#958BF4", "#EEECE8"] },
   ember: { name: "scarlet, orange & violet", stops: ["#FFD9B8", "#FFA45E", "#FF5E3D", "#DD2F57", "#6438CC"] },
   mint: { name: "mint, sea & lilac", stops: ["#E9F4EF", "#A8E8D3", "#7CC6F0", "#B79CF2", "#F6C5E4"] },
+  glacier: { name: "ice, cornflower, iris & aqua", stops: ["#EAF0F6", "#B8D4F5", "#8FA8FF", "#7D6BF0", "#5ED1E0"] },
+  abyss: { name: "frost, cobalt, indigo & navy", stops: ["#DCE6F7", "#7FA6F5", "#4C5FE8", "#3A2CA8", "#160F4A"] },
 };
+
+// ---------- look: the user's colour preferences ----------
+
+const LOOK = { mood: D.look?.mood ?? "mixed", mode: D.look?.mode ?? "light" };
+// Each mood swaps some slide palettes for others; "mixed" keeps every slide's own.
+const MOODS = {
+  mixed: {},
+  warm: { mint: "peach", sky: "dusk", infra: "ember" },
+  cool: { flare: "glacier", dusk: "mint", dawn: "sky", peach: "mint", infra: "abyss", ember: "abyss" },
+  electric: { dusk: "flare", dawn: "flare", peach: "ember", mint: "infra", sky: "flare" },
+};
+const DARK = LOOK.mode === "dark";
+const INK = DARK ? "#EEECE8" : "#161616", PAPER = DARK ? "#151515" : "#F3F2EE";
+const shade = (c, k) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(c.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
+if (DARK) {
+  document.documentElement.classList.add("dark");
+  // Deepen the quiet end of each gradient instead of greying it, so colours stay saturated; the hot end stays bright.
+  for (const p of Object.values(PALETTES)) p.stops = p.stops.map((c, i) => shade(c, [0.09, 0.5, 0.88, 1, 1][i]));
+}
 
 // ---------- field layouts (x, y in 0..1 of the stage) ----------
 
@@ -575,7 +603,7 @@ function phraseLayer() {
   return `<div class="abs">
     ${phrases.map((_, i) => `<i class="rowg" style="top:${y(i)}%"></i>`).join("")}
     ${ticks.map((v) => `<i class="colg" style="left:${plotX(v)}%;top:${yTop}%;height:${yEnd - yTop + 3}%"></i><span class="axis" style="left:${plotX(v)}%;top:${yTop}%">${fmt(v)}</span>`).join("")}
-    <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${phrases.map((_, i) => `<line id="ps-${i}" style="stroke:#161616;stroke-opacity:0.55;stroke-width:1.4" x1="${PLOT.x0}" x2="${PLOT.x0}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
+    <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${phrases.map((_, i) => `<line id="ps-${i}" style="stroke:${INK};stroke-opacity:0.55;stroke-width:1.4" x1="${PLOT.x0}" x2="${PLOT.x0}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
     ${phrases.map((p, i) => `<span class="plabel${i ? "" : " lead"}" style="top:${y(i)}%;--fs:${(5.4 - i * 0.45).toFixed(2)}cqw;--d:${i}"><i>P${i + 1}</i><strong>${esc(p.name)}</strong></span>`).join("")}
     ${phrases.map((p, i) => `<i class="mark" id="pm-${i}" style="--d:${i}"></i><span class="chip${i ? "" : " lead"}" id="pb-${i}" style="--d:${i}"><em class="rd">00.0,00.0</em><b class="roll">${fmt(p.count)}×</b></span>`).join("")}
   </div>`;
@@ -688,12 +716,12 @@ function traitsBlock() {
   return `<div class="traits">
     <svg viewBox="0 0 89 108" aria-hidden="true">
       <defs><filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
-      ${pts.map(([, y]) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="#161616" stroke-opacity="0.22" stroke-width="0.25"/>`).join("")}
-      ${pts.map(([, y]) => [0.25, 0.5, 0.75].map((f) => `<circle cx="${x0 + (x1 - x0) * f}" cy="${y}" r="0.7" fill="#161616" opacity="0.25"/>`).join("")).join("")}
+      ${pts.map(([, y]) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="${INK}" stroke-opacity="0.22" stroke-width="0.25"/>`).join("")}
+      ${pts.map(([, y]) => [0.25, 0.5, 0.75].map((f) => `<circle cx="${x0 + (x1 - x0) * f}" cy="${y}" r="0.7" fill="${INK}" opacity="0.25"/>`).join("")).join("")}
       <path class="glow" d="${path}" fill="none" style="stroke:var(--c3)" stroke-width="6" stroke-linecap="round" filter="url(#soft)" opacity="0.75" stroke-dasharray="400"/>
       ${pts.map(([x, y], i) => i === hi
         ? `<g class="dot" style="--d:${i}"><circle cx="${x}" cy="${y}" r="4.2" style="fill:var(--c2)" filter="url(#soft)"/><circle cx="${x}" cy="${y}" r="2.6" style="fill:var(--c2)"/><circle cx="${x}" cy="${y}" r="1.3" fill="#161616"/></g>`
-        : `<circle class="dot" style="--d:${i}" cx="${x}" cy="${y}" r="2.4" fill="#161616"/>`).join("")}
+        : `<circle class="dot" style="--d:${i}" cx="${x}" cy="${y}" r="2.4" fill="${INK}"/>`).join("")}
     </svg>
     ${traits.map((t, i) => {
       const y = 4 + i * pitch, cls = i === hi ? " hi" : "";
@@ -871,6 +899,7 @@ const slides = [
     bottom: () => [],
   },
 ].filter((s) => !s.skip);
+slides.forEach((s) => { s.pal = MOODS[LOOK.mood]?.[s.pal] ?? s.pal; if (DARK) s.fg = INK; });
 
 // ---------- colour field ----------
 
@@ -889,7 +918,7 @@ function lutFrom(stops) {
   return lut;
 }
 const blobs = [...Array(NB)].map(() => ({ x: 0.5, y: 0.4, r: 0.2, w: 0, p: 0, tx: 0.5, ty: 0.4, tr: 0.2, tw: 0, tp: 0 }));
-const tw = { pal: "", mode: "", speed: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1 };
+const tw = { pal: "", mode: LOOK.mood === "electric" ? "bands" : "", speed: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1 };
 let fieldAct = [], fieldGain = 1.3;
 // Heat (0..1) at a stage point: the same sum the field draws, minus the warp.
 function heatAt(sx, sy) {
@@ -910,7 +939,7 @@ function setField(s) {
   });
   lutFromArr = lut.slice(); lutTo = lutFrom(pal.stops); lutK = 0;
   // Some slides wash the field toward paper so the data on top keeps its colour.
-  if (s.fade) { const paper = hex("#F3F2EE"); for (let i = 0; i < 768; i++) lutTo[i] += (paper[i % 3] - lutTo[i]) * s.fade; }
+  if (s.fade) { const paper = hex(PAPER); for (let i = 0; i < 768; i++) lutTo[i] += (paper[i % 3] - lutTo[i]) * s.fade; }
   // `bands` can be true or a 0..1 mix, for a softer hint of contour.
   bandsTarget = tw.mode ? +(tw.mode === "bands") : typeof s.bands === "number" ? s.bands : +!!s.bands;
   stillTarget = +!!s.still;
@@ -984,7 +1013,7 @@ function drawShare() {
   const c = document.getElementById("share");
   if (!c || c.dataset.drawn) return;
   c.dataset.drawn = 1;
-  const x = c.getContext("2d"), W = 1080, H = 1920, m = 72, ink = "#161616";
+  const x = c.getContext("2d"), W = 1080, H = 1920, m = 72, ink = INK;
   const mono = (s, w = 500) => `${w} ${s}px "Geist Mono", ui-monospace, monospace`;
   const sans = (s, w = 300) => `${w} ${s}px Geist, system-ui, sans-serif`;
 
@@ -993,7 +1022,7 @@ function drawShare() {
   x.filter = "none";
 
   const py = 1240;
-  x.fillStyle = "#F3F2EE"; x.fillRect(0, py, W, H - py);
+  x.fillStyle = PAPER; x.fillRect(0, py, W, H - py);
 
   x.fillStyle = ink; x.font = mono(28);
   x.fillText("HOW I AI · WRAPPED", m, 128);
@@ -1100,7 +1129,7 @@ const smooth = (k) => k * k * (3 - 2 * k);
 function burn(to) {
   const BH = Math.round(BW * AR), bx = burnEl.getContext("2d");
   burnEl.width = BW; burnEl.height = BH; burnEl.style.display = "block";
-  const img = bx.createImageData(BW, BH), d = img.data, pal = PALETTES[tw.pal || slides[to].pal].stops.map(hex), paper = hex("#F3F2EE");
+  const img = bx.createImageData(BW, BH), d = img.data, pal = PALETTES[tw.pal || slides[to].pal].stops.map(hex), paper = hex(PAPER);
   const NAVY = hex("#1B1F6E"), MAG = hex("#E0357F"), CYAN = hex("#3FA0F0");
   const FR = [[0, NAVY], [0.3, MAG], [0.5, pal[3]], [0.68, pal[4]]];
   const col = [0, 0, 0], mix = (a, b, k) => { col[0] = a[0] + (b[0] - a[0]) * k; col[1] = a[1] + (b[1] - a[1]) * k; col[2] = a[2] + (b[2] - a[2]) * k; return col; };
@@ -1222,6 +1251,8 @@ $("tw-pal").innerHTML += Object.keys(PALETTES).map((k) => `<option value="${k}">
 $("tw-grain").value = parseFloat(css.getPropertyValue("--grain"));
 $("tw-blur").value = parseFloat(css.getPropertyValue("--blur"));
 $("tw-speed").value = tw.speed;
+// Hidden unless the page is opened with ?tweak.
+$("tweak-toggle").style.display = new URLSearchParams(location.search).has("tweak") ? "" : "none";
 $("tweak-toggle").onclick = () => { $("tweak").hidden = !$("tweak").hidden; };
 $("tw-pal").onchange = (e) => { tw.pal = e.target.value; setField(slides[cur]); };
 $("tw-mode").onchange = (e) => { tw.mode = e.target.value; setField(slides[cur]); };

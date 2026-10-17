@@ -26,12 +26,20 @@ Start like a personality quiz: a quick, playful warm-up before the results. Ask 
 
 1. **What should we call you?** Suggest their first name from `git config --global user.name` if it looks like a real name. Free text is fine.
 2. **What do you do?** Offer Designer, Engineer, Product / PM, and Founder, plus free text. This shapes the archetype and the jokes.
-3. **Pick a look.** Classic: bold colour blocks and big friendly type. Graphic: computer-y, with ASCII textures, punched-out numbers and acid colours on black. Maps to `--theme classic` or `--theme graphic` when you render.
-4. **Roast level?** Gentle, medium (default) or extra spicy.
+3. **Pick your colours.** The design is always the same; this sets the palettes behind each slide. Maps to `look.mood`:
+   - Warm: sunset pinks, oranges and golds (`warm`)
+   - Cool: mint, sky, lilac and deep blue (`cool`)
+   - Electric: hot, saturated colour with thermal bands (`electric`)
+   - A bit of everything: a different palette on every slide (`mixed`, the default)
+4. **Light or dark?** Light paper (default) or dark. Maps to `look.mode`: `light` or `dark`.
+
+Only these preferences change. The layout, type and visuals stay the same for everyone.
+
+The roast is medium by default. If the user asks for gentle or extra spicy when invoking you, use that.
 
 The time range defaults to all time. If the user mentions one ("this year", "last 90 days"), pass `--days` to the extractor: days since 1 January for this year, or the number they gave.
 
-Skip any question the user already answered when invoking you (for example `/wrapped call me Mo, designer, graphic, spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, Classic, medium. Don't stall waiting for an answer.
+Skip any question the user already answered when invoking you (for example `/wrapped call me Sam, designer, cool, dark, extra spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, mixed colours, light, medium roast. Don't stall waiting for an answer.
 
 While you wait for answers, don't read any history.
 
@@ -89,6 +97,7 @@ Write `persona.json` in the same directory as the data file:
 {
   "name": "What they asked to be called, or null",
   "role": "Their job in a few lowercase words, e.g. product designer, or null",
+  "look": { "mood": "mixed | warm | cool | electric", "mode": "light | dark" },
   "archetype": {
     "name": "The ___ ___ (2-4 words)",
     "tagline": "A short line in their voice that captures their disposition",
@@ -127,8 +136,10 @@ What makes it good:
 ### 4. Render
 
 ```bash
-node scripts/render.mjs --data <data.json> --persona <persona.json> --theme <classic|graphic>
+node scripts/render.mjs --data <data.json> --persona <persona.json>
 ```
+
+The colours come from `look` in `persona.json`. `--mood` and `--mode` override it, which is handy if the user wants to try another palette.
 
 This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
 
@@ -140,4 +151,4 @@ Tell the user, briefly:
 
 - Where the file is, and that they tap or use the arrow keys to move through it. The last slide has a "Save image" button for sharing.
 - Their archetype name, to tease the reveal without spoiling the whole thing.
-- The 3 quotes and the top project names that appear in the page. Ask if they want any swapped out, or the projects hidden, before sharing. If they do, edit `persona.json` and re-render; don't re-run the extractor.
+- The 3 quotes and the top project names that appear in the page. Ask if they want any swapped out, the projects hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
