@@ -399,7 +399,7 @@ const slides = [
   {
     t: theme("#C6F432", "#121212", "#121212"),
     html: () => reveal([
-      `<p class="kicker">Your prompting personality is…</p>`,
+      `<p class="kicker">${esc(D.name ? `${D.name}, your` : "Your")} prompting personality is…</p>`,
       `<h1 class="h1" style="font-size:${P.archetype.name.length > 18 ? 12 : 14.5}cqw;margin-top:2cqw">${esc(P.archetype.name)}</h1>`,
       `<div class="grow"></div>`,
       `<p class="h2 serif" style="font-weight:400;font-size:8.4cqw">${esc(P.archetype.tagline)}</p>`,
@@ -439,7 +439,7 @@ function drawShare() {
 
   x.fillStyle = "#121212"; x.font = font(500, 30, "JetBrains Mono");
   x.fillText("HOW I AI · WRAPPED", pad, 130);
-  x.font = font(500, 32, "JetBrains Mono"); x.fillText("MY PROMPTING PERSONALITY", pad, 300);
+  x.font = font(500, 32, "JetBrains Mono"); x.fillText([D.name, D.role].filter(Boolean).join(" · ").toUpperCase() || "MY PROMPTING PERSONALITY", pad, 300);
   x.font = font(800, 124);
   let y = wrap(P.archetype.name, W - pad * 2, 118, 430, 4);
   x.font = `italic 60px "Instrument Serif", Georgia, serif`;

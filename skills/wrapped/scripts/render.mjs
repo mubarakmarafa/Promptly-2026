@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--out file.html] [--hide-projects]
+// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--theme classic|graphic] [--out file.html] [--hide-projects]
 
 import fs from "node:fs";
 import os from "node:os";
@@ -34,18 +34,25 @@ if (problems.length) {
 
 // Only aggregate stats and the quotes the agent chose go into the page.
 // The raw prompt sample and auto-picked moments stay on disk.
-const { sample, moments, errors, userFirstName, ...stats } = data;
+const { sample, shortSample, moments, errors, userFirstName, ...stats } = data;
 if (args["hide-projects"]) stats.projects = [];
 
 const payload = {
   name: persona.name ?? null,
+  role: persona.role ?? null,
   sources: stats.sources,
   stats,
   persona,
 };
 
-const template = fs.readFileSync(path.join(here, "..", "templates", "wrapped.html"), "utf8");
+const THEMES = ["classic", "graphic"];
+const theme = args.theme ?? persona.theme ?? "classic";
+if (!THEMES.includes(theme)) {
+  console.error(`unknown theme "${theme}", expected one of: ${THEMES.join(", ")}`);
+  process.exit(1);
+}
+const template = fs.readFileSync(path.join(here, "..", "templates", `${theme}.html`), "utf8");
 const json = JSON.stringify(payload).replace(/</g, "\\u003c");
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, template.replace("/*__WRAPPED_DATA__*/", () => json));
-console.log(`wrote ${out}`);
+console.log(`wrote ${out} (${theme})`);

@@ -13,7 +13,7 @@ const HOME = os.homedir();
 const args = parseArgs(process.argv.slice(2));
 const OUT = args.out ?? path.join(os.tmpdir(), "how-i-ai", "wrapped-data.json");
 const SINCE = args.days ? Date.now() - Number(args.days) * 864e5 : 0;
-const SAMPLE_SIZE = Number(args.sample ?? 150);
+const SAMPLE_SIZE = Number(args.sample ?? 120);
 // Ignore the last few minutes so the /wrapped session doesn't analyse itself.
 const UNTIL = Date.now() - 5 * 60e3;
 
@@ -69,6 +69,7 @@ function cleanPrompt(raw) {
   if (mine) raw = mine[1];
   let text = raw
     .replace(/\[Image[^\]]*\]/g, () => (images++, ""))
+    .replace(/```(?:browser_element|chat_selection)[\s\S]*?```/g, " ")
     .replace(/<pasted_content[\s\S]*?<\/pasted_content[^>]*>/g, " [pasted] ")
     .replace(/<supacode_context[\s\S]*?<\/supacode_context>/g, () => (images++, ""))
     .replace(/\[Assistant quote\]\([^)]*\)/g, "")
@@ -254,6 +255,10 @@ async function collectCursor() {
 function projectName(cwd) {
   if (!cwd) return null;
   if (cwd === HOME) return "~ (home)";
+  // Codex Desktop names scratch folders after the first prompt, so the name would leak prompt text.
+  if (/\/Codex\/\d{4}-\d{2}-\d{2}\/[^/]+\/?$/.test(cwd)) return "Codex chats";
+  // Same for scratch folders like "2026-10-12-check-my-threads-9471c7e8".
+  if (/^\d{4}-\d{2}-\d{2}-/.test(path.basename(cwd))) return "Scratch chats";
   // Worktree managers nest checkouts as .../worktrees/<repo>/<branch>; credit the repo.
   const wt = cwd.match(/\/worktrees\/([^/]+)\/[^/]+\/?$/);
   if (wt && !/^[0-9a-f]{3,}$/i.test(wt[1])) return wt[1];
@@ -325,24 +330,41 @@ function longestStreak(days) {
   return best;
 }
 
-function sampleQuotes(list, n) {
-  // Spread the sample across time, favouring prompts with some personality.
-  const interesting = list.filter((p) => {
-    const w = words(p.text).length;
-    return w >= 3 && w <= 120;
-  });
-  const sorted = [...interesting].sort((a, b) => a.ts - b.ts);
+// Short operational commands ("restart the server", "push it") are habits, not personality.
+const OPS = /^(?:(?:ok(?:ay)?|hey|yo|now|pls|please|can you|could you|would you|go ahead and|let'?s)[\s,!.]*)*(?:re-?start|refresh|reload|run|start|stop|kill|push|pull|merge|commit|deploy|rebuild|build|continue|retry|try (?:it |this |that )?again|check (?:again|origin|it)|install|update|switch|rebase|stash|ship|open|spin up|get the server|do it|go|done|progress)\b/i;
+const isOps = (t) => words(t).length <= 12 && OPS.test(t.trim());
+
+// Language that shows how someone thinks: reasons, opinions, feelings, what they want for users.
+const VOICE = /\b(because|since|so that|i think|i feel|i want|i'?d (?:like|love)|ideally|should|feels?|looks?|love|hate|annoy\w*|wonder|maybe|what if|instead|rather|users?|people|honestly|actually|kind of|i'?m not sure|curious|why)\b/gi;
+
+// Spread across time, one pick per bucket, scored by `score`.
+function spreadPick(list, n, score) {
+  const sorted = [...list].sort((a, b) => a.ts - b.ts);
   const bucketSize = Math.max(1, Math.floor(sorted.length / n));
   const picks = [];
   for (let i = 0; i < sorted.length && picks.length < n; i += bucketSize) {
-    const bucket = sorted.slice(i, i + bucketSize);
-    const score = (p) =>
-      (RE.swear.test(p.text) ? 3 : 0) + (capsRage(p.text) ? 3 : 0) + (RE.praise.test(p.text) ? 2 : 0) +
-      (RE.frustration.test(p.text) ? 2 : 0) + (RE.emoji.test(p.text) ? 1 : 0) + (/!{2,}|\?{2,}/.test(p.text) ? 1 : 0) +
-      Math.random();
-    picks.push(bucket.sort((a, b) => score(b) - score(a))[0]);
+    picks.push(sorted.slice(i, i + bucketSize).sort((a, b) => score(b) - score(a))[0]);
   }
   return picks.map(fmtQuote);
+}
+
+function voiceSample(list, n) {
+  const candidates = list.filter((p) => {
+    const w = words(p.text).length;
+    return w >= 8 && w <= 160 && !isOps(p.text);
+  });
+  return spreadPick(candidates, n, (p) =>
+    (p.text.match(VOICE)?.length ?? 0) * 1.5 + (RE.praise.test(p.text) ? 1 : 0) + (RE.frustration.test(p.text) ? 1 : 0) +
+    (/!{2,}|\?{2,}|\.{3}|hah|lol|:\)|:\//i.test(p.text) ? 1 : 0) + Math.random() * 2,
+  );
+}
+
+function shortSample(list, n) {
+  const candidates = list.filter((p) => {
+    const w = words(p.text).length;
+    return w >= 1 && w < 8;
+  });
+  return spreadPick(candidates, n, () => Math.random());
 }
 
 function fmtQuote(p) {
@@ -447,6 +469,7 @@ function computeStats(list) {
       emojiPct: pct(count(list, (p) => RE.emoji.test(p.text)), n),
       urlPct: pct(count(list, (p) => RE.url.test(p.text)), n),
       imagePct: pct(count(list, (p) => p.images > 0), n),
+      opsPct: pct(count(list, (p) => isOps(p.text)), n),
     },
     phrases: {
       topOpeners: topN(openers, 10),
@@ -512,7 +535,8 @@ const output = {
     cursor: { prompts: stats.bySource.cursor ?? 0, sessions: meta.cursor.sessions.size, models: topN(meta.cursor.models, 5) },
   },
   ...stats,
-  sample: sampleQuotes(human, SAMPLE_SIZE).filter(Boolean),
+  sample: voiceSample(human, SAMPLE_SIZE).filter(Boolean),
+  shortSample: shortSample(human, 30).filter(Boolean),
   errors,
 };
 

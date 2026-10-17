@@ -20,6 +20,21 @@ Follow these the whole way through. The user's history contains work code, secre
 
 ## Steps
 
+### 0. Ask a few questions first
+
+Start like a personality quiz: a quick, playful warm-up before the results. Ask everything in one go, never one question per turn. If your harness has a structured question tool (Claude Code's AskUserQuestion, for example), use it. Otherwise ask in one short message with the options listed.
+
+1. **What should we call you?** Suggest their first name from `git config --global user.name` if it looks like a real name. Free text is fine.
+2. **What do you do?** Offer Designer, Engineer, Product / PM, and Founder, plus free text. This shapes the archetype and the jokes.
+3. **Pick a look.** Classic: bold colour blocks and big friendly type. Graphic: computer-y, with ASCII textures, punched-out numbers and acid colours on black. Maps to `--theme classic` or `--theme graphic` when you render.
+4. **Roast level?** Gentle, medium (default) or extra spicy.
+
+The time range defaults to all time. If the user mentions one ("this year", "last 90 days"), pass `--days` to the extractor: days since 1 January for this year, or the number they gave.
+
+Skip any question the user already answered when invoking you (for example `/wrapped call me Mo, designer, graphic, spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, Classic, medium. Don't stall waiting for an answer.
+
+While you wait for answers, don't read any history.
+
 ### 1. Extract
 
 ```bash
@@ -34,32 +49,50 @@ If it reports 0 prompts, tell the user which tools are supported (Claude Code, C
 
 Read the JSON file. Key fields:
 
-- `totals`, `sources`, `time`, `style`, `phrases`, `projects`: aggregate stats.
+- `totals`, `sources`, `time`, `style`, `phrases`, `projects`: aggregate stats. These are their **habits**.
+- `sample`: about 120 redacted prompts spread across time, chosen because the person explains, reacts, has an opinion or describes what they want. This is your main material for their **personality**.
+- `shortSample`: 30 short prompts and commands. Useful for quotes and the roast, not for personality.
 - `moments`: the longest prompt, the latest-night prompt, the first prompt, the angriest and the politest.
-- `userFirstName`: the user's first name if the machine knows it, otherwise null. Use it for `name` in the persona.
-- `sample`: about 150 redacted prompts spread across time. This is your main material for understanding the person.
+- `userFirstName`: the user's first name if the machine knows it. Use it for `name` only if they didn't answer question 1.
 
-Read the whole sample. Look for:
-
-- Verbal tics: "okay so", "hmm", "nice nice", "yo".
-- How they react when things break, and when things work.
-- Whether they plan or improvise, and whether they explain context or fire one-liners.
-- What they keep asking for again and again.
-- Their punctuation habits.
-
-The stats tell you *what*; the sample tells you *who*.
+Read the whole `sample` before writing anything.
 
 ### 3. Write the persona
+
+There are two layers, and they come from different evidence:
+
+- **Habits:** what they do a lot. Frequent phrases, commands, hours, streaks. This feeds the captions, the roast and the quotes. "You asked for a server restart 40 times" is a great roast line.
+- **Personality:** who they are when they write. This feeds the archetype and the traits. It comes from *how* they say things, not *how often*.
+
+#### 3a. Profile first, in your head
+
+Before you name anything, answer these from the `sample`, each with two or three prompts as evidence. Don't output this; it's your working.
+
+1. **What do they notice and care about?** Feel and polish, speed, users, correctness, the big idea, how things look, whether it's fun?
+2. **How do they treat the agent?** Collaborator, boss, teacher, cheerleader, sparring partner? Do they explain why, or just say what?
+3. **How do they handle problems and uncertainty?** Curious, calm, impatient, self-deprecating, dramatic? What happens to their tone when something breaks, and when it finally works?
+4. **How do they sound?** Warmth, humour, hedging ("maybe", "I wonder"), confidence, punctuation, slang.
+
+#### 3b. Then name it
+
+The archetype comes from the profile. Rules:
+
+- **Never build it from a repeated command or phrase.** If they say "restart the server" constantly, that belongs in the roast, not in their name. Test: would the archetype still be true if they had never typed their single most common command or phrase?
+- **A friend should recognise them.** It should describe a disposition someone who knows them would nod at, like "The Hype-Man Art Director" (generous praise plus an exacting eye) or "The Patient Professor" (explains the why, never loses their cool).
+- **Specific, not generic.** "The Efficient Coder" or "The Innovator" could be anyone: start again.
+- **No made-up numbers.** Only quote figures that are in the stats. "Half your messages start with…" is a guess unless the data says so; describe the habit without inventing a count.
+- **Stable.** Run it twice on the same person and you should land on the same idea. Lean on the traits that show up across the whole time range, not in one week.
 
 Write `persona.json` in the same directory as the data file:
 
 ```json
 {
-  "name": "First name, or null if unknown",
+  "name": "What they asked to be called, or null",
+  "role": "Their job in a few lowercase words, e.g. product designer, or null",
   "archetype": {
     "name": "The ___ ___ (2-4 words)",
-    "tagline": "A short line in their voice, ideally a paraphrase of something they actually say",
-    "description": "2-3 sentences explaining the archetype with specific evidence"
+    "tagline": "A short line in their voice that captures their disposition",
+    "description": "2-3 sentences about who they are as a prompter, with specific evidence of how they write. Not a list of stats."
   },
   "captions": {
     "intro": "...", "numbers": "...", "tools": "...", "clock": "...", "rhythm": "...",
@@ -69,7 +102,7 @@ Write `persona.json` in the same directory as the data file:
     { "title": "2-3 word label", "text": "verbatim prompt, trimmed if needed", "meta": "Tool · Month, time", "caption": "your one-line reaction" }
   ],
   "traits": [
-    { "left": "Polite", "right": "Blunt", "value": 0, "note": "one line of evidence" }
+    { "left": "Collaborator", "right": "Commander", "value": 0, "note": "one line of evidence" }
   ],
   "roast": "2-3 sentences",
   "compliment": "1-2 sentences",
@@ -79,18 +112,22 @@ Write `persona.json` in the same directory as the data file:
 
 What makes it good:
 
-- **Archetype:** specific and funny, built on their two or three most distinctive traits. "The Hype-Man Art Director" or "The 2am Refactorer" work. "The Efficient Coder" or "The Innovator" don't: if it could describe anyone, start again.
-- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. Every caption is optional; leave one out and the template uses a generic line. Slides: `numbers` = total prompts and words, `tools` = split between agents, `clock` = hour of day, `rhythm` = streak and busiest day, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
-- **Quotes:** exactly 3, from `sample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm.
-- **Traits:** exactly 4 sliders. `value` runs 0-100: 0 is fully `left`, 100 is fully `right`. Base them on the stats. Good axes: Polite/Blunt, Planner/Vibes, Telegram/Novelist, Chill/Hyped, Night owl/Early bird, Delegator/Micromanager, Patient/Impatient. Pick the 4 that say the most about this person.
-- **Roast:** affectionate, like a friend who's read all their messages. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
-- **Compliment:** sincere and specific.
+- **Use their answers.** Write for their role. A designer's archetype and roast can riff on pixels and feedback rounds; an engineer's on yak-shaving and "works on my machine"; a PM's on specs and stakeholder updates. Only lean on the role where the data backs it up. Match the roast level: gentle is a warm tease, medium is a friend's honest roast, extra spicy pulls no punches but stays affectionate and within the rules below.
+- **Traits:** exactly these 4 personality sliders, in this order, so results are comparable between people. `value` runs 0-100: 0 is fully `left`, 100 is fully `right`. Score them from the profile, not from counts, and make sure the archetype agrees with them.
+  1. Collaborator / Commander: do they talk with the agent or give it orders?
+  2. Feel / Function: do they care more about how it feels or whether it works?
+  3. Explorer / Executor: do they wander into new ideas or drive the plan to done?
+  4. Steady / Fired up: is their tone even, or does it swing with every win and bug?
+- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `numbers` = total prompts and words, `tools` = split between agents, `clock` = hour of day, `rhythm` = streak and busiest day, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
+- **Quotes:** exactly 3, from `sample`, `shortSample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm. Aim for at least one that shows their personality, not just a habit.
+- **Roast:** affectionate, like a friend who's read all their messages. Habits are fair game here. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
+- **Compliment:** sincere and specific, about who they are as a collaborator.
 - **Tone:** playful and warm. No corporate words ("leverage", "journey", "landscape"). Write like a person, not a chatbot.
 
 ### 4. Render
 
 ```bash
-node scripts/render.mjs --data <data.json> --persona <persona.json>
+node scripts/render.mjs --data <data.json> --persona <persona.json> --theme <classic|graphic>
 ```
 
 This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.

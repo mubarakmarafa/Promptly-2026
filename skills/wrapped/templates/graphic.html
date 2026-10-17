@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How I AI · Wrapped</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0B0B0A;
+    --paper: #E6E6E0;
+    --acid: #D2FF1F;
+    --magenta: #FF2D87;
+    --blue: #2B47FF;
+    --orange: #FF5A1A;
+    --wide: "Anybody", ui-sans-serif, system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --cut: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #050505; color: var(--paper);
+    font-family: var(--mono);
+    -webkit-font-smoothing: antialiased;
+    display: grid; place-items: center; overflow: hidden;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+
+  .stage {
+    position: relative;
+    height: min(100dvh - 32px, 920px);
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    container-type: size;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  }
+  @media (max-width: 560px) {
+    .stage { height: 100dvh; width: 100vw; aspect-ratio: auto; clip-path: none; }
+  }
+
+  .progress { position: absolute; z-index: 10; inset: 2.6cqw 5cqw auto; display: flex; gap: 0.8cqw; }
+  .progress span { flex: 1; height: 1.2cqw; background: color-mix(in srgb, var(--fg) 22%, transparent); }
+  .progress span.done, .progress span.active { background: var(--fg); }
+
+  .slide { position: absolute; inset: 0; background: var(--bg); color: var(--fg); visibility: hidden; overflow: hidden; }
+  .slide.active { visibility: visible; }
+
+  /* Big solid symbol behind each slide */
+  .art { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .art > g { transform-box: view-box; transform-origin: 50% 50%; }
+  .slide.active .art > g { animation: art-in 900ms var(--ease-out) both; }
+  @keyframes art-in { from { transform: scale(0.82) rotate(-14deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .content { position: absolute; inset: 0; padding: 7.5cqw 5cqw 5cqw; display: flex; flex-direction: column; gap: 3cqw; }
+
+  .hud { display: flex; justify-content: space-between; align-items: flex-start; gap: 3cqw; font: 600 2.5cqw/1.25 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+  .hud .dim { opacity: 0.6; }
+  .tag { display: inline-block; align-self: flex-start; padding: 0.6cqw 1.6cqw; background: var(--fg); color: var(--bg); font: 600 2.5cqw/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tag.alt { background: var(--accent); color: var(--black); }
+  .label { font: 600 2.6cqw/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .grow { flex: 1; min-height: 0; }
+
+  .wide { font-family: var(--wide); font-weight: 900; font-stretch: 150%; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.86; }
+  .h1 { font-size: 11.5cqw; }
+  .h2 { font-size: 7.6cqw; }
+  .h3 { font-size: 5.2cqw; }
+  .body { font: 400 3.5cqw/1.42 var(--mono); text-wrap: pretty; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .block { background: var(--fg); color: var(--bg); padding: 3.4cqw; }
+  .block.accent { background: var(--accent); color: var(--black); }
+  .chamfer { clip-path: polygon(0 0, calc(100% - 3cqw) 0, 100% 3cqw, 100% 100%, 3cqw 100%, 0 calc(100% - 3cqw)); }
+
+  .punch { display: block; width: 100%; height: auto; }
+  .punch text { font-family: var(--wide); font-weight: 900; font-stretch: 50%; }
+
+  .rows { display: flex; flex-direction: column; }
+  .rows div { display: flex; gap: 2cqw; align-items: baseline; font: 600 3.4cqw/1.7 var(--mono); text-transform: uppercase; border-top: 0.4cqw solid currentColor; }
+  .rows div:last-child { border-bottom: 0.4cqw solid currentColor; }
+  .rows div b { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 0.4cqw solid currentColor; }
+  .stat-grid > div { padding: 2.6cqw 0 2.6cqw; border-bottom: 0.4cqw solid currentColor; }
+  .stat-grid > div:nth-child(odd) { padding-right: 3cqw; border-right: 0.4cqw solid currentColor; }
+  .stat-grid > div:nth-child(even) { padding-left: 3cqw; }
+  .stat-grid b { display: block; font-family: var(--wide); font-weight: 900; font-stretch: 120%; font-size: 8.4cqw; line-height: 0.95; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-grid span { font: 600 2.4cqw/1.3 var(--mono); text-transform: uppercase; }
+
+  /* Chunky slider */
+  .slider { --v: 50%; }
+  .slider .track { position: relative; height: 5cqw; background: color-mix(in srgb, currentColor 18%, transparent); }
+  .slider .fill { position: absolute; inset: 0 auto 0 0; width: var(--v); background: currentColor; opacity: 0.35; transform-origin: left; }
+  .slider .knob {
+    position: absolute; top: 50%; left: var(--v); width: 8cqw; height: 8cqw;
+    background: var(--accent); border: 0.8cqw solid var(--bg);
+    transform: translate(-50%, -50%);
+  }
+  .slide.active .slider .fill { animation: grow-x 800ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 110ms + 300ms); }
+  .slide.active .slider .knob { animation: knob 800ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 110ms + 300ms); }
+  @keyframes grow-x { from { transform: scaleX(0); } }
+  @keyframes knob { from { left: 0; } }
+  .slider .ends { display: flex; justify-content: space-between; margin-top: 1.4cqw; font: 600 2.6cqw var(--mono); text-transform: uppercase; }
+  .slider .note { font: 400 3cqw/1.35 var(--mono); margin-top: 1cqw; opacity: 0.85; }
+
+  /* Solid bar list */
+  .bars { display: flex; flex-direction: column; gap: 2.4cqw; }
+  .bars .row { display: flex; justify-content: space-between; align-items: baseline; font: 600 3.2cqw var(--mono); text-transform: uppercase; margin-bottom: 1cqw; }
+  .bars .bar { height: 5.4cqw; background: color-mix(in srgb, currentColor 14%, transparent); }
+  .bars .bar i { display: block; height: 100%; width: var(--w); background: var(--c, var(--accent)); transform-origin: left; }
+  .slide.active .bars .bar i { animation: grow-x 800ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 90ms + 300ms); }
+
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.4cqw; height: 30cqw; }
+  .week > div { display: flex; flex-direction: column; justify-content: flex-end; gap: 1.2cqw; }
+  .week i { display: block; height: var(--h); background: currentColor; transform-origin: bottom; }
+  .week i.top { background: var(--accent); }
+  .slide.active .week i { animation: grow-y 700ms var(--ease-out) both; animation-delay: calc(var(--d) * 70ms + 300ms); }
+  @keyframes grow-y { from { transform: scaleY(0); } }
+  .week span { font: 600 2.3cqw var(--mono); text-align: center; }
+
+  .phrases { list-style: none; display: flex; flex-direction: column; gap: 1.2cqw; }
+  .phrases li { display: flex; align-items: baseline; gap: 3cqw; }
+  .phrases li .n { font: 600 2.6cqw var(--mono); width: 5cqw; flex-shrink: 0; }
+  .phrases li .w { font-family: var(--wide); font-weight: 900; font-stretch: 130%; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; }
+  .phrases li .c { margin-left: auto; font: 600 2.8cqw var(--mono); flex-shrink: 0; }
+
+  .clock { width: 72cqw; align-self: center; display: block; }
+
+  .barcode { display: block; height: 6cqw; width: auto; }
+  .chevrons { height: 5cqw; background: repeating-linear-gradient(-45deg, var(--black) 0 2.4cqw, transparent 2.4cqw 4.8cqw); }
+  .term { font: 400 3.3cqw/1.5 var(--mono); white-space: pre-wrap; }
+  .term .p { color: var(--accent); }
+  .caret { display: inline-block; width: 1.8cqw; height: 3.6cqw; background: currentColor; vertical-align: -0.6cqw; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .content > * { opacity: 0; transform: translateY(2.4cqw); }
+  .slide.active .content > * { animation: rise 520ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 90ms + 120ms); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active .content > *, .slide.active .art > g { animation: none; opacity: 1; transform: none; }
+    .slide.active .slider .fill, .slide.active .slider .knob, .slide.active .bars .bar i, .slide.active .week i { animation: none; }
+    .caret { animation: none; }
+  }
+
+  .share-card { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; align-self: center; aspect-ratio: 9/16; display: block; }
+  .actions { display: flex; gap: 2.4cqw; position: relative; z-index: 6; }
+  .btn {
+    flex: 1; appearance: none; border: 0; cursor: pointer;
+    padding: 3.6cqw; font: 600 3.4cqw var(--mono); text-transform: uppercase; letter-spacing: 0.04em;
+    background: var(--fg); color: var(--bg);
+    clip-path: polygon(0 0, calc(100% - 2cqw) 0, 100% 2cqw, 100% 100%, 0 100%);
+    transition: transform 140ms var(--ease-out);
+  }
+  .btn.alt { background: var(--accent); color: var(--black); }
+  .btn:active { transform: scale(0.97); }
+  .btn:focus-visible { outline: 0.6cqw solid var(--accent); outline-offset: 0.6cqw; }
+
+  .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
+  .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
+  .nav button:first-child { flex: 0 0 30%; }
+  .hint { position: absolute; z-index: 4; bottom: 2.4cqw; right: 5cqw; font: 600 2.2cqw var(--mono); text-transform: uppercase; color: var(--fg); opacity: 0.6; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="progress" id="progress"></div>
+  <div id="slides"></div>
+  <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
+  <div class="hint" id="hint">[ tap / → ] continue</div>
+</main>
+
+<script id="wrapped-data" type="application/json">/*__WRAPPED_DATA__*/</script>
+<script>
+const D = JSON.parse(document.getElementById("wrapped-data").textContent);
+const S = D.stats, P = D.persona;
+
+const SOURCE_LABEL = { "claude-code": "Claude Code", codex: "Codex", cursor: "Cursor" };
+const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const fmt = (n) => Number(n).toLocaleString("en-US");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const hourLabel = (h) => (h % 12 || 12) + (h < 12 ? "AM" : "PM");
+const dot = (d) => { const [y, m, day] = d.split("-"); return `${day}.${m}.${y.slice(2)}`; };
+const cap = (key, fallback) => esc(P.captions?.[key] ?? fallback);
+const pad = (n, w = 2) => String(n).padStart(w, "0");
+// Fit long text by length: [maxChars, size] pairs.
+const fit = (text, steps) => (steps.find(([n]) => String(text ?? "").length <= n) ?? steps.at(-1))[1];
+
+const sources = Object.entries(D.sources).filter(([, v]) => v.prompts > 0).sort((a, b) => b[1].prompts - a[1].prompts);
+const total = S.totals.prompts;
+const who = (D.name ?? "USER").toUpperCase();
+const serial = "HIA-" + (S.totals.lastDate ?? "").replace(/-/g, "").slice(2) + "-" + pad(total % 997, 3);
+const hud = (code, title) => `<div class="hud"><span>${code} <span class="dim">/ ${title}</span></span><span class="dim">${serial}</span></div>`;
+
+// ---------- symbols (viewBox 900 x 1600) ----------
+
+const SYM = {
+  asterisk: (cx, cy, r, color, arms = 6, t = 0.34) => {
+    const w = r * t;
+    return [...Array(arms / 2)].map((_, i) => `<rect x="${cx - r}" y="${cy - w / 2}" width="${r * 2}" height="${w}" fill="${color}" transform="rotate(${(180 / (arms / 2)) * i + 90} ${cx} ${cy})"/>`).join("");
+  },
+  ring: (cx, cy, r, color, t = 0.32) => `<circle cx="${cx}" cy="${cy}" r="${r * (1 - t / 2)}" fill="none" stroke="${color}" stroke-width="${r * t}"/>`,
+  disc: (cx, cy, r, color) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`,
+  plus: (cx, cy, r, color, t = 0.36) => `<rect x="${cx - r}" y="${cy - r * t / 2}" width="${r * 2}" height="${r * t}" fill="${color}"/><rect x="${cx - r * t / 2}" y="${cy - r}" width="${r * t}" height="${r * 2}" fill="${color}"/>`,
+  arrow: (cx, cy, r, color) => {
+    const t = r * 0.36;
+    return `<g transform="rotate(-45 ${cx} ${cy})"><rect x="${cx - r}" y="${cy - t / 2}" width="${r * 1.4}" height="${t}" fill="${color}"/><polygon points="${cx + r},${cy} ${cx + r * 0.2},${cy - r * 0.8} ${cx + r * 0.2},${cy + r * 0.8}" fill="${color}"/></g>`;
+  },
+  half: (cx, cy, r, color, rot = 0) => `<path d="M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy} Z" fill="${color}" transform="rotate(${rot} ${cx} ${cy})"/>`,
+  triangle: (cx, cy, r, color, cut) => `<polygon points="${cx},${cy - r} ${cx + r * 1.1},${cy + r * 0.8} ${cx - r * 1.1},${cy + r * 0.8}" fill="${color}"/>
+    <rect x="${cx - r * 0.1}" y="${cy - r * 0.45}" width="${r * 0.2}" height="${r * 0.75}" fill="${cut}"/><rect x="${cx - r * 0.1}" y="${cy + r * 0.42}" width="${r * 0.2}" height="${r * 0.2}" fill="${cut}"/>`,
+  glyph: (x, y, size, color, ch) => `<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-family="Anybody, sans-serif" font-weight="900" font-stretch="150%">${esc(ch)}</text>`,
+  burst: (cx, cy, r, color, points = 16) => {
+    const pts = [...Array(points * 2)].map((_, i) => { const a = (i / (points * 2)) * Math.PI * 2, rr = i % 2 ? r * 0.72 : r; return `${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`; });
+    return `<polygon points="${pts.join(" ")}" fill="${color}"/>`;
+  },
+  squares: (x, y, s, color, n = 4) => [...Array(n)].map((_, i) => `<rect x="${x + i * s * 0.5}" y="${y - i * s * 0.5}" width="${s}" height="${s}" fill="${color}" opacity="${1 - i * 0.18}"/>`).join(""),
+};
+const art = (inner) => `<svg class="art" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g>${inner}</g></svg>`;
+
+// ---------- graphic helpers ----------
+
+let maskN = 0;
+function punch(text, { h = 220, fill = "currentColor", label = "" } = {}) {
+  const id = "m" + maskN++;
+  return `<svg class="punch" viewBox="0 0 1000 ${h}" role="img" aria-label="${esc(label || text)}">
+    <defs><mask id="${id}"><rect width="1000" height="${h}" fill="#fff"/>
+      <text x="40" y="${h - 34}" font-size="${h * 1.02}" textLength="920" lengthAdjust="spacingAndGlyphs" fill="#000">${esc(text)}</text>
+    </mask></defs>
+    <rect width="1000" height="${h}" fill="${fill}" mask="url(#${id})"/></svg>`;
+}
+
+function barcode(seed, color = "currentColor") {
+  let x = 0, bars = "", s = [...String(seed)].reduce((a, c) => a * 31 + c.charCodeAt(0), 7);
+  while (x < 220) {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    const w = 1 + (s % 4), gap = 1 + ((s >> 3) % 3);
+    bars += `<rect x="${x}" width="${w}" height="40" fill="${color}"/>`;
+    x += w + gap;
+  }
+  return `<svg class="barcode" viewBox="0 0 ${x} 40" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+const slider = (v, left, right, note, d = 0) => `
+  <div class="slider" style="--v:${Math.min(95, Math.max(5, v))}%;--d:${d}">
+    <div class="track"><div class="fill"></div><div class="knob"></div></div>
+    <div class="ends"><span>${esc(left)}</span><span>${esc(right)}</span></div>
+    ${note ? `<p class="note">${esc(note)}</p>` : ""}
+  </div>`;
+
+function clockSvg(accent) {
+  const max = Math.max(...S.time.byHour), cx = 100, cy = 100, r0 = 30, r1 = 96;
+  const bars = S.time.byHour.map((v, h) => {
+    const a = (h / 24) * Math.PI * 2 - Math.PI / 2 + Math.PI / 24;
+    const len = r0 + (r1 - r0) * (v / max || 0);
+    const peak = h === S.time.peakHour;
+    return `<line x1="${(cx + Math.cos(a) * r0).toFixed(1)}" y1="${(cy + Math.sin(a) * r0).toFixed(1)}" x2="${(cx + Math.cos(a) * len).toFixed(1)}" y2="${(cy + Math.sin(a) * len).toFixed(1)}" stroke="${peak ? accent : "currentColor"}" stroke-width="7.4" stroke-linecap="butt"/>`;
+  }).join("");
+  const marks = [[0, "12A"], [6, "6A"], [12, "12P"], [18, "6P"]].map(([h, l]) => {
+    const a = (h / 24) * Math.PI * 2 - Math.PI / 2;
+    return `<text x="${cx + Math.cos(a) * 18}" y="${cy + Math.sin(a) * 18 + 2.4}" font-size="6.4" font-weight="600" text-anchor="middle" fill="currentColor" font-family="IBM Plex Mono, monospace">${l}</text>`;
+  }).join("");
+  return `<svg class="clock" viewBox="0 0 200 200" role="img" aria-label="Prompts by hour, peak at ${hourLabel(S.time.peakHour)}">${bars}${marks}</svg>`;
+}
+
+const nightOwl = S.time.peakHour >= 21 || S.time.peakHour < 4;
+const telegramness = Math.min(96, Math.max(4, (Math.log(S.style.medianWords + 1) / Math.log(200)) * 100));
+const theme = (bg, fg, accent, artFn) => ({ bg, fg, accent, art: artFn });
+
+// ---------- slides ----------
+
+const slides = [
+  {
+    ...theme("#0B0B0A", "#E6E6E0", "#D2FF1F", () => SYM.asterisk(690, 880, 470, "#D2FF1F")),
+    html: () => [
+      hud("00", "BOOT"),
+      `<pre class="term">${[
+        `<span class="p">&gt;</span> whoami`,
+        `  ${esc(who)}${D.role ? " // " + esc(D.role.toUpperCase()) : ""}`,
+        ...sources.map(([k, v]) => `<span class="p">&gt;</span> scan ${k.padEnd(12)} ${fmt(v.prompts).padStart(6)}`),
+        `<span class="p">&gt;</span> compiling personality<span class="caret"></span>`,
+      ].join("\n")}</pre>`,
+      `<div class="grow"></div>`,
+      `<div class="block chamfer" style="background:var(--paper);color:var(--black)"><p class="label">How I AI · Wrapped · ${dot(S.totals.firstDate)} → ${dot(S.totals.lastDate)}</p><h1 class="wide h1" style="margin-top:2cqw">This is how you AI'd.</h1></div>`,
+      `<p class="body">${cap("intro", "Every prompt you sent your agents, run through the machine.")}</p>`,
+    ],
+  },
+  {
+    ...theme("#E6E6E0", "#0B0B0A", "#FF2D87", () => SYM.disc(150, 360, 330, "#FF2D87") + SYM.disc(820, 1450, 260, "#0B0B0A")),
+    html: () => [
+      hud("01", "VOLUME"),
+      `<span class="tag">Total prompts</span>`,
+      punch(fmt(total), { h: 520 }),
+      `<div class="grow"></div>`,
+      `<div class="stat-grid">
+        <div><b>${fmt(S.totals.words)}</b><span>words (${(S.totals.words / 90000).toFixed(1)} novels)</span></div>
+        <div><b>${fmt(S.totals.sessions)}</b><span>conversations</span></div>
+        <div><b>${fmt(S.totals.activeDays)}</b><span>days active</span></div>
+        <div><b>${fmt(S.time.avgPromptsPerActiveDay)}</b><span>prompts a day</span></div>
+      </div>`,
+      `<p class="body">${cap("numbers", "That's a lot of talking to machines.")}</p>`,
+    ],
+  },
+  {
+    ...theme("#0B0B0A", "#E6E6E0", "#D2FF1F", () => SYM.plus(760, 1260, 420, "#1F1F1C")),
+    html: () => {
+      const colors = ["#D2FF1F", "#FF2D87", "#2B47FF"];
+      return [
+        hud("02", "ROUTING"),
+        `<h2 class="wide h2">Agents<br>in rotation</h2>`,
+        `<div class="grow"></div>`,
+        ...sources.map(([k, v], i) => {
+          const pct = Math.round((v.prompts / total) * 100);
+          return `<div>
+            <div class="chamfer" style="background:${colors[i % 3]};color:${i === 2 ? "#E6E6E0" : "#0B0B0A"};width:${Math.max(40, (v.prompts / sources[0][1].prompts) * 100)}%;padding:2.4cqw 3cqw;display:flex;justify-content:space-between;align-items:flex-end;gap:2cqw">
+              <span class="wide h3">${SOURCE_LABEL[k] ?? k}</span><span class="wide" style="font-size:9cqw;font-stretch:60%">${pct}%</span>
+            </div>
+            <p class="label" style="margin-top:1cqw;opacity:0.7">${fmt(v.prompts)} prompts${v.models?.[0] ? " · " + esc(v.models[0].name) : ""}</p>
+          </div>`;
+        }),
+        `<div class="grow"></div>`,
+        `<p class="body">${cap("tools", `${SOURCE_LABEL[sources[0][0]]} got most of your attention.`)}</p>`,
+      ];
+    },
+  },
+  {
+    ...theme("#2B47FF", "#E6E6E0", "#D2FF1F", () => SYM.ring(450, 860, 520, "#2239D9", 0.3)),
+    html: () => [
+      hud("03", "TEMPORAL"),
+      `<div style="display:flex;justify-content:space-between;align-items:flex-end"><span class="tag alt">Peak hour</span><span class="wide" style="font-size:16cqw;font-stretch:60%;line-height:0.8;color:var(--accent)">${hourLabel(S.time.peakHour)}</span></div>`,
+      `<div class="grow"></div>`,
+      clockSvg("#D2FF1F"),
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("clock", nightOwl ? `Night shift. ${S.time.lateNightPct}% of prompts landed between midnight and 5am.` : `${S.time.lateNightPct}% of prompts landed between midnight and 5am.`)}</p>`,
+    ],
+  },
+  {
+    ...theme("#FF2D87", "#0B0B0A", "#E6E6E0", () => SYM.arrow(620, 560, 360, "#0B0B0A")),
+    html: () => {
+      const max = Math.max(...S.time.byWeekday), top = S.time.byWeekday.indexOf(max);
+      return [
+        hud("04", "CADENCE"),
+        `<span class="tag">Longest streak</span>`,
+        `<div style="display:flex;align-items:flex-end;gap:2cqw;width:62%"><div style="flex:1">${punch(String(S.time.longestStreak.length), { h: 640 })}</div><span class="wide h2" style="padding-bottom:2cqw">D</span></div>`,
+        `<div class="grow"></div>`,
+        `<div class="week">${S.time.byWeekday.map((v, i) => `<div><i class="${i === top ? "top" : ""}" style="--h:${Math.max(4, (v / max) * 100)}%;--d:${i}"></i><span>${DAYS[i]}</span></div>`).join("")}</div>`,
+        `<p class="body">${cap("rhythm", `Biggest day: ${dot(S.time.busiestDay.date)}, ${S.time.busiestDay.prompts} prompts.`)}</p>`,
+      ];
+    },
+  },
+  {
+    ...theme("#E6E6E0", "#0B0B0A", "#FF5A1A", () => SYM.half(900, 300, 420, "#FF5A1A", 90) + SYM.squares(60, 1480, 120, "#0B0B0A", 3)),
+    html: () => [
+      hud("05", "SYNTAX"),
+      `<span class="tag">Typical prompt</span>`,
+      `<div style="display:flex;align-items:flex-end;gap:3cqw"><span class="wide num" style="font-size:34cqw;font-stretch:50%;line-height:0.78">${S.style.medianWords}</span><span class="wide h3" style="padding-bottom:2cqw">words</span></div>`,
+      slider(telegramness, "Telegram", "Novelist"),
+      `<div class="grow"></div>`,
+      `<div class="stat-grid">
+        <div><b>${S.style.lowercaseStartPct}%</b><span>start lowercase</span></div>
+        <div><b>${S.style.questionPct}%</b><span>are questions</span></div>
+        <div><b>${fmt(S.style.longestPromptWords)}</b><span>words, longest</span></div>
+        <div><b>${S.style.novelPct}%</b><span>essays (150+ words)</span></div>
+      </div>`,
+      `<p class="body">${cap("style", "You give your agents context. Lots of it.")}</p>`,
+    ],
+  },
+  {
+    ...theme("#D2FF1F", "#0B0B0A", "#0B0B0A", () => SYM.glyph(380, 1700, 1500, "#C0EC0C", "“")),
+    html: () => {
+      const phrases = S.phrases.catchphrases.slice(0, 6), top = phrases[0]?.count || 1;
+      return [
+        hud("06", "LEXICON"),
+        `<span class="tag">Catchphrases</span>`,
+        `<div class="grow"></div>`,
+        `<ol class="phrases">${phrases.map((p, i) => `<li><span class="n">${pad(i + 1)}</span><span class="w" style="font-size:${(5.4 + 6 * (p.count / top)).toFixed(1)}cqw">${esc(p.name)}</span><span class="c">${fmt(p.count)}×</span></li>`).join("")}</ol>`,
+        `<div class="grow"></div>`,
+        `<p class="body">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
+      ];
+    },
+  },
+  {
+    ...theme("#0B0B0A", "#E6E6E0", "#FF2D87", () => SYM.glyph(560, 980, 1000, "#FF2D87", "!")),
+    html: () => [
+      hud("07", "PROTOCOL"),
+      `<span class="tag alt">Said please</span>`,
+      punch(S.style.pleasePct + "%", { h: 460 }),
+      `<div class="grow"></div>`,
+      slider(Math.min(100, S.style.thanksPct * 5), "Never thanks", "Always thanks", `${S.style.thanksPct}% of prompts say thanks.`, 0),
+      `<div class="stat-grid">
+        <div><b>${fmt(S.style.praiseCount)}</b><span>compliments</span></div>
+        <div><b>${fmt(S.style.frustrationCount)}</b><span>“still broken”</span></div>
+      </div>`,
+      `<p class="body">${cap("manners", "The machines will remember this.")}</p>`,
+    ],
+  },
+  {
+    skip: !S.projects.length,
+    ...theme("#0F3D2A", "#E6E6E0", "#D2FF1F", () => SYM.squares(520, 620, 300, "#145236", 4)),
+    html: () => {
+      const projects = S.projects.slice(0, 5), max = projects[0]?.count || 1;
+      return [
+        hud("08", "WORKLOAD"),
+        `<span class="tag alt">Top project</span>`,
+        `<h2 class="wide" style="font-size:${fit(projects[0]?.name, [[6, 13], [10, 9], [16, 6.6], [Infinity, 5.2]])}cqw;overflow-wrap:break-word">${esc(projects[0]?.name)}</h2>`,
+        `<div class="grow"></div>`,
+        `<div class="bars">${projects.map((p, i) => `<div><div class="row"><span>${esc(p.name.slice(0, 26))}</span><span>${fmt(p.count)}</span></div><div class="bar"><i style="--w:${(p.count / max) * 100}%;--d:${i};${i ? "--c:var(--fg)" : ""}"></i></div></div>`).join("")}</div>`,
+        `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`,
+      ];
+    },
+  },
+  ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
+    ...[
+      theme("#E6E6E0", "#0B0B0A", "#FF2D87", () => SYM.glyph(-40, 760, 1100, "#FF2D87", "“")),
+      theme("#0B0B0A", "#E6E6E0", "#D2FF1F", () => SYM.glyph(-40, 760, 1100, "#D2FF1F", "“")),
+      theme("#FF5A1A", "#0B0B0A", "#E6E6E0", () => SYM.glyph(-40, 760, 1100, "#0B0B0A", "“")),
+    ][i],
+    html: () => [
+      hud(pad(9 + i), `LOG ${i + 1}/${Math.min(3, P.quotes.length)}`),
+      `<div class="grow"></div>`,
+      `<span class="tag">${esc(q.title ?? "Transmission")}</span>`,
+      `<p class="wide" style="font-size:${fit(q.text, [[40, 11], [80, 8.6], [140, 6.8], [Infinity, 5.6]])}cqw;line-height:1.02;font-stretch:110%;text-transform:none;letter-spacing:-0.01em">${esc(q.text)}</p>`,
+      q.meta ? `<p class="label" style="opacity:0.7">${esc(q.meta)}</p>` : "",
+      `<div class="grow"></div>`,
+      `<div class="block chamfer"><p class="body">${esc(q.caption)}</p></div>`,
+    ],
+  })),
+  {
+    ...theme("#0B0B0A", "#E6E6E0", "#D2FF1F", () => SYM.ring(820, 300, 300, "#1F1F1C", 0.42)),
+    html: () => [
+      hud("12", "PROFILE"),
+      `<h2 class="wide h2">Vibe<br>check</h2>`,
+      `<div class="grow"></div>`,
+      ...(P.traits ?? []).slice(0, 4).map((t, i) => slider(t.value, t.left, t.right, t.note, i)),
+      `<div class="grow"></div>`,
+    ],
+  },
+  {
+    ...theme("#FF5A1A", "#0B0B0A", "#E6E6E0", () => SYM.triangle(640, 1180, 420, "#0B0B0A", "#FF5A1A")),
+    html: () => [
+      hud("13", "WARNING"),
+      `<div class="chevrons"></div>`,
+      `<span class="tag">The roast</span>`,
+      `<p class="wide" style="font-size:${fit(P.roast, [[160, 6.6], [260, 5.4], [380, 4.5], [Infinity, 3.9]])}cqw;line-height:1.06;font-stretch:115%;text-transform:none;letter-spacing:-0.01em">${esc(P.roast)}</p>`,
+      `<div class="grow"></div>`,
+      `<div class="block chamfer"><p class="label" style="color:#FF5A1A">But also</p><p class="body" style="margin-top:1.4cqw">${esc(P.compliment)}</p></div>`,
+    ],
+  },
+  {
+    ...theme("#D2FF1F", "#0B0B0A", "#0B0B0A", () => SYM.burst(450, 430, 520, "#0B0B0A", 18)),
+    html: () => [
+      hud("14", "CLASSIFICATION"),
+      `<p class="label" style="color:#D2FF1F">${esc(who)}${D.role ? " · " + esc(D.role.toUpperCase()) : ""}</p>`,
+      `<div class="grow"></div>`,
+      `<div class="block chamfer" style="background:var(--paper);color:var(--black);padding:4cqw"><p class="label">Prompting personality</p><h1 class="wide" style="font-size:${fit(P.archetype.name, [[16, 12], [24, 9.6], [Infinity, 8]])}cqw;margin-top:2.4cqw">${esc(P.archetype.name)}</h1></div>`,
+      `<p class="wide h3" style="text-transform:none;font-stretch:100%;line-height:1.05">${esc(P.archetype.tagline)}</p>`,
+      `<p class="body">${esc(P.archetype.description)}</p>`,
+      `<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:4cqw">${barcode(P.archetype.name)}<p class="label" style="font-size:2.2cqw;text-align:right;max-width:60%">${P.prediction ? "Forecast: " + esc(P.prediction) : serial}</p></div>`,
+    ],
+  },
+  {
+    ...theme("#0B0B0A", "#E6E6E0", "#D2FF1F", () => ""),
+    html: () => [
+      hud("15", "EXPORT"),
+      `<canvas class="share-card" id="share" width="1080" height="1920" aria-label="Shareable summary card"></canvas>`,
+      `<div class="actions"><button class="btn alt" id="dl">Save image</button><button class="btn" id="replay">Replay</button></div>`,
+    ],
+  },
+].filter((s) => !s.skip);
+
+// ---------- share card ----------
+
+function drawShare() {
+  const c = document.getElementById("share");
+  if (!c || c.dataset.drawn) return;
+  c.dataset.drawn = 1;
+  const x = c.getContext("2d"), W = 1080, H = 1920, m = 72;
+  const mono = (s, w = 600) => `${w} ${s}px "IBM Plex Mono", ui-monospace, monospace`;
+
+  x.fillStyle = "#0B0B0A"; x.fillRect(0, 0, W, H);
+  // Giant asterisk, cropped off the top right.
+  x.save(); x.translate(860, 420); x.fillStyle = "#D2FF1F";
+  for (let i = 0; i < 3; i++) { x.save(); x.rotate((Math.PI / 3) * i + Math.PI / 2); x.fillRect(-620, -105, 1240, 210); x.restore(); }
+  x.restore();
+
+  // Size the name first, then fit the paper block around it.
+  const bx = m, bw = W - m * 2, cut = 56, maxW = bw - 96;
+  const words = P.archetype.name.toUpperCase().split(" ");
+  let size = 124, lines = [];
+  for (; size >= 56; size -= 4) {
+    x.font = `900 ${size}px Anybody, system-ui, sans-serif`;
+    try { x.fontStretch = "expanded"; } catch {}
+    if (Math.max(...words.map((w) => x.measureText(w).width)) > maxW) continue;
+    lines = []; let line = "";
+    for (const w of words) { const t = line ? line + " " + w : w; if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+    lines.push(line);
+    if (lines.length <= 4) break;
+  }
+  const lh = size * 0.95, bh = 150 + lines.length * lh + 30, by = 1320 - bh;
+  x.fillStyle = "#E6E6E0";
+  x.beginPath();
+  x.moveTo(bx, by); x.lineTo(bx + bw - cut, by); x.lineTo(bx + bw, by + cut); x.lineTo(bx + bw, by + bh); x.lineTo(bx + cut, by + bh); x.lineTo(bx, by + bh - cut); x.closePath();
+  x.fill();
+  x.fillStyle = "#0B0B0A";
+  lines.forEach((l, i) => x.fillText(l, bx + 48, by + 150 + (i + 0.8) * lh));
+  x.font = mono(28);
+  x.fillText([who, D.role?.toUpperCase(), "PROMPTING PERSONALITY"].filter(Boolean).join(" // "), bx + 48, by + 80);
+
+  x.fillStyle = "#E6E6E0"; x.font = mono(28);
+  x.fillText("HOW I AI · WRAPPED", m, 120);
+
+  const stats = [[fmt(total), "PROMPTS"], [hourLabel(S.time.peakHour), "PEAK HOUR"], [S.time.longestStreak.length + "D", "STREAK"], [String(S.style.medianWords), "WORDS / PROMPT"]];
+  stats.forEach(([v, l], i) => {
+    const cx = m + (i % 2) * (bw / 2), cy = 1400 + Math.floor(i / 2) * 200;
+    x.fillStyle = "#E6E6E0"; x.font = `900 92px Anybody, system-ui, sans-serif`; x.fillText(v, cx, cy + 88);
+    x.fillStyle = "#D2FF1F"; x.font = mono(26); x.fillText(l, cx, cy + 132);
+  });
+  x.fillStyle = "#E6E6E0"; x.globalAlpha = 0.65; x.font = mono(24);
+  x.fillText(sources.map(([k, v]) => `${SOURCE_LABEL[k].toUpperCase()} ${Math.round((v.prompts / total) * 100)}%`).join("  //  "), m, H - 72);
+  x.globalAlpha = 1;
+}
+
+// ---------- player ----------
+
+const root = document.getElementById("slides"), progress = document.getElementById("progress");
+const withIndex = (h, i) => (!h ? "" : /^\s*<\w+[^>]*\sstyle="/.test(h) ? h.replace('style="', `style="--i:${i};`) : h.replace(/^(\s*)<(\w+)/, `$1<$2 style="--i:${i}"`));
+root.innerHTML = slides.map((s) => `
+  <section class="slide" style="--bg:${s.bg};--fg:${s.fg};--accent:${s.accent}">
+    ${art(s.art())}
+    <div class="content">${s.html().map(withIndex).join("")}</div>
+  </section>`).join("");
+progress.innerHTML = slides.map(() => "<span></span>").join("");
+const els = [...root.children], bars = [...progress.children];
+let cur = -1;
+
+function go(i) {
+  i = Math.max(0, Math.min(slides.length - 1, i));
+  if (i === cur) return;
+  els[cur]?.classList.remove("active");
+  cur = i;
+  const el = els[cur];
+  el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
+  document.getElementById("stage").style.cssText = `--bg:${slides[cur].bg};--fg:${slides[cur].fg};--accent:${slides[cur].accent}`;
+  bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
+  document.getElementById("hint").style.display = cur === 0 ? "" : "none";
+  document.getElementById("nav").style.display = cur === slides.length - 1 ? "none" : "";
+  if (cur === slides.length - 1) document.fonts.ready.then(drawShare);
+}
+
+const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
+prevBtn.onclick = () => go(cur - 1);
+nextBtn.onclick = () => go(cur + 1);
+addEventListener("keydown", (e) => {
+  if (["ArrowRight", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (e.key === "ArrowLeft") go(cur - 1);
+});
+root.addEventListener("click", (e) => {
+  if (e.target.id === "dl") {
+    const a = document.createElement("a");
+    a.download = "how-i-ai-wrapped.png";
+    a.href = document.getElementById("share").toDataURL("image/png");
+    a.click();
+  }
+  if (e.target.id === "replay") go(0);
+});
+go(0);
+</script>
+</body>
+</html>

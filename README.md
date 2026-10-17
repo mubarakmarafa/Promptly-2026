@@ -46,7 +46,9 @@ Requires Node 18+, and Node 22.5+ to include Cursor history.
 
 1. `scripts/extract.mjs` reads your history locally and computes the stats: when you prompt, how long your prompts are, your catchphrases, your manners, your top projects. It redacts secrets, emails and paths, then saves the stats plus a small sample of prompts to a temp file. It takes a few seconds and has no dependencies.
 2. Your agent reads that file and writes your personality: an archetype, captions, a roast, and three greatest-hits quotes.
-3. `scripts/render.mjs` puts it all into a single HTML file on your Desktop. The last slide saves a share image.
+3. `scripts/render.mjs` puts it all into a single HTML file on your Desktop, in the look you picked: **Classic** (bold colour blocks) or **Graphic** (big solid symbols, punched-out numbers, acid on black). The last slide saves a share image.
+
+Before it starts, it asks what to call you, what you do, which look you want and how hard to roast you. Your personality type comes from how you write (what you care about, how you treat your agents, how you handle bugs), not from the commands you repeat most.
 
 ## Privacy
 
