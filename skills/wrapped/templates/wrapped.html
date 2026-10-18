@@ -20,8 +20,6 @@
   :root.dark { --ink: #EEECE8; --paper: #151515; }
   :root.dark body { background: #0A0A0A; }
   :root.dark .receipt { background: #1F1F1F; }
-  :root.dark .btn { color: var(--paper); }
-  :root.dark .btn.alt { background: #262626; color: var(--ink); }
   /* Difference blending goes muddy over a dark field, so dark mode uses plain ink. */
   :root.dark .blend, :root.dark .hot { mix-blend-mode: normal; color: var(--ink); }
   :root.dark .rowg, :root.dark .colg, :root.dark .vline { border-color: rgb(238 236 232 / 0.2); }
@@ -65,8 +63,10 @@
   @keyframes grain { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -2%); } 60% { transform: translate(-2%, -4%); } 80% { transform: translate(4%, 2%); } }
 
   .progress { position: absolute; z-index: 10; inset: 3cqw 5.5cqw auto; display: flex; gap: 1cqw; }
-  .progress span { flex: 1; height: 0.5cqw; border-radius: 1cqw; background: color-mix(in srgb, var(--fg) 25%, transparent); transition: background 300ms; }
+  .progress span { position: relative; cursor: pointer; flex: 1; height: 0.5cqw; border-radius: 1cqw; background: color-mix(in srgb, var(--fg) 25%, transparent); transition: background 300ms; }
   .progress span.done, .progress span.active { background: var(--fg); }
+  /* Each segment jumps to its slide; the tap target is taller than the line. */
+  .progress span::before { content: ""; position: absolute; inset: -2.6cqw -0.5cqw; }
 
   /* No z-index here: slides must not form their own stacking context, or blend modes can't see the field. */
   .slide { position: absolute; inset: 0; visibility: hidden; }
@@ -195,6 +195,12 @@
   .dish .n { position: absolute; translate: -50% -50%; font: 500 1.8cqw/1 var(--mono); letter-spacing: 0.04em; }
   .fig { margin-top: 1.8cqw; padding-right: 22cqw; text-align: center; font: 400 1.7cqw/1.35 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
   .lab-legend { display: flex; flex-direction: column; font: 400 2.3cqw/1.3 var(--mono); }
+  /* Expanded, the dish comes in off the edge and stacks over its legend, both centred in the room. */
+  .stage.bare .lab-head { grid-template-columns: 1fr; justify-items: center; gap: 4cqw; margin: auto 0; }
+  .stage.bare .dish-w { order: -1; width: 70cqw; }
+  .stage.bare .dish { width: 70cqw; }
+  .stage.bare .fig { padding-right: 0; }
+  .stage.bare .lab-legend { width: 70cqw; font-size: 2.7cqw; }
   .lab-legend p { display: flex; gap: 1.8cqw; min-width: 0; padding: 1.5cqw 0; border-bottom: 1px solid rgb(22 22 22 / 0.12); }
   .lab-legend p:first-child { border-top: 1px solid rgb(22 22 22 / 0.12); }
   .lab-legend b { font-weight: 500; opacity: 0.45; }
@@ -242,12 +248,6 @@
     .grain { animation: none; }
   }
 
-  .share-card { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; align-self: center; aspect-ratio: 9/16; display: block; border-radius: 2cqw; box-shadow: 0 1cqw 4cqw rgb(0 0 0 / 0.18); }
-  .actions { display: flex; gap: 2.4cqw; position: relative; z-index: 6; }
-  .btn { flex: 1; appearance: none; border: 0; cursor: pointer; padding: 3.6cqw; border-radius: 2cqw; font: 500 3cqw var(--mono); text-transform: uppercase; letter-spacing: 0.05em; background: var(--ink); color: #fff; transition: transform 140ms var(--ease-out); }
-  .btn.alt { background: #fff; color: var(--ink); }
-  .btn:active { transform: scale(0.97); }
-  .btn:focus-visible { outline: 0.6cqw solid var(--c3); outline-offset: 0.6cqw; }
 
   /* The card: one block that carries each slide's text, a lifted sheet of paper in light mode and black in dark. It
      travels to wherever it leaves the picture clear, shrinks away on slides that are all picture, and wears a coloured
@@ -274,19 +274,32 @@
   .cc .mostyou { color: color-mix(in srgb, var(--c3) 45%, #1F0B45); }
   :root.dark .cc .mostyou { color: color-mix(in srgb, var(--c3) 60%, #FFFFFF); }
 
-  /* Share any slide: a button in the bottom-right corner and a small menu above it */
-  .share-btn { position: absolute; z-index: 11; right: 4cqw; bottom: 3cqw; width: 7cqw; height: 7cqw; display: grid; place-items: center; appearance: none; border: 0; border-radius: 50%; cursor: pointer; background: #111; color: #F3F2EE; transition: transform 140ms var(--ease-out), opacity 300ms; }
-  :root.dark .share-btn { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
-  .share-btn:active { transform: scale(0.94); }
-  .share-btn svg { width: 3.4cqw; height: 3.4cqw; }
-  .share-btn[hidden] { display: none; }
-  .share-menu { position: absolute; z-index: 11; right: 4cqw; bottom: 11.5cqw; display: flex; flex-direction: column; min-width: 40cqw; padding: 1cqw; background: #111; color: #F3F2EE; box-shadow: 0 2cqw 6cqw -2cqw rgb(0 0 0 / 0.4); }
-  .share-menu[hidden] { display: none; }
-  .share-menu button { appearance: none; border: 0; background: none; color: inherit; cursor: pointer; text-align: left; padding: 2.4cqw 2.6cqw; font: 500 2.4cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
-  .share-menu button:hover { background: rgb(255 255 255 / 0.08); }
-  .share-menu button[hidden] { display: none; }
-  .share-menu::before, .share-menu::after { content: ""; position: absolute; width: 1.4cqw; height: 1.4cqw; background: var(--c3); }
-  .share-menu::before { left: -0.7cqw; top: -0.7cqw; } .share-menu::after { right: -0.7cqw; bottom: -0.7cqw; background: var(--c4); }
+  /* The dock along the bottom of every slide: start again on the left, share, save or embed in the middle, and show just
+     the picture on the right. Dressed like the card. */
+  .dock { position: absolute; z-index: 11; left: 4cqw; right: 4cqw; bottom: 3cqw; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; pointer-events: none; --ink: #161616; --paper: #FBFAF7; }
+  :root.dark .dock { --ink: #F3F2EE; --paper: #111; }
+  .dock button { pointer-events: auto; width: 8.4cqw; height: 8.4cqw; display: grid; place-items: center; appearance: none; border: 0; cursor: pointer; background: var(--paper); color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgb(22 22 22 / 0.1), 0 1cqw 3cqw -1.5cqw rgb(22 22 22 / 0.25); transition: transform 140ms var(--ease-out), opacity 300ms, visibility 0s; }
+  :root.dark .dock button { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); }
+  .dock button:active { transform: scale(0.94); }
+  .dock button:focus-visible { outline: 0.5cqw solid var(--c3); outline-offset: 0.5cqw; }
+  /* Hidden but holding its place, so the middle group never slides sideways. */
+  .dock button[hidden] { display: grid; visibility: hidden; opacity: 0; transition: opacity 300ms, visibility 0s 300ms; }
+  .dock svg { width: 3.6cqw; height: 3.6cqw; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
+  .solo[data-act="restart"] { justify-self: start; }
+  .solo[data-act="expand"] { justify-self: end; }
+  .solo .in, .solo[aria-pressed="true"] .out { display: none; }
+  .solo[aria-pressed="true"] .in { display: inline; }
+  .acts { position: relative; display: flex; gap: 1.6cqw; }
+  .acts::before, .acts::after { content: ""; position: absolute; width: 1.4cqw; height: 1.4cqw; translate: -50% -50%; background: var(--c2); }
+  .acts::before { left: 0; top: 0; } .acts::after { left: 100%; top: 100%; background: var(--c4); }
+  .acts-say { position: absolute; left: 50%; bottom: calc(100% + 2cqw); translate: -50% 0; white-space: nowrap; padding: 1.6cqw 2.4cqw; background: var(--ink); color: var(--paper);
+    font: 500 2cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0; transition: opacity 200ms; pointer-events: none; }
+  .acts-say.on { opacity: 1; }
+
+  /* filter, not opacity, because the rise-in animation holds each line's opacity. The lab's dish is picture, not text. */
+  .top > * { transition: filter 400ms var(--ease-out); }
+  .stage.bare .top > :not(.lab-head) { filter: opacity(0); pointer-events: none; }
 
   .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
   .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
@@ -310,8 +323,16 @@
   <canvas id="burn" aria-hidden="true"></canvas>
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
   <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
-  <button class="share-btn" id="share-btn" aria-label="Share this slide" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M12 15V3M7 8l5-5 5 5M5 12v8h14v-8"/></svg></button>
-  <div class="share-menu" id="share-menu" role="menu" hidden><button data-act="share" role="menuitem">Share…</button><button data-act="copy" role="menuitem">Copy image</button><button data-act="save" role="menuitem">Save image</button></div>
+  <div class="dock" id="dock">
+    <button class="solo" data-act="restart" aria-label="Start again"><svg viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a7 7 0 1 0 1-7.5L4 10"/></svg></button>
+    <div class="acts" id="acts">
+      <p class="acts-say" id="acts-say" role="status" aria-live="polite"></p>
+      <button data-act="share" aria-label="Share this slide"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 12v8h14v-8"/></svg></button>
+      <button data-act="save" aria-label="Save this slide as an image"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg></button>
+      <button data-act="embed" aria-label="Copy embed code"><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></button>
+    </div>
+    <button class="solo" data-act="expand" aria-label="Show just the picture" aria-pressed="false"><svg viewBox="0 0 24 24"><path class="out" d="M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6"/><path class="in" d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg></button>
+  </div>
   <div class="grain" id="grain"></div>
 </main>
 
@@ -326,6 +347,7 @@
 
 <script id="wrapped-data" type="application/json">/*__WRAPPED_DATA__*/</script>
 <script>
+const SOURCE = "<!doctype html>\n" + document.documentElement.outerHTML;
 const D = JSON.parse(document.getElementById("wrapped-data").textContent);
 const S = D.stats, P = D.persona;
 
@@ -502,7 +524,7 @@ const planetLayout = (age) => agents.map(([, v], i) => ({
 
 // Catchphrases: a dot plot. One row per phrase in rank order; each hotspot travels from zero to its count, then pulses in place.
 const phrases = S.phrases.catchphrases.slice(0, 6), phraseMax = phrases[0]?.count || 1;
-const PLOT = { x0: 8, x1: 88, top: 0.22, bottom: 0.58 }; // x in stage %, rows in field heights
+const PLOT = { x0: 8, x1: 88, top: 0.22, bottom: 0.58 }; // x in stage %, rows in field heights; `room` resets the rows
 const plotStep = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => phraseMax / st <= 6) ?? 1000;
 const plotMax = Math.max(plotStep, Math.ceil(phraseMax / plotStep) * plotStep);
 const rowY = (i) => PLOT.top + ((PLOT.bottom - PLOT.top) * i) / Math.max(1, phrases.length - 1);
@@ -527,7 +549,7 @@ const projectLayout = (age) => projects.map((p, i) => {
 
 // Archetype: four dashed axes, one per trait. Each trait is a comet, like on the vibe check: it streaks out from the
 // centre toward the pole you lean to, hottest at its head, and goes further the stronger the lean.
-const FP = { x: 0.5, y: fromStage(0.3), L: 0.4 / 1.1, n: 7 }; // field coords; L is the arm length
+const FP = { x: 0.5, y: fromStage(0.28), L: 0.34 / 1.1, n: 7 }; // field coords; L is the arm length
 const traits = (P.traits ?? []).slice(0, 4);
 const axisAngle = (i) => -Math.PI / 2 + (i * Math.PI) / 4;
 const lean = (t) => Math.abs(t.value - 50) / 50;
@@ -634,7 +656,7 @@ function fingerprintTick(el, age) {
   if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const x = c.getContext("2d");
   x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
-  drawFingerprint(x, (fx, fy) => [toStage(fx) * w, toStage(fy) * h], w / 100, tw.speed ? age : Infinity);
+  drawFingerprint(x, (fx, fy) => [toStage(fx) * w, (toStage(fy) + shiftNow) * h], w / 100, tw.speed ? age : Infinity);
 }
 
 // Vibe check: one row per trait. Heat streams out from the midpoint toward the side you lean, so each row reads on its own.
@@ -796,7 +818,8 @@ function labTick(el) {
   const d = el.querySelector(".dish"), st = document.getElementById("stage").getBoundingClientRect();
   if (!d) return;
   const r = d.getBoundingClientRect();
-  DISH = { x: (r.left + r.width / 2 - st.left) / st.width, y: (r.top + r.height / 2 - st.top) / st.height, r: r.width / 2 / st.width };
+  // Read before the shift, which the field adds back for every hotspot.
+  DISH = { x: (r.left + r.width / 2 - st.left) / st.width, y: (r.top + r.height / 2 - st.top) / st.height - shiftNow, r: r.width / 2 / st.width };
 }
 function labReport() {
   const period = `${monthName(S.totals.firstDate)}–${monthName(S.totals.lastDate)} ${S.totals.lastDate.slice(0, 4)}`;
@@ -1000,7 +1023,8 @@ const slides = [
   {
     card: [4, 4, "top"], pal: "bloom", sheet: 36, fg: "#161616", still: true, live: columnLayout, field: () => columnLayout(0),
     // In .abs so the chart moves down with the heat under the top card.
-    extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: cadenceTick,
+    // Its chart already fills whatever room it's given, so expanded leaves it where it is.
+    bareY: () => 0.5, extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: cadenceTick,
     top: () => [
       hud("04", "Cadence"),
       `<p class="micro" style="opacity:0.7">Prompts by day of the week</p>`,
@@ -1025,6 +1049,12 @@ const slides = [
   },
   {
     card: [26, 4, "top"], pal: "peach", sheet: 0, fg: "#161616", still: true, live: phraseLayout, field: () => phraseLayout(0), extra: phraseLayer, tick: phraseTick,
+    // Rows spread through the room, the axis sitting above the first, but never wider apart than they read well.
+    room: (top, bottom) => {
+      const a = top + 0.06, b = bottom - 0.04, gap = Math.min((b - a) / Math.max(1, phrases.length - 1), 0.1), mid = (a + b) / 2, half = (gap * (phrases.length - 1)) / 2;
+      PLOT.top = fromStage(mid - half); PLOT.bottom = fromStage(mid + half);
+      return phraseLayer();
+    },
     top: () => [hud("06", "Lexicon"), `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`],
     bottom: () => [
       `<p class="lbl">Your most-you prompt</p>`,
@@ -1056,7 +1086,7 @@ const slides = [
     top: () => [hud(pad(9 + i), `Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
     // Three placements: high and left, low and right, centre with the note tucked under.
     extra: () => {
-      const at = ["left:6cqw;right:12cqw;top:22%", "left:14cqw;right:6cqw;bottom:9%", "left:6cqw;right:8cqw;top:38%"][i];
+      const at = ["left:6cqw;right:12cqw;top:22%", "left:14cqw;right:6cqw;bottom:15%", "left:6cqw;right:8cqw;top:38%"][i];
       return `<div class="fq${i === 1 ? " r" : ""}" style="${at}">
         <p class="lbl">${esc(q.title ?? "Transmission")}</p>
         <p class="qq" style="--fs:${fit(q.text, [[40, 10], [80, 8.2], [140, 6.6], [Infinity, 5.4]])}cqw">“${esc(q.text)}”</p>
@@ -1071,12 +1101,13 @@ const slides = [
     bottom: () => [],
   },
   {
-    card: [4, 4], pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick,
+    // Expanded, CSS re-stacks the dish in the middle of the room, so it doesn't shift.
+    card: [4, 4], pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick, bareY: () => 0.5,
     top: () => [hud("13", "Warning"), labReport()[0]],
     bottom: () => labReport().slice(1),
   },
   {
-    pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0),
+    pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0), bareY: () => toStage(FP.y),
     extra: () => `<canvas class="fpc" aria-hidden="true"></canvas>`, tick: fingerprintTick,
     top: () => [
       hud("14", "Classification"),
@@ -1087,15 +1118,6 @@ const slides = [
       `<p class="body" style="font-size:4.2cqw">${esc(P.archetype.tagline)}</p>`,
       `<p class="body" style="opacity:0.85">${esc(P.archetype.description)}</p>`,
       P.prediction ? `<p class="micro" style="opacity:0.7;margin-top:1cqw">Forecast: ${esc(P.prediction)}</p>` : "",
-    ],
-    bottom: () => [],
-  },
-  {
-    pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: () => fingerprintLayout(99), field: () => fingerprintLayout(99),
-    top: () => [
-      hud("15", "Export"),
-      `<canvas class="share-card" id="share" width="1080" height="1920" aria-label="Shareable summary card"></canvas>`,
-      `<div class="actions"><button class="btn" id="dl">Save image</button><button class="btn alt" id="replay">Replay</button></div>`,
     ],
     bottom: () => [],
   },
@@ -1194,8 +1216,8 @@ function frame(now) {
   for (const b of blobs) { b.x += (b.tx - b.x) * kp; b.y += (b.ty - b.y) * kp; b.r += (b.tr - b.r) * k; b.w += (b.tw - b.w) * kp; b.p += (b.tp - b.p) * k; }
   // A top card pushes the whole picture down; the heat and the overlays drawn on it move together.
   shiftNow += (shiftTo - shiftNow) * (1 - Math.exp(-dt * 5));
-  const sy = shiftNow / 1.1, shiftPx = `translateY(${(shiftNow * 100).toFixed(3)}cqh)`;
-  for (const a of absEls) a.style.transform = shiftPx;
+  const sy = shiftNow / 1.1, shiftPx = `0 ${(shiftNow * 100).toFixed(3)}cqh`;
+  for (const a of absEls) a.style.translate = shiftPx;
   if (lutK < 1) {
     lutK = Math.min(1, lutK + dt / 0.9);
     const e = 1 - Math.pow(1 - lutK, 3);
@@ -1265,93 +1287,6 @@ function frame(now) {
 // Film grain tile.
 const noise = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0.6 0.6 0.6 0 -0.4 0.6 0.6 0.6 0 -0.4 0.6 0.6 0.6 0 -0.4 0 0 0 0 1"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`;
 document.getElementById("grain").style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(noise)}")`;
-
-// ---------- share card ----------
-
-function drawShare() {
-  const c = document.getElementById("share");
-  if (!c || c.dataset.drawn) return;
-  // The card copies the field, so wait until the hotspots have finished moving into place.
-  if (blobs.some((b) => Math.abs(b.tx - b.x) + Math.abs(b.ty - b.y) + Math.abs(b.tr - b.r) > 0.002)) return void setTimeout(drawShare, 250);
-  c.dataset.drawn = 1;
-  const x = c.getContext("2d"), W = 1080, H = 1920, m = 72, ink = INK;
-  const mono = (s, w = 500) => `${w} ${s}px "Geist Mono", ui-monospace, monospace`;
-  const sans = (s, w = 300) => `${w} ${s}px Geist, system-ui, sans-serif`;
-
-  // Scale the field so the fingerprint sits in the top half, keeping its shape; the zero-heat colour fills behind it.
-  const SC = 360 / FP.L, CY = 600, ox = W / 2 - FP.x * SC, oy = CY - FP.y * SC * AR;
-  x.fillStyle = `rgb(${lut[0]} ${lut[1]} ${lut[2]})`; x.fillRect(0, 0, W, H);
-  x.filter = "blur(22px)";
-  x.drawImage(field, ox, oy, SC, SC * AR);
-  x.filter = "none";
-  drawFingerprint(x, (fx, fy) => [ox + fx * SC, oy + fy * SC * AR], W / 100);
-
-  const py = 1400;
-  x.fillStyle = PAPER; x.fillRect(0, py, W, H - py);
-
-  x.fillStyle = ink; x.font = mono(28);
-  x.fillText("HOW I AI · WRAPPED", m, 128);
-  x.textAlign = "right"; x.fillText(ymd(S.totals.lastDate), W - m, 128); x.textAlign = "left";
-
-  // The key, so a stranger can read the chart.
-  x.font = mono(20); x.textBaseline = "middle";
-  let kx = m;
-  [["bar", "YOUR LEAN"], ["dash", "OTHER SIDE"], ["ring", "50 / 75 / 100%"], ["dot", "HEAT = HOW STRONGLY"]].forEach(([k, label]) => {
-    const ky = 1062;
-    x.strokeStyle = x.fillStyle = ink; x.globalAlpha = k === "bar" || k === "dot" ? 1 : 0.6;
-    if (k === "bar") x.fillRect(kx, ky - 3, 44, 6);
-    if (k === "dash") { x.lineWidth = 2; x.setLineDash([6, 6]); x.beginPath(); x.moveTo(kx, ky); x.lineTo(kx + 44, ky); x.stroke(); x.setLineDash([]); }
-    if (k === "ring") { x.lineWidth = 2; x.setLineDash([4, 5]); x.beginPath(); x.arc(kx + 12, ky, 12, 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
-    if (k === "dot") { const g = x.createRadialGradient(kx + 13, ky, 0, kx + 13, ky, 14); g.addColorStop(0, PALETTES[finalPal].stops[4]); g.addColorStop(0.5, PALETTES[finalPal].stops[3]); g.addColorStop(1, "rgb(0 0 0 / 0)"); x.fillStyle = g; x.fillRect(kx - 2, ky - 15, 30, 30); x.fillStyle = ink; }
-    const gw = k === "bar" || k === "dash" ? 44 : 26;
-    x.globalAlpha = 1; x.fillText(label, kx + gw + 14, ky + 1);
-    kx += gw + 14 + x.measureText(label).width + 36;
-  });
-  x.textBaseline = "alphabetic";
-
-  // Archetype name, wrapped and sat on the gradient.
-  const words = P.archetype.name.split(" ");
-  let size = 120, lines = [];
-  for (; size >= 66; size -= 6) {
-    x.font = sans(size);
-    lines = []; let line = "";
-    for (const w of words) { const tt = line ? line + " " + w : w; if (x.measureText(tt).width > W - m * 2 && line) { lines.push(line); line = w; } else line = tt; }
-    lines.push(line);
-    if (lines.length <= 2 && Math.max(...lines.map((l) => x.measureText(l).width)) <= W - m * 2) break;
-  }
-  x.font = sans(size);
-  try { x.letterSpacing = `${-size * 0.04}px`; } catch {}
-  lines.forEach((l, i) => x.fillText(l, m, py - 64 - (lines.length - 1 - i) * size * 0.95));
-  try { x.letterSpacing = "0px"; } catch {}
-
-  x.font = mono(26);
-  x.fillText([who.toUpperCase(), D.role?.toUpperCase(), "PROMPTING PERSONALITY"].filter(Boolean).join("  ·  "), m, py + 84);
-  x.globalAlpha = 0.12; x.fillRect(m, py + 120, W - m * 2, 2); x.globalAlpha = 1;
-
-  // Their tagline, in their voice, then two times.
-  x.font = sans(44, 400);
-  const tl = []; let cur = "";
-  for (const w of `“${P.archetype.tagline ?? ""}”`.split(" ")) { const tt = cur ? cur + " " + w : w; if (x.measureText(tt).width > W - m * 2 && cur) { tl.push(cur); cur = w; } else cur = tt; }
-  tl.push(cur);
-  tl.slice(0, 2).forEach((l, i) => x.fillText(i === 1 && tl.length > 2 ? l + "…" : l, m, py + 190 + i * 54));
-  [[hourLabel(S.time.peakHour), "PEAK HOUR"], [S.time.longestStreak.length + " days", "LONGEST STREAK"]].forEach(([v, l], i) => {
-    const cx = m + i * ((W - m * 2) / 2), cy = py + 280;
-    x.font = mono(24); x.globalAlpha = 0.6; x.fillText(l, cx, cy + 20); x.globalAlpha = 1;
-    x.font = sans(84); x.fillText(v, cx, cy + 110);
-  });
-  x.font = mono(24); x.globalAlpha = 0.55;
-  x.fillText(sources.map(([k, v]) => `${(SOURCE_LABEL[k] ?? k).toUpperCase()} ${Math.round((v.prompts / total) * 100)}%`).join("   ·   "), m, H - 72);
-  x.globalAlpha = 1;
-
-  // Grain.
-  const g = document.createElement("canvas"); g.width = g.height = 256;
-  const gx = g.getContext("2d"), gd = gx.createImageData(256, 256);
-  for (let i = 0; i < gd.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 150; gd.data[i] = gd.data[i + 1] = gd.data[i + 2] = v; gd.data[i + 3] = 255; }
-  gx.putImageData(gd, 0, 0);
-  x.globalCompositeOperation = "overlay"; x.globalAlpha = 0.22;
-  x.fillStyle = x.createPattern(g, "repeat"); x.fillRect(0, 0, W, H);
-  x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
-}
 
 // ---------- rolling numbers ----------
 
@@ -1542,8 +1477,8 @@ const root = document.getElementById("slides"), progress = document.getElementBy
 const withIndex = (h, i) => (!h ? "" : /^\s*<\w+[^>]*\sstyle="/.test(h) ? h.replace('style="', `style="--i:${i};`) : h.replace(/^(\s*)<(\w+)/, `$1<$2 style="--i:${i}"`));
 let els = [], bars = [], cards = [], cur = -1;
 const card = document.getElementById("card"), cbox = document.getElementById("cbox");
-const CARD_BOTTOM = 13, CARD_TOP = 15; // gaps from the edges, in % of the stage width; the bottom one clears the share button
-let shiftTo = 0, shiftNow = 0, absEls = [];
+const CARD_BOTTOM = 13, CARD_TOP = 15; // gaps from the edges, in % of the stage width; the bottom one clears the share buttons
+let shiftTo = 0, shiftNow = 0, absEls = [], bare = false;
 // A top-card slide with `centre` sits its picture in the middle of the room left under the card, with its caption just
 // above, instead of hard up against the card. `centre()` gives the picture's top and bottom in stage heights before any
 // shift; if it's taller than the room, it starts at the top of the room.
@@ -1563,13 +1498,13 @@ function placeCard(s) {
   shiftTo = 0;
   els[cur].style.setProperty("--lift", "0px");
   const W = stage.clientWidth, H = stage.clientHeight, u = W / 100;
-  cards.forEach((c, j) => c.classList.toggle("on", j === cur && !!s.card));
-  if (!s.card) {
+  cards.forEach((c, j) => c.classList.toggle("on", j === cur && !!s.card && !bare));
+  if (!s.card || bare) {
     const r = card.getBoundingClientRect(), st = stage.getBoundingClientRect();
     // Collapse to a small square where it is, then fade.
     Object.assign(card.style, { left: `${r.left - st.left + r.width / 2 - 3 * u}px`, top: `${r.top - st.top + r.height / 2 - 3 * u}px`, width: `${6 * u}px`, height: `${6 * u}px` });
     card.classList.add("off");
-    return 0;
+    return ((CARD_BOTTOM - 3) * u / H) * 100;
   }
   const [l, r, at] = s.card, w = W - (l + r) * u, c = cards[cur];
   c.style.width = w + "px";
@@ -1616,21 +1551,14 @@ function go(i, force, keep) {
   cur = i;
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
-  s.sheet = placeCard(s);
-  if (s.centre && s.card?.[2] === "top") centreUnderCard(s);
-  absEls = [...el.querySelectorAll(".abs")];
-  el.style.setProperty("--sheet", s.sheet + "%");
-  stage.style.setProperty("--sheet", s.sheet + "%");
+  absEls = [...el.querySelectorAll(".abs, .lab-head")];
+  setBare(false);
   stage.style.setProperty("--fg", s.fg);
   setField(s);
   rollNumbers(el);
   scrambleIn([[el, 0], [cards[cur], 0]]);
   hotEls = [...el.querySelectorAll(".hot")];
   bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
-  document.getElementById("nav").style.display = cur === slides.length - 1 ? "none" : "";
-  document.getElementById("share-btn").hidden = cur === slides.length - 1;
-  document.getElementById("share-menu").hidden = true;
-  if (cur === slides.length - 1) document.fonts.ready.then(() => setTimeout(drawShare, 1000));
 }
 
 const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
@@ -1640,50 +1568,115 @@ addEventListener("keydown", (e) => {
   if (e.target.closest?.(".tweak")) return;
   if (["ArrowRight", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
   if (e.key === "ArrowLeft") go(cur - 1);
+  if (e.key === "Escape" && bare) setBare(false);
 });
-root.addEventListener("click", (e) => {
-  if (e.target.id === "dl") {
-    const a = document.createElement("a");
-    a.download = "how-i-ai-wrapped.png";
-    a.href = document.getElementById("share").toDataURL("image/png");
-    a.click();
+// Expanded: the card and the slide's own text step aside and leave just the picture, slid to the middle of the room
+// between the progress bar and the dock. A slide can name its picture's middle itself (`bareY`, in stage heights);
+// otherwise it's the middle of the heat. Only pictures that move with the heat (.abs) can slide.
+const canBare = (s) => !!(s.card || s.bareY);
+// A slide with `room(top, bottom)` lays its picture out between those stage heights and returns its new layer: under the
+// card and its caption, clear of the dock, or the whole screen when expanded.
+function roomFor(s) {
+  const H = stage.clientHeight, u = stage.clientWidth / 100, el = els[cur], safe = 1 - (CARD_BOTTOM * u) / H;
+  let top = 0.1;
+  if (!bare && s.card?.[2] === "top") {
+    const hud = el.querySelector(".top > .hud"), cap = el.querySelector(".top > .hud + *"), gap = (4 * u) / H;
+    const below = (parseFloat(card.style.top) + parseFloat(card.style.height)) / H, capH = cap.offsetHeight / H;
+    top = below + (6 * u) / H + capH + gap;
+    el.style.setProperty("--lift", `${(top - gap - capH) * H - (hud.offsetTop + hud.offsetHeight + 2.2 * u)}px`);
   }
-  if (e.target.id === "replay") go(0);
-});
+  shiftTo = 0;
+  const old = el.querySelector(".abs");
+  old.outerHTML = s.room(top, safe);
+  absEls = [...el.querySelectorAll(".abs, .lab-head")];
+}
+function bareShift(s) {
+  if (s.bareY) return 0.5 - s.bareY();
+  if (!absEls.length) return 0;
+  // The settled layout: many slides grow in from nothing, so the first frame has no extent.
+  const ext = (s.live ? s.live(99) : s.field()).filter((b) => b.w !== 0).flatMap((b) => [toStage(b.y) - (0.8 * b.r * 1.1) / AR, toStage(b.y) + (0.8 * b.r * 1.1) / AR]);
+  if (!ext.length) return 0;
+  const top = Math.min(...ext), bottom = Math.max(...ext);
+  return Math.max(0.1 - top, Math.min(0.5 - (top + bottom) / 2, 0.88 - bottom));
+}
+function setBare(on) {
+  const s = slides[cur], el = els[cur];
+  bare = on && canBare(s);
+  stage.classList.toggle("bare", bare);
+  s.sheet = placeCard(s);
+  if (s.room) roomFor(s);
+  else if (!bare && s.centre && s.card?.[2] === "top") centreUnderCard(s);
+  else if (bare) shiftTo = bareShift(s);
+  el.style.setProperty("--sheet", s.sheet + "%");
+  stage.style.setProperty("--sheet", s.sheet + "%");
+  expandBtn.hidden = !canBare(s);
+  expandBtn.setAttribute("aria-pressed", bare);
+  expandBtn.setAttribute("aria-label", bare ? "Show the words again" : "Show just the picture");
+  restartBtn.hidden = cur === 0;
+}
 
-// ---------- share any slide ----------
+// ---------- share, save, embed ----------
 
 // Captures the stage as it looks right now, without the buttons. The capture library only loads when someone shares.
-const shareBtn = document.getElementById("share-btn"), shareMenu = document.getElementById("share-menu");
-let shotLib = null;
+const dock = document.getElementById("dock"), acts = document.getElementById("acts"), say = document.getElementById("acts-say");
+const expandBtn = dock.querySelector('[data-act="expand"]'), restartBtn = dock.querySelector('[data-act="restart"]');
+expandBtn.onclick = (e) => { e.stopPropagation(); setBare(!bare); };
+restartBtn.onclick = (e) => { e.stopPropagation(); go(0); };
+progress.addEventListener("click", (e) => { const i = bars.indexOf(e.target); if (i >= 0) { e.stopPropagation(); go(i); } });
+let shotLib = null, shot = null, sayTimer;
 async function snapshot() {
   shotLib ??= import("https://cdn.jsdelivr.net/npm/modern-screenshot@4/+esm");
   const { domToBlob } = await shotLib, scale = 1080 / stage.clientWidth;
-  const skip = new Set([shareBtn, shareMenu, document.getElementById("nav"), progress]);
+  const skip = new Set([dock, document.getElementById("nav"), progress]);
   return domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } });
 }
-const shotName = () => `how-i-ai-${String(cur).padStart(2, "0")}.png`;
+const shotName = () => `how-i-ai-${String(cur + 1).padStart(2, "0")}.png`;
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.png", { type: "image/png" })] });
-shareMenu.querySelector('[data-act="share"]').hidden = !canShareFiles;
-shareMenu.querySelector('[data-act="copy"]').hidden = !(navigator.clipboard?.write && window.ClipboardItem);
-shareBtn.onclick = (e) => { e.stopPropagation(); shareMenu.hidden = !shareMenu.hidden; };
-addEventListener("click", (e) => { if (!shareMenu.hidden && !shareMenu.contains(e.target) && e.target !== shareBtn) { shareMenu.hidden = true; e.stopPropagation(); } }, true);
-shareMenu.onclick = async (e) => {
+const canCopyImage = !!(navigator.clipboard?.write && window.ClipboardItem);
+function tell(text, ms = 1600) {
+  say.textContent = text; say.classList.add("on");
+  clearTimeout(sayTimer);
+  if (ms) sayTimer = setTimeout(() => say.classList.remove("on"), ms);
+}
+function saveBlob(blob) {
+  const a = document.createElement("a");
+  a.download = shotName(); a.href = URL.createObjectURL(blob); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const t = Object.assign(document.createElement("textarea"), { value: text });
+    document.body.append(t); t.select(); document.execCommand("copy"); t.remove();
+  }
+}
+// The page as it was written, before any slide was built: an iframe can carry the whole thing with no server. Plain
+// ASCII, so it reads right on a host page whatever its charset.
+const embedCode = () => `<iframe title="How I AI - Wrapped" style="width:100%;max-width:420px;aspect-ratio:9/16;border:0" srcdoc="${SOURCE.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/[^\x00-\x7f]/gu, (c) => `&#${c.codePointAt(0)};`)}"></iframe>`;
+// Already inside someone's page, there's nothing to embed.
+acts.querySelector('[data-act="embed"]').hidden = window.self !== window.top;
+
+// Start capturing on press so the share sheet opens while the tap still counts as a tap.
+acts.addEventListener("pointerdown", (e) => { if (e.target.closest('[data-act="share"], [data-act="save"]')) shot = snapshot(); });
+acts.onclick = async (e) => {
   const b = e.target.closest("button");
   if (!b) return;
   e.stopPropagation();
-  const label = b.textContent;
-  b.textContent = "Capturing…";
+  const act = b.dataset.act;
+  if (act === "embed") { await copyText(embedCode()); return tell("Embed code copied"); }
+  tell("Capturing…", 0);
   try {
-    const blob = await snapshot();
-    if (b.dataset.act === "share") await navigator.share({ files: [new File([blob], shotName(), { type: "image/png" })], title: "How I AI · Wrapped" });
-    if (b.dataset.act === "copy") await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-    if (b.dataset.act === "save") { const a = document.createElement("a"); a.download = shotName(); a.href = URL.createObjectURL(blob); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
-    b.textContent = b.dataset.act === "copy" ? "Copied" : b.dataset.act === "save" ? "Saved" : label;
+    const blob = await (shot ?? snapshot());
+    if (act === "save") { saveBlob(blob); tell("Saved"); }
+    else if (canShareFiles) {
+      try { await navigator.share({ files: [new File([blob], shotName(), { type: "image/png" })], title: "How I AI · Wrapped" }); say.classList.remove("on"); }
+      catch (err) { if (err?.name === "AbortError") say.classList.remove("on"); else { saveBlob(blob); tell("Saved instead"); } }
+    } else if (canCopyImage) { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); tell("Image copied"); }
+    else { saveBlob(blob); tell("Saved"); }
   } catch (err) {
-    if (err?.name !== "AbortError") { console.warn("share failed", err); b.textContent = "Couldn't capture"; }
+    console.warn("capture failed", err); tell("Couldn't capture");
   }
-  setTimeout(() => { b.textContent = label; shareMenu.hidden = true; }, 1200);
+  shot = null;
 };
 
 // ---------- tweak panel ----------
