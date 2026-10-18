@@ -249,13 +249,15 @@
   .btn:active { transform: scale(0.97); }
   .btn:focus-visible { outline: 0.6cqw solid var(--c3); outline-offset: 0.6cqw; }
 
-  /* The card: one black block that carries each slide's text. It travels to wherever it leaves the picture clear,
-     shrinks away on slides that are all picture, and wears a coloured registration mark on each corner. */
+  /* The card: one block that carries each slide's text, a lifted sheet of paper in light mode and black in dark. It
+     travels to wherever it leaves the picture clear, shrinks away on slides that are all picture, and wears a coloured
+     registration mark on each corner. */
   .sheet { display: none; }
-  .card { position: absolute; z-index: 8; left: 47cqw; top: 100%; width: 6cqw; height: 6cqw; pointer-events: none; --ink: #F3F2EE; --paper: #111; color: var(--ink);
+  .card { position: absolute; z-index: 8; left: 47cqw; top: 100%; width: 6cqw; height: 6cqw; pointer-events: none; --ink: #161616; --paper: #FBFAF7; color: var(--ink);
     transition: left 820ms var(--ease-out), top 820ms var(--ease-out), width 820ms var(--ease-out), height 820ms var(--ease-out), opacity 500ms var(--ease-out); }
+  :root.dark .card { --ink: #F3F2EE; --paper: #111; }
   .card.off { opacity: 0; }
-  .cbox { position: absolute; inset: 0; overflow: hidden; background: #111; }
+  .cbox { position: absolute; inset: 0; overflow: hidden; background: var(--paper); box-shadow: inset 0 0 0 1px rgb(22 22 22 / 0.1), 0 1cqw 5cqw -2cqw rgb(22 22 22 / 0.12); }
   :root.dark .cbox { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); }
   .card .k { position: absolute; width: 1.8cqw; height: 1.8cqw; translate: -50% -50%; background: var(--kc); transition: background 800ms; }
   .card .k::before, .card .k::after { content: ""; position: absolute; background: var(--kc); }
@@ -269,7 +271,8 @@
   .cc.on > * { animation: rise 620ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 70ms + 420ms); }
   .cc .grow { display: none; }
   .cc .blend { mix-blend-mode: normal; color: inherit; }
-  .cc .mostyou { color: color-mix(in srgb, var(--c3) 60%, #FFFFFF); }
+  .cc .mostyou { color: color-mix(in srgb, var(--c3) 45%, #1F0B45); }
+  :root.dark .cc .mostyou { color: color-mix(in srgb, var(--c3) 60%, #FFFFFF); }
 
   /* Share any slide: a button in the bottom-right corner and a small menu above it */
   .share-btn { position: absolute; z-index: 11; right: 4cqw; bottom: 3cqw; width: 7cqw; height: 7cqw; display: grid; place-items: center; appearance: none; border: 0; border-radius: 50%; cursor: pointer; background: #111; color: #F3F2EE; transition: transform 140ms var(--ease-out), opacity 300ms; }
@@ -1042,6 +1045,8 @@ const slides = [
   {
     skip: !S.projects.length,
     card: [30, 4, "top"], pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
+    // The map's extent is its outermost rings.
+    centre: () => { const L = projectLayout(0), y = (b, k) => toStage(b.y) + (k * b.r * 1.1) / AR; return [Math.min(...L.map((b) => y(b, -1))), Math.max(...L.map((b) => y(b, 1)))]; },
     top: () => [hud("08", "Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went</p>`],
     bottom: () => [head("Workload", `${projects.length} projects`), `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`],
   },
@@ -1539,6 +1544,18 @@ let els = [], bars = [], cards = [], cur = -1;
 const card = document.getElementById("card"), cbox = document.getElementById("cbox");
 const CARD_BOTTOM = 13, CARD_TOP = 15; // gaps from the edges, in % of the stage width; the bottom one clears the share button
 let shiftTo = 0, shiftNow = 0, absEls = [];
+// A top-card slide with `centre` sits its picture in the middle of the room left under the card, with its caption just
+// above, instead of hard up against the card. `centre()` gives the picture's top and bottom in stage heights before any
+// shift; if it's taller than the room, it starts at the top of the room.
+function centreUnderCard(s) {
+  const H = stage.clientHeight, u = stage.clientWidth / 100, el = els[cur];
+  const hud = el.querySelector(".top > .hud"), cap = el.querySelector(".top > .hud + *");
+  const below = (parseFloat(card.style.top) + parseFloat(card.style.height)) / H, capH = cap.offsetHeight / H, gap = (4 * u) / H;
+  const [top, bottom] = s.centre(), room0 = below + (6 * u) / H + capH + gap, room1 = 1 - (CARD_BOTTOM * u) / H;
+  shiftTo = Math.max(room0 - top, (room0 + room1 - top - bottom) / 2);
+  const capTop = top + shiftTo - gap - capH, natural = (hud.offsetTop + hud.offsetHeight + 2.2 * u) / H;
+  el.style.setProperty("--lift", `${(capTop - natural) * H}px`);
+}
 // Move the card to this slide's spot, sized to its text. A bottom card returns how much of the stage it takes up from the
 // bottom (as a % of height) so the slide lays itself out above it. A top card instead pushes the slide's picture down
 // by its height (shiftTo, in stage heights) and its text below it (--lift). Slides without a card send it off, shrinking.
@@ -1600,6 +1617,7 @@ function go(i, force, keep) {
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
   s.sheet = placeCard(s);
+  if (s.centre && s.card?.[2] === "top") centreUnderCard(s);
   absEls = [...el.querySelectorAll(".abs")];
   el.style.setProperty("--sheet", s.sheet + "%");
   stage.style.setProperty("--sheet", s.sheet + "%");
