@@ -29,7 +29,6 @@
   :root.dark .orb.ghost i { color: rgb(238 236 232 / 0.6); }
   :root.dark .dish, :root.dark .dish::before { border-color: rgb(238 236 232 / 0.4); }
   :root.dark .lab-legend p { border-color: rgb(238 236 232 / 0.14); }
-  :root.dark .qcard > div { background: linear-gradient(160deg, rgb(21 21 21 / 0.74), rgb(21 21 21 / 0.52)); }
   :root.dark .mostyou { color: color-mix(in srgb, var(--c3) 50%, #FFFFFF); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -122,18 +121,8 @@
   .ascii canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   .ascii .back { filter: blur(1.6px); }
 
-  /* Volume: months strung on a white line */
-  .chartline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .mline { fill: none; stroke: #fff; stroke-width: 2.4; stroke-dasharray: 1; stroke-dashoffset: 1; }
-  .slide.active .mline { animation: draw-line 900ms var(--ease-out) forwards 100ms; }
-  @keyframes draw-line { to { stroke-dashoffset: 0; } }
-  .mnode { fill: #fff; transform-box: fill-box; transform-origin: center; }
-  .slide.active .mnode { animation: pop 500ms var(--ease-out) both; animation-delay: calc(var(--d) * 160ms + 100ms); }
-  .mlabel { position: absolute; translate: -50% 0; margin-top: 2.6cqw; display: grid; justify-items: center; gap: 0.4cqw; color: var(--ink); opacity: 0; }
-  .mlabel b { font: 400 3.8cqw/1 var(--sans); letter-spacing: -0.02em; }
-  .mlabel i { font: 500 2cqw var(--mono); font-style: normal; letter-spacing: 0.05em; opacity: 0.7; }
-  .slide.active .mlabel { animation: fade-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 160ms + 200ms); }
   @keyframes fade-in { to { opacity: 1; } }
+  @keyframes draw-line { to { stroke-dashoffset: 0; } }
 
   /* Agents: nested circles on a crosshair */
   .orbit { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -173,29 +162,29 @@
   .slide.active .chip { animation: fade-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 300ms); }
   .mostyou { font: 400 7.4cqw/1 var(--sans); letter-spacing: -0.035em; color: color-mix(in srgb, var(--c3) 45%, #1F0B45); text-wrap: balance; }
 
-  /* Fingerprint axes and pole names */
-  .fp { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .fp line { stroke: var(--ink); stroke-opacity: 0.35; stroke-width: 1; stroke-dasharray: 4 5; vector-effect: non-scaling-stroke; }
-  .fp circle { fill: var(--ink); }
-  .pole { position: absolute; translate: -50% -50%; font: 500 1.9cqw var(--mono); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.45; white-space: nowrap; color: var(--fg); }
-  .pole.l { translate: 0 -180%; }
-  .pole.r { translate: -100% -180%; }
-  .pole.on { opacity: 1; }
+  /* Fingerprint: a sharp data overlay drawn on a canvas over the heat, with a key so a screenshot explains itself */
+  .fpc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .fp-key { display: flex; flex-wrap: wrap; gap: 1.2cqw 3.6cqw; font: 500 1.75cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .fp-key span { display: flex; align-items: center; gap: 1.2cqw; }
+  .fp-key i { width: 4.4cqw; height: 0; border-top: 0.45cqw solid currentColor; }
+  .fp-key i.d { border-top: 1px dashed currentColor; opacity: 0.6; }
+  .fp-key i.o { width: 2.2cqw; height: 2.2cqw; border: 1px dashed currentColor; border-radius: 50%; opacity: 0.6; }
+  .fp-key i.h { width: 2.4cqw; height: 2.4cqw; border: 0; border-radius: 50%; background: radial-gradient(var(--c4), var(--c3) 45%, transparent 72%); }
 
 
   /* Mood over time */
 
   /* Typed quotes, with a mini dial for when they were sent */
-  .type .ch { opacity: 0; }
-  .type .ch.on { opacity: 1; }
-  .type .ch.cur::after { content: ""; display: inline-block; width: 0.06em; height: 0.85em; margin-left: 0.04em; vertical-align: -0.08em; background: currentColor; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  /* Greatest hits: a frosted card over a full-bleed field, in two panes with opposite corners cut */
-  .qcard { display: flex; flex-direction: column; gap: 0.5cqw; margin: 0 2cqw; color: var(--ink); }
-  .qcard > div { padding: 6cqw 6.4cqw; background: linear-gradient(160deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5)); -webkit-backdrop-filter: blur(5cqw) saturate(1.15); backdrop-filter: blur(5cqw) saturate(1.15); }
-  .qcard .qa { min-height: 62cqw; display: flex; flex-direction: column; gap: 4.4cqw; clip-path: polygon(6cqw 0, 100% 0, 100% 100%, 0 100%, 0 6cqw); }
-  .qcard .qb { display: flex; flex-direction: column; gap: 3cqw; padding-bottom: 8cqw; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6cqw), calc(100% - 6cqw) 100%, 0 100%); }
-  .qcard .qq { font: 500 var(--fs)/1.12 var(--sans); letter-spacing: -0.025em; text-wrap: pretty; }
+  /* Greatest hits: the quote floats straight on the field, each one placed a little differently */
+  /* Always black: the quote sits on the bright heart of the field, in dark mode too. */
+  .fq { position: absolute; display: flex; flex-direction: column; gap: 3cqw; color: #161616; }
+  .fq .qq { font: 400 var(--fs)/1.04 var(--sans); letter-spacing: -0.035em; text-wrap: pretty; text-indent: -0.42em; }
+  .fq .qc { display: flex; flex-direction: column; gap: 1.4cqw; max-width: 62cqw; }
+  .fq .qc .body { font-size: 3.4cqw; }
+  .fq.r { text-align: right; align-items: flex-end; }
+  .fq.r .qq { text-indent: 0; }
+  .fq { opacity: 0; transform: translateY(2.4cqw); }
+  .slide.active .fq { animation: rise 620ms var(--ease-out) forwards 150ms; }
 
   /* Lab report: plain paper, with the colour kept to one petri dish of cultured replies */
   .lab-head { display: grid; grid-template-columns: 1fr 42cqw; gap: 5cqw; align-items: center; margin-top: 1cqw; }
@@ -210,8 +199,14 @@
   .lab-legend p:first-child { border-top: 1px solid rgb(22 22 22 / 0.12); }
   .lab-legend b { font-weight: 500; opacity: 0.45; }
   .lab-legend span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lab-sec { display: flex; flex-direction: column; gap: 2.2cqw; margin-top: 1.6cqw; }
+  .lab-sec { display: flex; flex-direction: column; gap: 2cqw; }
   .lab-sec .body { font-size: var(--fs); line-height: 1.45; }
+
+  /* Tells: numbered reads on how you write */
+  .tells { display: flex; flex-direction: column; }
+  .tells p { display: grid; grid-template-columns: 6cqw 1fr; gap: 2cqw; padding: 2.2cqw 0; border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); font: 400 var(--fs)/1.35 var(--sans); text-wrap: pretty; }
+  .tells b { font: 500 2.2cqw/1.9 var(--mono); opacity: 0.45; }
+  .tells strong { font-weight: 500; }
 
   /* Clock dial over the heat ring */
   .dial { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -243,24 +238,26 @@
   .vline { position: absolute; height: 0; border-top: 1px dashed rgb(22 22 22 / 0.2); }
   .vend { position: absolute; width: 1.6cqw; height: 1.6cqw; translate: -50% -50%; border-radius: 50%; background: var(--ink); }
   .vend.mid { width: 1.1cqw; height: 1.1cqw; }
-  .vpole { position: absolute; translate: 0 2.8cqw; font: 400 3.1cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; }
-  .vpole.l { left: 5.2cqw; } .vpole.r { right: 5.2cqw; }
-  .vnote { position: absolute; left: 5.2cqw; width: 74cqw; translate: 0 8.6cqw; font: 400 3.3cqw/1.3 var(--sans); color: var(--ink); opacity: 0.45; text-wrap: pretty; }
+  .vpole { position: absolute; translate: 0 -50%; font: 400 2.6cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink); white-space: nowrap; }
+  .vnote { position: absolute; left: 50%; width: 80cqw; translate: -50% 5.4cqw; text-align: center; font: 400 3.2cqw/1.3 var(--sans); color: var(--ink); opacity: 0.5; text-wrap: balance; }
+  /* The reading sits above its mark, so it never runs into the pole names at either end. */
+  .chip.above { translate: -50% calc(-100% - 2.2cqw); }
+  .chip.above::before { display: none; }
+  .chip.above em { left: 50%; translate: -50% 0; }
   .slide.active .vpole, .slide.active .vnote { animation: rise-in 600ms var(--ease-out) both; animation-delay: calc(var(--d, 0) * 120ms + 150ms); }
   @keyframes rise-in { from { opacity: 0; } }
   @keyframes pop { from { transform: scale(0); } }
 
+  .top > .hud + * { margin-top: var(--lift, 0px); transition: margin-top 820ms var(--ease-out); }
   .top > *, .panel > * { opacity: 0; transform: translateY(2.4cqw); }
   .slide.active .top > *, .slide.active .panel > * { animation: rise 620ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 80ms + 120ms); }
   .slide.active .panel > * { animation-delay: calc(var(--i, 0) * 80ms + 320ms); }
   @keyframes rise { to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
-    .slide.active .top > *, .slide.active .panel > * { animation: none; opacity: 1; transform: none; }
+    .slide.active .top > *, .slide.active .panel > *, .slide.active .fq { animation: none; opacity: 1; transform: none; }
     .slide.active .vpole, .slide.active .vnote, .slide.active .chart .pill { animation: none; }
     .slide.active .chart .num { animation: none; opacity: 1; }
-    .slide.active .mline, .slide.active .orbit .ring, .slide.active .mnode { animation: none; stroke-dashoffset: 0; }
-    .mlabel { opacity: 1; }
-    .type .ch { opacity: 1; }
+    .slide.active .orbit .ring { animation: none; stroke-dashoffset: 0; }
     .grain { animation: none; }
   }
 
@@ -270,6 +267,42 @@
   .btn.alt { background: #fff; color: var(--ink); }
   .btn:active { transform: scale(0.97); }
   .btn:focus-visible { outline: 0.6cqw solid var(--c3); outline-offset: 0.6cqw; }
+
+  /* The card: one black block that carries each slide's text. It travels to wherever it leaves the picture clear,
+     shrinks away on slides that are all picture, and wears a coloured registration mark on each corner. */
+  .sheet { display: none; }
+  .card { position: absolute; z-index: 8; left: 47cqw; top: 100%; width: 6cqw; height: 6cqw; pointer-events: none; --ink: #F3F2EE; --paper: #111; color: var(--ink);
+    transition: left 820ms var(--ease-out), top 820ms var(--ease-out), width 820ms var(--ease-out), height 820ms var(--ease-out), opacity 500ms var(--ease-out); }
+  .card.off { opacity: 0; }
+  .cbox { position: absolute; inset: 0; overflow: hidden; background: #111; }
+  :root.dark .cbox { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); }
+  .card .k { position: absolute; width: 1.8cqw; height: 1.8cqw; translate: -50% -50%; background: var(--kc); transition: background 800ms; }
+  .card .k::before, .card .k::after { content: ""; position: absolute; background: var(--kc); }
+  .card .k::before { left: 50%; top: -1.6cqw; bottom: -1.6cqw; width: 1px; }
+  .card .k::after { top: 50%; left: -1.6cqw; right: -1.6cqw; height: 1px; }
+  .k.tl { left: 0; top: 0; --kc: var(--c2); } .k.tr { left: 100%; top: 0; --kc: var(--c3); }
+  .k.bl { left: 0; top: 100%; --kc: var(--c3); } .k.br { left: 100%; top: 100%; --kc: var(--c4); }
+  .cc { position: absolute; left: 0; top: 0; padding: 5cqw 5cqw 5.4cqw; display: flex; flex-direction: column; gap: 2.8cqw; visibility: hidden; opacity: 0; transition: opacity 160ms, visibility 0s 160ms; }
+  .cc.on { visibility: visible; opacity: 1; transition: opacity 300ms 360ms; }
+  .cc > * { opacity: 0; transform: translateY(2cqw); }
+  .cc.on > * { animation: rise 620ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 70ms + 420ms); }
+  .cc .grow { display: none; }
+  .cc .blend { mix-blend-mode: normal; color: inherit; }
+  .cc .mostyou { color: color-mix(in srgb, var(--c3) 60%, #FFFFFF); }
+
+  /* Share any slide: a button in the bottom-right corner and a small menu above it */
+  .share-btn { position: absolute; z-index: 11; right: 4cqw; bottom: 3cqw; width: 7cqw; height: 7cqw; display: grid; place-items: center; appearance: none; border: 0; border-radius: 50%; cursor: pointer; background: #111; color: #F3F2EE; transition: transform 140ms var(--ease-out), opacity 300ms; }
+  :root.dark .share-btn { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
+  .share-btn:active { transform: scale(0.94); }
+  .share-btn svg { width: 3.4cqw; height: 3.4cqw; }
+  .share-btn[hidden] { display: none; }
+  .share-menu { position: absolute; z-index: 11; right: 4cqw; bottom: 11.5cqw; display: flex; flex-direction: column; min-width: 40cqw; padding: 1cqw; background: #111; color: #F3F2EE; box-shadow: 0 2cqw 6cqw -2cqw rgb(0 0 0 / 0.4); }
+  .share-menu[hidden] { display: none; }
+  .share-menu button { appearance: none; border: 0; background: none; color: inherit; cursor: pointer; text-align: left; padding: 2.4cqw 2.6cqw; font: 500 2.4cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .share-menu button:hover { background: rgb(255 255 255 / 0.08); }
+  .share-menu button[hidden] { display: none; }
+  .share-menu::before, .share-menu::after { content: ""; position: absolute; width: 1.4cqw; height: 1.4cqw; background: var(--c3); }
+  .share-menu::before { left: -0.7cqw; top: -0.7cqw; } .share-menu::after { right: -0.7cqw; bottom: -0.7cqw; background: var(--c4); }
 
   .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
   .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
@@ -292,6 +325,9 @@
   <div id="slides"></div>
   <canvas id="burn" aria-hidden="true"></canvas>
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
+  <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
+  <button class="share-btn" id="share-btn" aria-label="Share this slide" aria-haspopup="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M12 15V3M7 8l5-5 5 5M5 12v8h14v-8"/></svg></button>
+  <div class="share-menu" id="share-menu" role="menu" hidden><button data-act="share" role="menuitem">Share…</button><button data-act="copy" role="menuitem">Copy image</button><button data-act="save" role="menuitem">Save image</button></div>
   <div class="grain" id="grain"></div>
 </main>
 
@@ -356,7 +392,10 @@ const PALETTES = {
 
 // ---------- look: the user's colour preferences ----------
 
-const LOOK = { mood: D.look?.mood ?? "mixed", mode: D.look?.mode ?? "light" };
+const LOOK = { mood: D.look?.mood ?? "mixed", mode: D.look?.mode ?? "auto" };
+// "auto" follows the device, and switches with it.
+const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+if (LOOK.mode === "auto") darkQuery.addEventListener("change", () => { location.hash = cur; location.reload(); });
 // Each mood swaps some slide palettes for others; "mixed" keeps every slide's own.
 const MOODS = {
   mixed: {},
@@ -364,7 +403,7 @@ const MOODS = {
   cool: { orchid: "lilac", bloom: "mint", flare: "frost", dusk: "mint", dawn: "sky", peach: "mint", infra: "abyss", ember: "abyss" },
   electric: { bloom: "flare", dusk: "flare", dawn: "flare", peach: "ember", mint: "infra", sky: "flare" },
 };
-const DARK = LOOK.mode === "dark";
+const DARK = LOOK.mode === "dark" || (LOOK.mode === "auto" && darkQuery.matches);
 const INK = DARK ? "#EEECE8" : "#161616", PAPER = DARK ? "#151515" : "#F3F2EE";
 const shade = (c, k) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(c.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
 if (DARK) {
@@ -458,23 +497,15 @@ function asciiTick(el, age) {
 }
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthName = (key) => MONTHS[+key.slice(5, 7) - 1];
-const byKey = (o) => Object.entries(o ?? {}).sort(([a], [b]) => a.localeCompare(b));
-const short = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : fmt(n));
 
-// Volume: one hotspot per month, growing in turn and then pulsing in place, the latest swelling to fill the screen.
-const GROW_Y = 0.33;
-const months = byKey(S.time.byMonth).slice(-6), monthMax = Math.max(1, ...months.map(([, v]) => v));
-function growthLayout(age) {
-  const n = months.length;
-  return months.map(([, v], i) => {
-    const s = Math.sqrt(v / monthMax), e = easeOut((age - 0.1 - i * 0.16) / 0.6);
-    const swell = i === n - 1 ? easeOut((age - 0.4 - n * 0.16) / 2) : 0;
-    const pulse = 1 + 0.06 * e * Math.sin(age * 1.8 + i * 0.9);
-    return { x: n === 1 ? 0.5 : 0.16 + (i * 0.68) / (n - 1), y: GROW_Y, r: (0.02 + (0.05 + 0.15 * s) * e + 0.1 * swell * s) * pulse, w: ((0.3 + 0.95 * s) * e + 0.3 * swell) * pulse };
-  });
-}
-
-const outTokens = sources.reduce((a, [, v]) => a + (v.outputTokens ?? 0), 0), wordsBack = Math.round(outTokens * 0.75);
+// Tells: a few reads on how you write, each a hotspot ringed with its name. The first is the biggest.
+const tells = (P.tells ?? []).slice(0, 3);
+const TELL_AT = [[0.33, 0.25, 0.16], [0.7, 0.36, 0.13], [0.36, 0.5, 0.11]]; // x, y, r in stage units
+const tellLayout = (age) => tells.map((_, i) => {
+  const [x, y, r] = TELL_AT[i], e = easeOut((age - 0.2 - i * 0.25) / 1.2), beat = 1 + 0.05 * e * Math.sin(age * 1.5 + i * 2);
+  return { x: fromStage(x), y: fromStage(y), r: (r / 1.1) * (0.3 + 0.7 * e) * beat, w: (1.15 - i * 0.12) * e };
+});
+const tellLayer = () => { const L = tellLayout(99); return `<div class="abs">${tells.map((t, i) => orb(i, L[i], t.label, pad(i + 1), [4.2, 3.6, 3.2][i])).join("")}</div>`; };
 
 // Agents: one circle per agent, nested and centred, each its own colour. Areas follow prompt counts, so the
 // biggest agent is the outer circle and a small one is a small disc in the middle.
@@ -512,7 +543,7 @@ const projectLayout = (age) => projects.map((p, i) => {
 
 // Archetype: four dashed axes, one per trait. Each trait is a comet, like on the vibe check: it streaks out from the
 // centre toward the pole you lean to, hottest at its head, and goes further the stronger the lean.
-const FP = { x: 0.5, y: fromStage(0.31), L: 0.4 / 1.1, n: 7 }; // field coords; L is the arm length
+const FP = { x: 0.5, y: fromStage(0.3), L: 0.4 / 1.1, n: 7 }; // field coords; L is the arm length
 const traits = (P.traits ?? []).slice(0, 4);
 const axisAngle = (i) => -Math.PI / 2 + (i * Math.PI) / 4;
 const lean = (t) => Math.abs(t.value - 50) / 50;
@@ -528,8 +559,102 @@ function fingerprintLayout(age) {
   });
 }
 
+// The chart over the fingerprint: rings for how strong a lean is, each axis with ticks, a solid arm out to where you sit
+// and a dashed one for the side you don't, your shape joined up, and every pole named, yours in a filled chip with
+// its reading. P maps field coords to pixels, u is 1% of the page width, and age builds it in with the heat.
+const ACCENT = "#FF4FA0";
+const leanPct = (t) => Math.round(Math.max(t.value, 100 - t.value));
+function drawFingerprint(x, P, u, age = Infinity) {
+  const [cx, cy] = P(FP.x, FP.y), S = P(FP.x + 1, FP.y)[0] - cx;
+  const at = (a, r) => [cx + Math.cos(a) * r * S, cy + Math.sin(a) * r * S];
+  const rad = (m) => FP.L * (0.3 + 0.65 * m), L = FP.L;
+  const grow = (i) => easeOut((age - 0.3 - i * 0.2) / 1.6), show = easeOut((age - 0.2) / 0.9), tag = easeOut((age - 1.4) / 0.6);
+  const mono = (size) => `500 ${(size * u).toFixed(1)}px "Geist Mono", ui-monospace, monospace`;
+  const seg = (a, b, w, alpha, dash) => { x.globalAlpha = alpha; x.lineWidth = w; x.setLineDash(dash ?? []); x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.stroke(); };
+  x.save();
+  x.strokeStyle = x.fillStyle = INK; x.textBaseline = "middle";
+  try { x.letterSpacing = `${(0.06 * 1.6 * u).toFixed(2)}px`; } catch {}
+
+  // Rings: 50/50 at the hub's edge, then 75% and 100% lean.
+  [0, 0.5, 1].forEach((m) => { x.globalAlpha = 0.4 * show; x.lineWidth = 1; x.setLineDash([0.5 * u, 0.7 * u]); x.beginPath(); x.arc(cx, cy, rad(m) * S, 0, Math.PI * 2); x.stroke(); });
+  x.setLineDash([]); x.font = mono(1.45); x.textAlign = "left";
+  [0, 0.5, 1].forEach((m) => { const [rx, ry] = at(-Math.PI / 2 - 0.2, rad(m)); x.globalAlpha = 0.6 * show; x.fillText(["50/50", "75%", "100%"][Math.round(m * 2)], rx + 0.6 * u, ry); });
+
+  const pts = [];
+  traits.forEach((t, i) => {
+    const m = lean(t), a = axisAngle(i) + (t.value >= 50 ? 0 : Math.PI), b = a + Math.PI, e = grow(i);
+    // The side you don't lean to: a faint dashed arm. Yours: a hairline to the end, ticked every 10%.
+    seg([cx, cy], at(b, L), 1, 0.4 * show, [0.35 * u, 0.55 * u]);
+    seg([cx, cy], at(a, L), 1, 0.75 * show);
+    for (let k = 1; k <= 10; k++) {
+      const n = k % 5 ? 0.6 * u : 1.3 * u, [tx, ty] = at(a, (L * k) / 10), [nx, ny] = [-Math.sin(a) * n, Math.cos(a) * n];
+      seg([tx - nx, ty - ny], [tx + nx, ty + ny], 1, 0.7 * show);
+    }
+    // Your reading: a heavy bar from the hub out to it.
+    const end = at(a, rad(m) * e);
+    seg([cx, cy], end, 0.5 * u, show);
+    pts.push([a, end]);
+  });
+  // Your shape, joined up in angle order. If every lean is on one side, the shape closes through the hub instead of
+  // cutting a line across the empty side.
+  const ang = (a) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  pts.sort((p, q) => ang(p[0]) - ang(q[0]));
+  const gaps = pts.map(([a], k) => ang(pts[(k + 1) % pts.length][0] - a) || 2 * Math.PI), wide = gaps.indexOf(Math.max(...gaps));
+  const ring = pts.map(([, p]) => p);
+  if (gaps[wide] > Math.PI) ring.splice(wide + 1, 0, [cx, cy]);
+  x.setLineDash([]); x.lineWidth = 0.22 * u; x.beginPath(); ring.forEach((p, k) => (k ? x.lineTo(...p) : x.moveTo(...p))); x.closePath();
+  x.globalAlpha = 0.08 * show; x.fill(); x.globalAlpha = show; x.stroke();
+  // Target marks on each reading and on the hub.
+  for (const [, [px, py]] of pts) {
+    const r = 1.1 * u;
+    x.globalAlpha = show; x.lineWidth = 1; x.strokeStyle = ACCENT; x.strokeRect(px - r, py - r, r * 2, r * 2);
+    x.fillStyle = ACCENT; x.fillRect(px - r * 0.45, py - r * 0.45, r * 0.9, r * 0.9);
+  }
+  x.strokeStyle = x.fillStyle = INK;
+  seg([cx - 1.6 * u, cy], [cx + 1.6 * u, cy], 1, show); seg([cx, cy - 1.6 * u], [cx, cy + 1.6 * u], 1, show);
+
+  // Pole names at each arm's end. Yours: ink chip plus a pink reading. The other side: plain and faint.
+  x.font = mono(1.85);
+  traits.forEach((t, i) => {
+    [[t.right, axisAngle(i), t.value >= 50], [t.left, axisAngle(i) + Math.PI, t.value < 50]].forEach(([name, a, on]) => {
+      const c = Math.cos(a), sn = Math.sin(a), pad = 0.9 * u, h = 3.4 * u;
+      const word = String(name).toUpperCase(), ww = x.measureText(word).width + pad * 2;
+      const val = on ? `${leanPct(t)}%` : "", vw = on ? x.measureText(val).width + pad * 2 : 0, w = ww + vw;
+      // Side poles sit above their arm and point inward, so they stay on the page; the rest sit just past the end.
+      const side = Math.abs(c) > 0.9, [ex, ey] = at(a, L);
+      let x0, y0;
+      if (side) { x0 = c > 0 ? ex - w : ex; y0 = ey - h - 1.4 * u; }
+      else {
+        const [px, py] = at(a, L + (2.2 * u) / S);
+        x0 = Math.abs(c) < 0.3 ? px - w / 2 : c > 0 ? px : px - w;
+        y0 = Math.abs(sn) < 0.3 ? py - h / 2 : sn > 0 ? py : py - h;
+      }
+      x.globalAlpha = tag; x.textAlign = "left";
+      if (on) {
+        x.fillStyle = INK; x.fillRect(x0, y0, ww, h);
+        x.fillStyle = PAPER; x.fillText(word, x0 + pad, y0 + h / 2 + 0.1 * u);
+        x.fillStyle = ACCENT; x.fillRect(x0 + ww, y0, vw, h);
+        x.fillStyle = "#fff"; x.fillText(val, x0 + ww + pad, y0 + h / 2 + 0.1 * u);
+      } else {
+        x.globalAlpha = 0.5 * tag; x.fillStyle = INK; x.fillText(word, x0 + pad, y0 + h / 2 + 0.1 * u);
+      }
+      x.fillStyle = INK;
+    });
+  });
+  x.restore();
+}
+// On the slide the chart rides the live field: same canvas coords as the field, redrawn every frame.
+function fingerprintTick(el, age) {
+  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  if (!w) return;
+  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  const x = c.getContext("2d");
+  x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+  drawFingerprint(x, (fx, fy) => [toStage(fx) * w, toStage(fy) * h], w / 100, tw.speed ? age : Infinity);
+}
+
 // Vibe check: one row per trait. Heat streams out from the midpoint toward the side you lean, so each row reads on its own.
-const VIBE = { x0: 6, x1: 94, top: 0.2, bottom: 0.77, lift: 0.012, n: 7 }; // x in stage %, rows in stage heights
+const VIBE = { x0: 31, x1: 69, top: 0.24, bottom: 0.8, lift: 0, n: 7 }; // x in stage %, rows in stage heights
 const vibeY = (i) => VIBE.top + ((VIBE.bottom - VIBE.top) * i) / Math.max(1, traits.length - 1);
 const vibeX = (v) => VIBE.x0 + ((VIBE.x1 - VIBE.x0) * v) / 100;
 function vibeLayout(age) {
@@ -571,23 +696,10 @@ function clockLayer() {
   return `<div class="abs">
     <svg class="dial" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true"><circle cx="${cx * VW}" cy="${(cy * VH).toFixed(1)}" r="${R * VW}" stroke-width="1.2"/>${ticks}</svg>
     ${labels}
-    <div class="ring-c" style="left:${cx * 100}%;top:${cy * 100}%"><span class="micro" style="opacity:0.7">Hottest hour</span><b class="roll">${fmt(S.time.byHour[peak])}</b><span class="micro" style="opacity:0.7">prompts at ${hourLabel(peak)}</span></div>
+    <div class="ring-c" style="left:${cx * 100}%;top:${cy * 100}%"><span class="micro" style="opacity:0.7">After midnight</span><b class="roll">${S.time.lateNightPct}%</b><span class="micro" style="opacity:0.7">of your prompts</span></div>
     <span class="micro" style="position:absolute;left:5.5cqw;top:11cqw;opacity:0.7">Heat by hour of day</span>
-    <span class="micro" style="position:absolute;right:5.5cqw;top:11cqw;opacity:0.7">${fmt(total)} prompts</span>
-    <span class="micro" style="position:absolute;left:5.5cqw;top:calc(100% - var(--sheet) - 5cqw);opacity:0.7">${S.time.lateNightPct}% after midnight</span>
+    <span class="micro" style="position:absolute;right:5.5cqw;top:11cqw;opacity:0.7">Peak ${hourLabel(peak)}</span>
     <span class="micro" style="position:absolute;right:5.5cqw;top:calc(100% - var(--sheet) - 5cqw);opacity:0.7">${(S.totals.lastDate ?? "").slice(0, 4)}</span>
-  </div>`;
-}
-
-function growthLayer() {
-  const VW = 1000, VH = 1000 * AR, L = growthLayout(0), y = toStage(GROW_Y) * VH;
-  const pts = L.map((b) => [toStage(b.x) * VW, y]);
-  return `<div class="abs">
-    <svg class="chartline" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true">
-      <path class="mline" pathLength="1" d="M ${pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join(" L ")}"/>
-      ${pts.map(([x], i) => `<circle class="mnode" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" style="--d:${i}"/>`).join("")}
-    </svg>
-    ${months.map(([k, v], i) => `<span class="mlabel" style="left:${pts[i][0] / 10}%;top:${(y / VH) * 100}%;--d:${i}"><b>${monthName(k)}</b><i class="roll">${fmt(v)}</i></span>`).join("")}
   </div>`;
 }
 
@@ -595,13 +707,13 @@ function planetLayer() {
   const VW = 1000, VH = 1000 * AR, cx = 500, cy = toStage(ORBIT_Y) * VH, R0 = AGENT_R * VW, reach = R0 + 130;
   // Each name starts at twelve o'clock and runs clockwise just outside its circle.
   const around = (id, r) => `<path id="${id}" d="M ${cx} ${(cy - r).toFixed(1)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${cx} ${(cy + r).toFixed(1)} A ${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${cx} ${(cy - r).toFixed(1)}"/>`;
-  return `<div class="abs" style="clip-path:inset(0 0 var(--sheet) 0)">
+  return `<div class="abs">
     <svg class="orbit" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true">
       <defs>${agents.map(([, v], i) => around(`agent-${i}`, agentR(v) * VW + 12)).join("")}</defs>
       <line class="faint dash" x1="${cx - reach}" y1="${cy.toFixed(1)}" x2="${cx + reach}" y2="${cy.toFixed(1)}"/>
       <line class="faint dash" x1="${cx}" y1="${(cy - reach).toFixed(1)}" x2="${cx}" y2="${(cy + reach).toFixed(1)}"/>
       ${agents.map(([, v], i) => `<circle class="ring" pathLength="1" cx="${cx}" cy="${cy.toFixed(1)}" r="${(agentR(v) * VW).toFixed(1)}" style="--d:${i}"/>`).join("")}
-      ${agents.map(([k, v], i) => `<text class="agl"><textPath href="#agent-${i}" startOffset="6">${esc(SOURCE_LABEL[k] ?? k)}<tspan class="n"> · ${fmt(v.prompts)}</tspan></textPath></text>`).join("")}
+      ${agents.map(([k, v], i) => `<text class="agl"><textPath href="#agent-${i}" startOffset="6">${esc(SOURCE_LABEL[k] ?? k)}<tspan class="n"> · ${Math.round((v.prompts / total) * 100)}%</tspan></textPath></text>`).join("")}
     </svg>
   </div>`;
 }
@@ -664,19 +776,7 @@ function mannerLayer() {
 
 function projectLayer() {
   const L = projectLayout(0);
-  return `<div class="abs">${projects.map((p, i) => orb(i, L[i], p.name.slice(0, 18), `${fmt(p.count)} prompts`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2)).join("")}</div>`;
-}
-
-function fingerprintLayer() {
-  const cx = 0.5, cy = toStage(FP.y), L = FP.L * 1.1, VW = 1000, VH = 1000 * AR;
-  const at = (a, k) => [cx + Math.cos(a) * L * k, cy + (Math.sin(a) * L * k) / AR];
-  const lines = traits.map((_, i) => { const [x0, y0] = at(axisAngle(i) + Math.PI, 1), [x1, y1] = at(axisAngle(i), 1); return `<line x1="${x0 * VW}" y1="${(y0 * VH).toFixed(1)}" x2="${x1 * VW}" y2="${(y1 * VH).toFixed(1)}"/>`; }).join("");
-  const poles = traits.map((t, i) => [[t.right, axisAngle(i), t.value >= 50], [t.left, axisAngle(i) + Math.PI, t.value < 50]].map(([name, a, on]) => {
-    // Left and right poles sit just above their arm's end, so they stay on the page.
-    const side = Math.abs(Math.cos(a)) > 0.9 ? (Math.cos(a) < 0 ? " l" : " r") : "", [x, y] = at(a, side ? 1 : 1.1);
-    return `<span class="pole${side}${on ? " on" : ""}" style="left:${x * 100}%;top:${y * 100}%">${esc(name)}</span>`;
-  }).join("")).join("");
-  return `<div class="abs"><svg class="fp" viewBox="0 0 ${VW} ${VH.toFixed(1)}" aria-hidden="true">${lines}<circle cx="${cx * VW}" cy="${(cy * VH).toFixed(1)}" r="5"/></svg>${poles}</div>`;
+  return `<div class="abs">${projects.map((p, i) => orb(i, L[i], p.name.slice(0, 18), `No. ${i + 1}`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2)).join("")}</div>`;
 }
 
 // Syntax: prompt lengths as hotspots sized by area. A one-word prompt is a speck, the typical prompt a small glow,
@@ -716,24 +816,25 @@ function labTick(el) {
 }
 function labReport() {
   const period = `${monthName(S.totals.firstDate)}–${monthName(S.totals.lastDate)} ${S.totals.lastDate.slice(0, 4)}`;
-  const fs = fit(P.roast + P.compliment, [[520, 3.9], [680, 3.7], [840, 3.3], [Infinity, 3]]);
+  const fs = fit(P.roast + P.compliment, [[520, 3.6], [680, 3.4], [840, 3.1], [Infinity, 2.8]]);
   return [
     `<div class="lab-head">
       <div class="lab-legend">${colonies.map((c, i) => `<p><b>${pad(i + 1)}</b><span>“${esc(c.name)}”</span><i>×${fmt(c.count)}</i></p>`).join("")}</div>
       <div class="dish-w"><div class="dish">${colonies.map((_, i) => `<span class="n" style="left:${50 + COLONY_AT[i][0] * 50}%;top:${50 + COLONY_AT[i][1] * 50}%">${pad(i + 1)}</span>`).join("")}</div><p class="fig">Fig. 1 · Cultures, ${period}</p></div>
     </div>`,
     `<div class="lab-sec" style="--fs:${fs}cqw"><div class="ph"><p class="lbl">01 · Findings</p><p class="lbl">Severity: mild</p></div><p class="body">${esc(P.roast)}</p></div>`,
-    P.compliment ? `<div class="lab-sec" style="--fs:${fs}cqw"><div class="ph"><p class="lbl">02 · Conclusion</p><p class="lbl">Prognosis: good</p></div><p class="body">${esc(P.compliment)}</p></div>` : "",
+    P.compliment ? `<div class="lab-sec" style="--fs:${fs}cqw;margin-top:1cqw"><div class="ph"><p class="lbl">02 · Conclusion</p><p class="lbl">Prognosis: good</p></div><p class="body">${esc(P.compliment)}</p></div>` : "",
   ];
 }
 
+const favDay = () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][S.time.byWeekday.indexOf(Math.max(...S.time.byWeekday))];
 function weekChart() {
   const order = [1, 2, 3, 4, 5, 6, 0], vals = order.map((d) => S.time.byWeekday[d]), max = Math.max(...vals) || 1, top = vals.indexOf(max);
   const xs = vals.map((_, i) => 8 + (i / 6) * 84), ys = vals.map((v) => 0.92 - (v / max) * 0.7);
   const at = (i) => `left:${xs[i]}%;--d:${i}`;
   return `<div class="chart">
     ${vals.map((_, i) => `<i class="pill${order[i] === 0 || order[i] === 6 ? " wknd" : ""}" style="${at(i)};top:calc(var(--H) * ${ys[i].toFixed(3)} - 8cqw);height:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 8cqw);--rise:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 6cqw)"></i>`).join("")}
-    ${vals.map((v, i) => `<span class="num roll${i === top ? " peak" : ""}" style="${at(i)};top:calc(var(--H) * ${ys[i].toFixed(3)} - 9.5cqw)">${v}</span>`).join("")}
+    <span class="num peak" style="${at(top)};top:calc(var(--H) * ${ys[top].toFixed(3)} - 9.5cqw)">Favourite</span>
     ${order.map((d, i) => `<span class="day" style="left:${xs[i]}%">${DAYS[d]}</span>`).join("")}
   </div>`;
 }
@@ -749,21 +850,19 @@ function vibeLayer() {
   return `<div class="abs">
     ${traits.map((_, i) => `<i class="vline" style="left:${vibeX(0)}%;width:${vibeX(100) - vibeX(0)}%;top:${y(i)}%"></i>`).join("")}
     <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${traits.map((_, i) => `<line id="vs-${i}" style="stroke:${INK};stroke-opacity:0.55;stroke-width:1.4" x1="${mid}" x2="${mid}" y1="${y(i)}" y2="${y(i)}"/>`).join("")}</svg>
-    ${traits.map((t, i) => `<span class="vpole l" style="top:${y(i)}%;--d:${i}">${esc(t.left)}</span><span class="vpole r" style="top:${y(i)}%;--d:${i}">${esc(t.right)}</span>${t.note ? `<p class="vnote" style="top:${y(i)}%;--d:${i}">${esc(t.note)}</p>` : ""}`).join("")}
+    ${traits.map((t, i) => `<span class="vpole" style="right:${103 - vibeX(0)}%;top:${y(i)}%;--d:${i}">${esc(t.left)}</span><span class="vpole" style="left:${vibeX(100) + 3}%;top:${y(i)}%;--d:${i}">${esc(t.right)}</span>${t.note ? `<p class="vnote" style="top:${y(i)}%;--d:${i}">${esc(t.note)}</p>` : ""}`).join("")}
     ${traits.map((_, i) => [0, 50, 100].map((v) => `<i class="vend${v === 50 ? " mid" : ""}" style="left:${vibeX(v)}%;top:${y(i)}%"></i>`).join("")).join("")}
-    ${traits.map((t, i) => `<i class="mark" id="vm-${i}" style="--d:${i}"></i><span class="chip" id="vc-${i}" style="--d:${i}"><em class="rd">Dead even</em><b class="roll">${Math.round(Math.max(t.value, 100 - t.value))}%</b></span>`).join("")}
+    ${traits.map((t, i) => `<i class="mark" id="vm-${i}" style="--d:${i}"></i><span class="chip above" id="vc-${i}" style="--d:${i}"><em class="rd">Dead even</em><b class="roll">${Math.round(Math.max(t.value, 100 - t.value))}%</b></span>`).join("")}
   </div>`;
 }
 
-// Each mark rides its row's hottest point along the line; the readout points away from the midpoint unless it would run off the edge.
+// Each mark rides its row's hottest point along the line, with its reading above it.
 function vibeTick(el) {
   traits.forEach((_, i) => {
     const x = toStage(blobs[i * VIBE.n].x) * 100, y = vibeY(i) * 100;
     const m = el.querySelector(`#vm-${i}`), c = el.querySelector(`#vc-${i}`);
     m.style.left = c.style.left = x + "%"; m.style.top = c.style.top = y + "%";
     el.querySelector(`#vs-${i}`).setAttribute("x2", x);
-    const w = (c.offsetWidth / el.clientWidth) * 100 + 3.4;
-    c.classList.toggle("flip", x < vibeX(50) ? x - w > 3 : x + w > 97);
     c.querySelector(".rd").textContent = leanWord(((x - VIBE.x0) / (VIBE.x1 - VIBE.x0)) * 100);
   });
 }
@@ -775,11 +874,20 @@ const wander = (seed, n) => {
   return (age) => base.map((b, i) => { const [p, q, sx, sy] = path[i]; return { ...b, x: b.x + 0.22 * Math.sin(age * sx + p), y: b.y + 0.16 * Math.cos(age * sy + q) }; });
 };
 
+// The archetype's heat map gets its own palette, picked from the person, so shared cards don't all match.
+const FINAL_PALS = {
+  mixed: ["flare", "bloom", "infra", "orchid", "lagoon", "rose", "cobalt", "mint", "ember", "citrus"],
+  warm: ["flare", "dusk", "bloom", "ember", "rose", "peach"],
+  cool: ["mint", "frost", "abyss", "cobalt", "lagoon", "lilac"],
+  electric: ["flare", "ember", "infra", "orchid", "rose"],
+};
+const finalPal = ((list) => list[[...`${who}${P.archetype?.name}${S.totals.lastDate}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % list.length])(FINAL_PALS[LOOK.mood] ?? FINAL_PALS.mixed);
+
 // ---------- slides ----------
 
 const slides = [
   {
-    pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0), extra: asciiLayer, tick: asciiTick,
+    card: [4, 4], pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0), extra: asciiLayer, tick: asciiTick,
     top: () => [
       `<div class="hud"><span>How I AI · Wrapped</span><span>${ymd(S.totals.firstDate)} — ${ymd(S.totals.lastDate)}</span></div>`,
       `<div class="grow"></div>`,
@@ -787,43 +895,37 @@ const slides = [
     ],
     bottom: () => [
       head("Prompting report", esc(who)),
-      `<p class="body">${cap("intro", "Every prompt you sent your agents, measured like weather.")}</p>`,
-      `<div class="cells">${sources.slice(0, 2).map(([k, v]) => cell(SOURCE_LABEL[k] ?? k, fmt(v.prompts))).join("")}</div>`,
+      `<p class="body">${cap("intro", "How you talk to your agents, read like handwriting.")}</p>`,
+      `<div class="cells">${cell("Since", `${monthName(S.totals.firstDate)} ${S.totals.firstDate.slice(0, 4)}`)}${cell("Read by", `${sources.length} agent${sources.length === 1 ? "" : "s"}`)}</div>`,
       `<p class="micro">Tap or press → to continue</p>`,
     ],
   },
   {
-    pal: "bloom", sheet: 32, fg: "#161616", still: true, live: growthLayout, field: () => growthLayout(0), extra: growthLayer,
-    top: () => {
-      return [hud("01", "Volume"), `<div class="grow"></div>`, `<p class="lbl">Total prompts</p>`, bigNum(fmt(total), "", undefined, "blend")];
+    skip: !tells.length,
+    card: [4, 4], pal: "bloom", sheet: 46, fg: "#161616", still: true, live: tellLayout, field: () => tellLayout(0), extra: tellLayer,
+    top: () => [hud("01", "Tells"), `<p class="micro" style="opacity:0.7">What your writing gives away</p>`],
+    bottom: () => {
+      const fs = fit(tells.map((t) => t.label + t.note).join(""), [[260, 3.5], [360, 3.2], [Infinity, 2.9]]);
+      return [
+        head("Tells", esc(who)),
+        `<div class="tells" style="--fs:${fs}cqw">${tells.map((t, i) => `<p><b>${pad(i + 1)}</b><span><strong>${esc(t.label)}.</strong> ${esc(t.note)}</span></p>`).join("")}</div>`,
+      ];
     },
-    bottom: () => [
-      head("Volume"),
-      `<div class="cells">
-        ${months.length ? cell(`In ${monthName(months.at(-1)[0])} alone`, fmt(months.at(-1)[1])) : ""}
-        ${cell("Words", fmt(S.totals.words), `${(S.totals.words / 90000).toFixed(1)} novels`)}
-        ${cell("Conversations", fmt(S.totals.sessions))}
-        ${cell("Days active", fmt(S.totals.activeDays))}
-      </div>`,
-      `<div class="grow"></div>`,
-      `<p class="body">${cap("numbers", "That's a lot of talking to machines.")}</p>`,
-    ],
   },
   {
-    pal: "glacier", pals: ["glacier", "lilac"], sheet: 48, fg: "#161616", still: true, live: planetLayout, field: () => planetLayout(0), extra: planetLayer,
+    card: [4, 4, "top"], pal: "glacier", pals: ["glacier", "lilac"], sheet: 48, fg: "#161616", still: true, live: planetLayout, field: () => planetLayout(0), extra: planetLayer,
     top: () => [hud("02", "Routing")],
     bottom: () => [
       head("Agents in rotation"),
       `<p class="lbl">${SOURCE_LABEL[sources[0][0]] ?? sources[0][0]} got</p>`,
       bigNum(String(Math.round((sources[0][1].prompts / total) * 100)), "%", 24, "blend"),
-      wordsBack ? `<div class="cells">${cell("You sent", short(S.totals.words), "words")}${cell("They sent back", short(wordsBack), "words")}</div>` : "",
-      wordsBack ? `<p class="micro" style="opacity:0.7">That's ${Math.round(wordsBack / Math.max(1, S.totals.words))}× more than you wrote · ${esc(sources.map(([, v]) => v.models?.[0]?.name).filter(Boolean).join(" · "))}</p>` : "",
+      `<p class="micro" style="opacity:0.7">${esc(sources.map(([, v]) => v.models?.[0]?.name).filter(Boolean).join(" · "))}</p>`,
       `<div class="grow"></div>`,
       `<p class="body">${cap("tools", `${SOURCE_LABEL[sources[0][0]]} got most of your attention.`)}</p>`,
     ],
   },
   {
-    pal: "infra", sheet: 38, fg: "#161616", field: ring, still: true, extra: clockLayer,
+    card: [4, 34], pal: "infra", sheet: 38, fg: "#161616", field: ring, still: true, extra: clockLayer,
     top: () => [hud("03", "Temporal")],
     bottom: () => {
       const h = S.time.peakHour;
@@ -831,22 +933,22 @@ const slides = [
         head("Peak hour"),
         `<p class="mid roll">${h % 12 || 12}:00<span class="unit">${h < 12 ? "am" : "pm"}</span></p>`,
         `<div class="grow"></div>`,
-        `<p class="body">${cap("clock", `${S.time.lateNightPct}% of prompts landed between midnight and 5am.`)}</p>`,
+        `<p class="body">${cap("clock", "When the ideas show up.")}</p>`,
       ];
     },
   },
   {
-    pal: "dawn", sheet: 36, fg: "#161616", bands: true, fade: 0.5, field: () => scatter(5, 6, [0, 0, 1, 0.66]),
+    card: [4, 30, "top"], pal: "dawn", sheet: 36, fg: "#161616", bands: true, fade: 0.5, field: () => scatter(5, 6, [0, 0, 1, 0.66]),
     top: () => [hud("04", "Cadence"), weekChart()],
     bottom: () => [
       head("Longest streak"),
-      `<div class="cells">${cell("In a row", `${S.time.longestStreak.length}<span class="sub">days</span>`)}${cell("Busiest day", `${S.time.busiestDay.prompts}<span class="sub">on ${ymd(S.time.busiestDay.date).replace(/\/ \d{4}$/, "")}</span>`)}</div>`,
+      `<div class="cells">${cell("In a row", `${S.time.longestStreak.length}<span class="sub">days</span>`)}${cell("Favourite day", favDay())}</div>`,
       `<div class="grow"></div>`,
-      `<p class="body">${cap("rhythm", `Biggest day: ${ymd(S.time.busiestDay.date)}, ${S.time.busiestDay.prompts} prompts.`)}</p>`,
+      `<p class="body">${cap("rhythm", "Some weeks you just couldn't stop.")}</p>`,
     ],
   },
   {
-    pal: "flare", pals: ["orchid", "flare"], sheet: 30, fg: "#161616", still: true, live: synLayout, field: () => synLayout(0), extra: synLayer,
+    card: [4, 38], pal: "flare", pals: ["orchid", "flare"], sheet: 30, fg: "#161616", still: true, live: synLayout, field: () => synLayout(0), extra: synLayer,
     top: () => [hud("05", "Syntax"), `<p class="micro" style="opacity:0.7">Prompt length, by area</p>`],
     bottom: () => [
       head("Syntax", `${Math.round(S.style.longestPromptWords / Math.max(1, S.style.medianWords))}× apart`),
@@ -856,22 +958,19 @@ const slides = [
     ],
   },
   {
-    pal: "peach", sheet: 0, fg: "#161616", still: true, live: phraseLayout, field: () => phraseLayout(0), extra: phraseLayer, tick: phraseTick,
-    top: () => [
-      hud("06", "Lexicon"),
-      `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`,
-      `<div class="grow"></div>`,
+    card: [26, 4, "top"], pal: "peach", sheet: 0, fg: "#161616", still: true, live: phraseLayout, field: () => phraseLayout(0), extra: phraseLayer, tick: phraseTick,
+    top: () => [hud("06", "Lexicon"), `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`],
+    bottom: () => [
       `<p class="lbl">Your most-you prompt</p>`,
       `<p class="mostyou">“${esc(mostYou)}”</p>`,
-      `<p class="body" style="max-width:76cqw">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
+      `<p class="body">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
     ],
-    bottom: () => [],
   },
   {
-    pal: "flare", pals: ["flare", "cobalt"], sheet: 30, fg: "#161616", still: true, live: mannerLayout, field: () => mannerLayout(0), extra: mannerLayer,
+    card: [4, 4], pal: "flare", pals: ["flare", "cobalt"], sheet: 30, fg: "#161616", still: true, live: mannerLayout, field: () => mannerLayout(0), extra: mannerLayer,
     top: () => [hud("07", "Protocol"), `<p class="micro" style="opacity:0.7">Manners, sized by count</p>`],
     bottom: () => [
-      head("Protocol", `${fmt(total)} prompts`),
+      head("Protocol"),
       `<div class="cells">${cell("Said please", S.style.pleasePct + "%")}${cell("Said thanks", S.style.thanksPct + "%")}</div>`,
       `<div class="grow"></div>`,
       `<p class="body">${cap("manners", "The machines will remember this.")}</p>`,
@@ -879,27 +978,23 @@ const slides = [
   },
   {
     skip: !S.projects.length,
-    pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
+    card: [30, 4, "top"], pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
     top: () => [hud("08", "Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went</p>`],
     bottom: () => [head("Workload", `${projects.length} projects`), `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`],
   },
   ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
-    ...[{ pal: "bloom", fg: "#161616" }, { pal: "ember", fg: "#FFFFFF" }, { pal: "dawn", fg: "#161616" }][i],
+    pal: ["bloom", "dusk", "dawn"][i], fg: "#161616",
     sheet: 0, live: wander(40 + i * 7, 5), field: () => wander(40 + i * 7, 5)(0),
-    top: () => [
-      hud(pad(9 + i), `Log ${i + 1}/${Math.min(3, P.quotes.length)}`),
-      `<div class="grow"></div>`,
-      `<div class="qcard">
-        <div class="qa">
-          <p class="lbl">${esc(q.title ?? "Transmission")}</p>
-          <p class="qq type" style="--fs:${fit(q.text, [[40, 8.4], [80, 7], [140, 5.8], [Infinity, 4.8]])}cqw">${[...`“${q.text}”`].map((c) => `<span class="ch">${esc(c)}</span>`).join("")}</p>
-          <div class="grow"></div>
-          ${q.meta ? `<p class="micro" style="opacity:0.8">${esc(q.meta)}</p>` : ""}
-        </div>
-        <div class="qb"><p class="lbl">Greatest hits</p><p class="body">${esc(q.caption)}</p></div>
-      </div>`,
-      `<div class="grow"></div>`,
-    ],
+    top: () => [hud(pad(9 + i), `Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
+    // Three placements: high and left, low and right, centre with the note tucked under.
+    extra: () => {
+      const at = ["left:6cqw;right:12cqw;top:22%", "left:14cqw;right:6cqw;bottom:9%", "left:6cqw;right:8cqw;top:38%"][i];
+      return `<div class="fq${i === 1 ? " r" : ""}" style="${at}">
+        <p class="lbl">${esc(q.title ?? "Transmission")}</p>
+        <p class="qq" style="--fs:${fit(q.text, [[40, 10], [80, 8.2], [140, 6.6], [Infinity, 5.4]])}cqw">“${esc(q.text)}”</p>
+        <div class="qc">${q.meta ? `<p class="micro" style="opacity:0.8">${esc(q.meta)}</p>` : ""}<p class="body">${esc(q.caption)}</p></div>
+      </div>`;
+    },
     bottom: () => [],
   })),
   {
@@ -908,15 +1003,18 @@ const slides = [
     bottom: () => [],
   },
   {
-    pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick,
-    top: () => [hud("13", "Warning"), ...labReport()],
-    bottom: () => [],
+    card: [4, 4], pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick,
+    top: () => [hud("13", "Warning"), labReport()[0]],
+    bottom: () => labReport().slice(1),
   },
   {
-    pal: "flare", sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0), extra: fingerprintLayer,
+    pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0),
+    extra: () => `<canvas class="fpc" aria-hidden="true"></canvas>`, tick: fingerprintTick,
     top: () => [
       hud("14", "Classification"),
+      `<p class="micro" style="opacity:0.7">Prompting fingerprint · 4 dials</p>`,
       `<div class="grow"></div>`,
+      `<div class="fp-key"><span><i></i>Your lean</span><span><i class="d"></i>Other side</span><span><i class="o"></i>50 / 75 / 100%</span><span><i class="h"></i>Heat = how strongly</span></div>`,
       `<h1 class="display" style="font-weight:500;font-size:${fit(P.archetype.name, [[16, 11], [24, 9.4], [Infinity, 8]])}cqw">${esc(P.archetype.name)}</h1>`,
       `<p class="body" style="font-size:4.2cqw">${esc(P.archetype.tagline)}</p>`,
       `<p class="body" style="opacity:0.85">${esc(P.archetype.description)}</p>`,
@@ -925,7 +1023,7 @@ const slides = [
     bottom: () => [],
   },
   {
-    pal: "flare", sheet: 0, fg: "#161616", heat: 0.45, still: true, live: () => fingerprintLayout(99), field: () => fingerprintLayout(99),
+    pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: () => fingerprintLayout(99), field: () => fingerprintLayout(99),
     top: () => [
       hud("15", "Export"),
       `<canvas class="share-card" id="share" width="1080" height="1920" aria-label="Shareable summary card"></canvas>`,
@@ -937,7 +1035,7 @@ const slides = [
 const moodPal = (name) => MOODS[LOOK.mood]?.[name] ?? name;
 // Projects keep one distinct palette each; every other per-hotspot palette follows the mood.
 slides.forEach((s) => {
-  s.pal = moodPal(s.pal);
+  if (!s.keepPal) s.pal = moodPal(s.pal);
   if (s.pals && s.pals !== PROJECT_PALS) s.pals = s.pals.map(moodPal);
   if (DARK) s.fg = INK;
 });
@@ -1026,6 +1124,10 @@ function frame(now) {
   if (live) live(t - liveFrom).forEach((L, i) => Object.assign(blobs[i], { tx: L.x, ty: L.y, tr: L.r, tw: L.w, c: L.c ?? 0 }));
   const kp = live ? 1 - Math.exp(-dt * 8) : k;
   for (const b of blobs) { b.x += (b.tx - b.x) * kp; b.y += (b.ty - b.y) * kp; b.r += (b.tr - b.r) * k; b.w += (b.tw - b.w) * kp; b.p += (b.tp - b.p) * k; }
+  // A top card pushes the whole picture down; the heat and the overlays drawn on it move together.
+  shiftNow += (shiftTo - shiftNow) * (1 - Math.exp(-dt * 5));
+  const sy = shiftNow / 1.1, shiftPx = `translateY(${(shiftNow * 100).toFixed(3)}cqh)`;
+  for (const a of absEls) a.style.transform = shiftPx;
   if (lutK < 1) {
     lutK = Math.min(1, lutK + dt / 0.9);
     const e = 1 - Math.pow(1 - lutK, 3);
@@ -1047,7 +1149,7 @@ function frame(now) {
     const y = b.y + 0.03 * drift * Math.cos(t * 0.3 + n * 2.1) + bob * Math.cos(t * 1.3 + n * 1.7);
     // The peak hotspot only swells, never dips, so it stays the hottest thing on screen.
     const r = b.r * (1 + 0.22 * b.p * (0.5 + 0.5 * beat));
-    act.push(x, y * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * (0.5 + 0.5 * beat)));
+    act.push(x, (y + sy) * AR, 1 / (r * r), b.w * (1 + 0.45 * b.p * (0.5 + 0.5 * beat)));
     cs.push(b.c | 0);
   });
   const nm = multi ? multi.length : 0, fc = new Float32Array(nm || 1);
@@ -1108,41 +1210,66 @@ function drawShare() {
   const mono = (s, w = 500) => `${w} ${s}px "Geist Mono", ui-monospace, monospace`;
   const sans = (s, w = 300) => `${w} ${s}px Geist, system-ui, sans-serif`;
 
-  x.filter = "blur(24px)";
-  x.drawImage(field, -80, -80, W + 160, H + 160);
+  // Scale the field so the fingerprint sits in the top half, keeping its shape; the zero-heat colour fills behind it.
+  const SC = 360 / FP.L, CY = 600, ox = W / 2 - FP.x * SC, oy = CY - FP.y * SC * AR;
+  x.fillStyle = `rgb(${lut[0]} ${lut[1]} ${lut[2]})`; x.fillRect(0, 0, W, H);
+  x.filter = "blur(22px)";
+  x.drawImage(field, ox, oy, SC, SC * AR);
   x.filter = "none";
+  drawFingerprint(x, (fx, fy) => [ox + fx * SC, oy + fy * SC * AR], W / 100);
 
-  const py = 1240;
+  const py = 1400;
   x.fillStyle = PAPER; x.fillRect(0, py, W, H - py);
 
   x.fillStyle = ink; x.font = mono(28);
   x.fillText("HOW I AI · WRAPPED", m, 128);
   x.textAlign = "right"; x.fillText(ymd(S.totals.lastDate), W - m, 128); x.textAlign = "left";
 
+  // The key, so a stranger can read the chart.
+  x.font = mono(20); x.textBaseline = "middle";
+  let kx = m;
+  [["bar", "YOUR LEAN"], ["dash", "OTHER SIDE"], ["ring", "50 / 75 / 100%"], ["dot", "HEAT = HOW STRONGLY"]].forEach(([k, label]) => {
+    const ky = 1062;
+    x.strokeStyle = x.fillStyle = ink; x.globalAlpha = k === "bar" || k === "dot" ? 1 : 0.6;
+    if (k === "bar") x.fillRect(kx, ky - 3, 44, 6);
+    if (k === "dash") { x.lineWidth = 2; x.setLineDash([6, 6]); x.beginPath(); x.moveTo(kx, ky); x.lineTo(kx + 44, ky); x.stroke(); x.setLineDash([]); }
+    if (k === "ring") { x.lineWidth = 2; x.setLineDash([4, 5]); x.beginPath(); x.arc(kx + 12, ky, 12, 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
+    if (k === "dot") { const g = x.createRadialGradient(kx + 13, ky, 0, kx + 13, ky, 14); g.addColorStop(0, PALETTES[finalPal].stops[4]); g.addColorStop(0.5, PALETTES[finalPal].stops[3]); g.addColorStop(1, "rgb(0 0 0 / 0)"); x.fillStyle = g; x.fillRect(kx - 2, ky - 15, 30, 30); x.fillStyle = ink; }
+    const gw = k === "bar" || k === "dash" ? 44 : 26;
+    x.globalAlpha = 1; x.fillText(label, kx + gw + 14, ky + 1);
+    kx += gw + 14 + x.measureText(label).width + 36;
+  });
+  x.textBaseline = "alphabetic";
+
   // Archetype name, wrapped and sat on the gradient.
   const words = P.archetype.name.split(" ");
-  let size = 150, lines = [];
-  for (; size >= 80; size -= 6) {
+  let size = 120, lines = [];
+  for (; size >= 66; size -= 6) {
     x.font = sans(size);
     lines = []; let line = "";
     for (const w of words) { const tt = line ? line + " " + w : w; if (x.measureText(tt).width > W - m * 2 && line) { lines.push(line); line = w; } else line = tt; }
     lines.push(line);
-    if (lines.length <= 3 && Math.max(...lines.map((l) => x.measureText(l).width)) <= W - m * 2) break;
+    if (lines.length <= 2 && Math.max(...lines.map((l) => x.measureText(l).width)) <= W - m * 2) break;
   }
   x.font = sans(size);
   try { x.letterSpacing = `${-size * 0.04}px`; } catch {}
-  lines.forEach((l, i) => x.fillText(l, m, py - 70 - (lines.length - 1 - i) * size * 0.95));
+  lines.forEach((l, i) => x.fillText(l, m, py - 64 - (lines.length - 1 - i) * size * 0.95));
   try { x.letterSpacing = "0px"; } catch {}
 
   x.font = mono(26);
   x.fillText([who.toUpperCase(), D.role?.toUpperCase(), "PROMPTING PERSONALITY"].filter(Boolean).join("  ·  "), m, py + 84);
-  x.fillStyle = "rgb(22 22 22 / 0.12)"; x.fillRect(m, py + 120, W - m * 2, 2);
+  x.globalAlpha = 0.12; x.fillRect(m, py + 120, W - m * 2, 2); x.globalAlpha = 1;
 
-  const stats = [[fmt(total), "PROMPTS"], [hourLabel(S.time.peakHour), "PEAK HOUR"], [S.time.longestStreak.length + " days", "STREAK"], [String(S.style.medianWords), "WORDS / PROMPT"]];
-  stats.forEach(([v, l], i) => {
-    const cx = m + (i % 2) * ((W - m * 2) / 2), cy = py + 170 + Math.floor(i / 2) * 190;
-    x.fillStyle = ink; x.font = mono(24); x.globalAlpha = 0.6; x.fillText(l, cx, cy + 20); x.globalAlpha = 1;
-    x.font = sans(96); x.fillText(v, cx, cy + 116);
+  // Their tagline, in their voice, then two times.
+  x.font = sans(44, 400);
+  const tl = []; let cur = "";
+  for (const w of `“${P.archetype.tagline ?? ""}”`.split(" ")) { const tt = cur ? cur + " " + w : w; if (x.measureText(tt).width > W - m * 2 && cur) { tl.push(cur); cur = w; } else cur = tt; }
+  tl.push(cur);
+  tl.slice(0, 2).forEach((l, i) => x.fillText(i === 1 && tl.length > 2 ? l + "…" : l, m, py + 190 + i * 54));
+  [[hourLabel(S.time.peakHour), "PEAK HOUR"], [S.time.longestStreak.length + " days", "LONGEST STREAK"]].forEach(([v, l], i) => {
+    const cx = m + i * ((W - m * 2) / 2), cy = py + 280;
+    x.font = mono(24); x.globalAlpha = 0.6; x.fillText(l, cx, cy + 20); x.globalAlpha = 1;
+    x.font = sans(84); x.fillText(v, cx, cy + 110);
   });
   x.font = mono(24); x.globalAlpha = 0.55;
   x.fillText(sources.map(([k, v]) => `${(SOURCE_LABEL[k] ?? k).toUpperCase()} ${Math.round((v.prompts / total) * 100)}%`).join("   ·   "), m, H - 72);
@@ -1169,24 +1296,51 @@ const revealDelay = (n, slide) => {
   }
   return 0;
 };
-let rollGen = 0, typeGen = 0, hotEls = [];
-// Quotes type themselves out, cursor last.
-function typeText(slide) {
-  const gen = ++typeGen;
-  slide.querySelectorAll(".type").forEach((p) => {
-    const chars = [...p.querySelectorAll(".ch")];
-    chars.forEach((c) => c.classList.remove("on", "cur"));
-    if (tw.speed === 0) return chars.forEach((c) => c.classList.add("on"));
-    const start = performance.now() + revealDelay(p, slide), per = Math.min(38, 1900 / chars.length);
-    let shown = 0;
-    const tick = (now) => {
-      if (gen !== typeGen) return;
-      const want = Math.min(chars.length, Math.floor((now - start) / per));
-      for (; shown < want; shown++) { chars[shown - 1]?.classList.remove("cur"); chars[shown].classList.add("on", "cur"); }
-      if (shown < chars.length) requestAnimationFrame(tick);
-    };
+let rollGen = 0, hotEls = [];
+// Text arrives already on screen as a churn of ASCII symbols that settle into the real words, left to right. Symbols,
+// not letters, so nobody starts reading until it's actually readable.
+const GLYPHS = "!<>-_\\/[]{}=+*^?#%&@$~|:;░▒▓";
+const SCRAMBLE = "h1, .lbl, .micro, .body, .mostyou, .qq, .tells span, .hud span, .ph p, .vpole, .vnote, .lab-legend span, .fp-key span";
+const glyphFor = (c) => (/\s/.test(c) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]);
+let scrGen = 0, scrJobs = [];
+function scrambleIn(roots) {
+  const gen = ++scrGen;
+  // Anything still settling from the last slide lands on its real text first.
+  for (const j of scrJobs) j.node.data = j.text;
+  scrJobs = [];
+  if (!tw.speed) return;
+  const seen = new Set(), now = performance.now();
+  for (const [root, base] of roots) for (const el of root.querySelectorAll(SCRAMBLE)) {
+    if (el.matches(".roll, .roll *") || el.querySelector(".roll")) continue; // numbers roll instead
+    const delay = base + revealDelay(el, root), walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    for (let n; (n = walk.nextNode()); ) if (!seen.has(n) && n.data.trim()) { seen.add(n); nodes.push(n); }
+    // All symbols for a beat, then a quick sweep into words, so nothing is half-readable for long.
+    const len = nodes.reduce((a, n) => a + n.data.length, 0), spread = Math.min(450, 120 + len * 3);
+    let i = 0;
+    for (const node of nodes) {
+      const text = node.data, starts = [...text].map(() => now + delay + 550 + (i++ / Math.max(1, len)) * spread + Math.random() * 90);
+      scrJobs.push({ node, text, chars: [...text], starts, end: Math.max(...starts) });
+      node.data = [...text].map(glyphFor).join("");
+    }
+  }
+  let last = 0;
+  const tick = (t) => {
+    if (gen !== scrGen) return;
+    if (t - last > 45) {
+      last = t;
+      let busy = false;
+      for (const j of scrJobs) {
+        if (j.done) continue;
+        if (t >= j.end) { j.node.data = j.text; j.done = true; continue; }
+        busy = true;
+        j.node.data = j.chars.map((c, k) => (t >= j.starts[k] ? c : glyphFor(c))).join("");
+      }
+      if (!busy) return;
+    }
     requestAnimationFrame(tick);
-  });
+  };
+  requestAnimationFrame(tick);
 }
 function rollNumbers(slide) {
   const gen = ++rollGen, still = tw.speed === 0;
@@ -1318,15 +1472,46 @@ function burn(to) {
 
 const root = document.getElementById("slides"), progress = document.getElementById("progress"), stage = document.getElementById("stage");
 const withIndex = (h, i) => (!h ? "" : /^\s*<\w+[^>]*\sstyle="/.test(h) ? h.replace('style="', `style="--i:${i};`) : h.replace(/^(\s*)<(\w+)/, `$1<$2 style="--i:${i}"`));
-let els = [], bars = [], cur = -1;
+let els = [], bars = [], cards = [], cur = -1;
+const card = document.getElementById("card"), cbox = document.getElementById("cbox");
+const CARD_BOTTOM = 13, CARD_TOP = 15; // gaps from the edges, in % of the stage width; the bottom one clears the share button
+let shiftTo = 0, shiftNow = 0, absEls = [];
+// Move the card to this slide's spot, sized to its text. A bottom card returns how much of the stage it takes up from the
+// bottom (as a % of height) so the slide lays itself out above it. A top card instead pushes the slide's picture down
+// by its height (shiftTo, in stage heights) and its text below it (--lift). Slides without a card send it off, shrinking.
+function placeCard(s) {
+  shiftTo = 0;
+  els[cur].style.setProperty("--lift", "0px");
+  const W = stage.clientWidth, H = stage.clientHeight, u = W / 100;
+  cards.forEach((c, j) => c.classList.toggle("on", j === cur && !!s.card));
+  if (!s.card) {
+    const r = card.getBoundingClientRect(), st = stage.getBoundingClientRect();
+    // Collapse to a small square where it is, then fade.
+    Object.assign(card.style, { left: `${r.left - st.left + r.width / 2 - 3 * u}px`, top: `${r.top - st.top + r.height / 2 - 3 * u}px`, width: `${6 * u}px`, height: `${6 * u}px` });
+    card.classList.add("off");
+    return 0;
+  }
+  const [l, r, at] = s.card, w = W - (l + r) * u, c = cards[cur];
+  c.style.width = w + "px";
+  const h = c.offsetHeight, top = at === "top" ? CARD_TOP * u : H - CARD_BOTTOM * u - h;
+  card.classList.remove("off");
+  Object.assign(card.style, { left: l * u + "px", top: top + "px", width: w + "px", height: h + "px" });
+  if (at === "top") {
+    shiftTo = (h + 4 * u) / H;
+    els[cur].style.setProperty("--lift", `${h + 6 * u}px`);
+    return ((CARD_BOTTOM - 3) * u / H) * 100;
+  }
+  return ((H - top + 3 * u) / H) * 100;
+}
 function build() {
   measure(); sizeField(); layoutDial();
   root.innerHTML = slides.map((s) => `
     <section class="slide" style="--sheet:${s.sheet}%;--fg:${s.fg}">
       ${s.extra ? s.extra() : ""}
       <div class="top">${s.top().map(withIndex).join("")}</div>
-      <div class="panel">${s.bottom().map(withIndex).join("")}</div>
     </section>`).join("");
+  cbox.innerHTML = slides.map((s) => `<div class="cc">${s.card ? s.bottom().map(withIndex).join("") : ""}</div>`).join("");
+  cards = [...cbox.children];
   progress.innerHTML = slides.map(() => "<span></span>").join("");
   els = [...root.children]; bars = [...progress.children];
 }
@@ -1351,14 +1536,19 @@ function go(i, force, keep) {
   cur = i;
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
+  s.sheet = placeCard(s);
+  absEls = [...el.querySelectorAll(".abs")];
+  el.style.setProperty("--sheet", s.sheet + "%");
   stage.style.setProperty("--sheet", s.sheet + "%");
   stage.style.setProperty("--fg", s.fg);
   setField(s);
   rollNumbers(el);
-  typeText(el);
+  scrambleIn([[el, 0], [cards[cur], 0]]);
   hotEls = [...el.querySelectorAll(".hot")];
   bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
   document.getElementById("nav").style.display = cur === slides.length - 1 ? "none" : "";
+  document.getElementById("share-btn").hidden = cur === slides.length - 1;
+  document.getElementById("share-menu").hidden = true;
   if (cur === slides.length - 1) document.fonts.ready.then(() => setTimeout(drawShare, 1000));
 }
 
@@ -1379,6 +1569,41 @@ root.addEventListener("click", (e) => {
   }
   if (e.target.id === "replay") go(0);
 });
+
+// ---------- share any slide ----------
+
+// Captures the stage as it looks right now, without the buttons. The capture library only loads when someone shares.
+const shareBtn = document.getElementById("share-btn"), shareMenu = document.getElementById("share-menu");
+let shotLib = null;
+async function snapshot() {
+  shotLib ??= import("https://cdn.jsdelivr.net/npm/modern-screenshot@4/+esm");
+  const { domToBlob } = await shotLib, scale = 1080 / stage.clientWidth;
+  const skip = new Set([shareBtn, shareMenu, document.getElementById("nav"), progress]);
+  return domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } });
+}
+const shotName = () => `how-i-ai-${String(cur).padStart(2, "0")}.png`;
+const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.png", { type: "image/png" })] });
+shareMenu.querySelector('[data-act="share"]').hidden = !canShareFiles;
+shareMenu.querySelector('[data-act="copy"]').hidden = !(navigator.clipboard?.write && window.ClipboardItem);
+shareBtn.onclick = (e) => { e.stopPropagation(); shareMenu.hidden = !shareMenu.hidden; };
+addEventListener("click", (e) => { if (!shareMenu.hidden && !shareMenu.contains(e.target) && e.target !== shareBtn) { shareMenu.hidden = true; e.stopPropagation(); } }, true);
+shareMenu.onclick = async (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  e.stopPropagation();
+  const label = b.textContent;
+  b.textContent = "Capturing…";
+  try {
+    const blob = await snapshot();
+    if (b.dataset.act === "share") await navigator.share({ files: [new File([blob], shotName(), { type: "image/png" })], title: "How I AI · Wrapped" });
+    if (b.dataset.act === "copy") await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    if (b.dataset.act === "save") { const a = document.createElement("a"); a.download = shotName(); a.href = URL.createObjectURL(blob); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
+    b.textContent = b.dataset.act === "copy" ? "Copied" : b.dataset.act === "save" ? "Saved" : label;
+  } catch (err) {
+    if (err?.name !== "AbortError") { console.warn("share failed", err); b.textContent = "Couldn't capture"; }
+  }
+  setTimeout(() => { b.textContent = label; shareMenu.hidden = true; }, 1200);
+};
 
 // ---------- tweak panel ----------
 
