@@ -153,6 +153,6 @@ Then open it: `open <path>` on macOS, `xdg-open` on Linux.
 
 Tell the user, briefly:
 
-- Where the file is, and that they tap or use the arrow keys to move through it. The last slide has a "Save image" button for sharing.
+- Where the file is, and that they tap or use the arrow keys to move through it. Every slide has share, save and embed buttons along the bottom; embed copies an iframe snippet they can drop into a portfolio.
 - Their archetype name, to tease the reveal without spoiling the whole thing.
 - The 3 quotes and the top project names that appear in the page. Ask if they want any swapped out, the projects hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
