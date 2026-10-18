@@ -216,24 +216,6 @@
   .ring-c { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0.6cqw; text-align: center; }
   .ring-c b { font: 300 10cqw/0.9 var(--sans); letter-spacing: -0.04em; }
 
-  /* Weekday pills: each rises into place over its day, then its number lands. */
-  .chart { position: relative; flex: 1; min-height: 0; margin: 2cqw 0 0; --H: calc(100% - 6cqw); }
-  .chart .pill { position: absolute; width: 6.4cqw; translate: -50% 0; --cap: var(--c3); --body: var(--c2); }
-  .chart .pill.wknd { --cap: color-mix(in srgb, var(--c1) 35%, #F27BA6); --body: var(--c3); }
-  .chart .pill::after { content: ""; position: absolute; inset: 2.5cqw -0.4cqw 0; border-radius: 3.2cqw; filter: blur(1.5cqw);
-    background: linear-gradient(to bottom, var(--cap), var(--body) 12cqw, var(--body) 55%, color-mix(in srgb, var(--body) 45%, transparent) 85%, transparent); }
-  .chart .pill::before { content: ""; position: absolute; z-index: 1; inset: 0 0 auto; height: 12cqw; border-radius: 3.2cqw 3.2cqw 0 0;
-    background: linear-gradient(to bottom, var(--cap) 0 38%, var(--body));
-    -webkit-mask-image: linear-gradient(#000 45%, transparent); mask-image: linear-gradient(#000 45%, transparent); }
-  .chart .num { position: absolute; translate: -50% -100%; font: 500 2.3cqw var(--mono); letter-spacing: 0.04em; }
-  .chart .num.peak { font-weight: 500; font-size: 2.8cqw; }
-  .slide.active .chart .pill { animation: pill-rise 1200ms var(--ease-out) both; animation-delay: calc(var(--d) * 90ms + 250ms); }
-  @keyframes pill-rise { from { translate: -50% var(--rise); opacity: 0; } 30% { opacity: 1; } }
-  .chart .num { opacity: 0; }
-  .slide.active .chart .num { animation: num-in 600ms var(--ease-out) forwards; animation-delay: calc(var(--d) * 70ms + 1250ms); }
-  @keyframes num-in { from { opacity: 0; translate: -50% -60%; } to { opacity: 1; translate: -50% -100%; } }
-  .chart .day { position: absolute; bottom: 0; transform: translateX(-50%); font: 500 2cqw var(--mono); text-transform: uppercase; opacity: 0.7; }
-
   /* Vibe check: pole names over each dial, a note under it */
   .vline { position: absolute; height: 0; border-top: 1px dashed rgb(22 22 22 / 0.2); }
   .vend { position: absolute; width: 1.6cqw; height: 1.6cqw; translate: -50% -50%; border-radius: 50%; background: var(--ink); }
@@ -255,8 +237,7 @@
   @keyframes rise { to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
     .slide.active .top > *, .slide.active .panel > *, .slide.active .fq { animation: none; opacity: 1; transform: none; }
-    .slide.active .vpole, .slide.active .vnote, .slide.active .chart .pill { animation: none; }
-    .slide.active .chart .num { animation: none; opacity: 1; }
+    .slide.active .vpole, .slide.active .vnote { animation: none; }
     .slide.active .orbit .ring { animation: none; stroke-dashoffset: 0; }
     .grain { animation: none; }
   }
@@ -828,15 +809,91 @@ function labReport() {
 }
 
 const favDay = () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][S.time.byWeekday.indexOf(Math.max(...S.time.byWeekday))];
-function weekChart() {
-  const order = [1, 2, 3, 4, 5, 6, 0], vals = order.map((d) => S.time.byWeekday[d]), max = Math.max(...vals) || 1, top = vals.indexOf(max);
-  const xs = vals.map((_, i) => 8 + (i / 6) * 84), ys = vals.map((v) => 0.92 - (v / max) * 0.7);
-  const at = (i) => `left:${xs[i]}%;--d:${i}`;
-  return `<div class="chart">
-    ${vals.map((_, i) => `<i class="pill${order[i] === 0 || order[i] === 6 ? " wknd" : ""}" style="${at(i)};top:calc(var(--H) * ${ys[i].toFixed(3)} - 8cqw);height:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 8cqw);--rise:calc(var(--H) * ${(0.92 - ys[i]).toFixed(3)} + 6cqw)"></i>`).join("")}
-    <span class="num peak" style="${at(top)};top:calc(var(--H) * ${ys[top].toFixed(3)} - 9.5cqw)">Favourite</span>
-    ${order.map((d, i) => `<span class="day" style="left:${xs[i]}%">${DAYS[d]}</span>`).join("")}
-  </div>`;
+// ---------- Cadence: weekday heat columns with Classification's overlay ----------
+const WEEK = [1, 2, 3, 4, 5, 6, 0]; // Monday first
+const isWknd = (i) => WEEK[i] === 0 || WEEK[i] === 6;
+const weekVals = WEEK.map((d) => S.time.byWeekday[d]), weekMax = Math.max(1, ...weekVals), weekTop = weekVals.indexOf(weekMax);
+// The chart's box in stage units, before the top card pushes the picture down by shiftTo. The card sets both, so read
+// it every frame.
+const cadBox = () => ({ x0: 0.17, x1: 0.89, y0: 0.2, y1: 1 - (slides[cur]?.sheet ?? 0) / 100 - 0.06 - shiftTo });
+// 1–4 gridlines whatever the counts: a 1-2-2.5-5 step, scaled by powers of ten.
+const colStep = (() => { for (let p = 1; ; p *= 10) for (const k of [1, 2, 2.5, 5]) if (weekMax / (k * p) <= 4) return k * p; })();
+const colMax = Math.ceil(weekMax / colStep) * colStep;
+const colX = (i, b) => b.x0 + ((b.x1 - b.x0) * i) / 6;
+const colGrow = (i, age) => easeOut((age - 0.2 - i * 0.09) / 1.2);
+
+// Each weekday is a column of heat rising from the baseline, hottest at its head. Taller columns get more hotspots, up
+// to 9 each but never more than the field holds; when an even week means fewer per column, each one grows to close
+// the gap, short of running into the next day.
+const colCount = (K) => weekVals.map((v) => (v ? Math.max(2, Math.round(K * (v / weekMax))) : 0));
+function columnLayout(age) {
+  const b = cadBox();
+  let K = 9;
+  while (K > 2 && colCount(K).reduce((a, n) => a + n, 0) > NB) K--;
+  const counts = colCount(K);
+  return weekVals.flatMap((v, i) => {
+    // A day you never prompted on stays cold.
+    const n = counts[i];
+    if (!n) return [];
+    const s = v / weekMax, e = colGrow(i, age), beat = 1 + 0.05 * e * Math.sin(age * 2 + i * 1.3);
+    const top = b.y1 - (b.y1 - b.y0) * (v / colMax) * e, gap = ((b.y1 - b.y0) * AR * (v / colMax)) / (n - 1);
+    const r0 = Math.min(0.056, Math.max(0.046, 0.55 * gap));
+    return [...Array(n)].map((_, k) => {
+      const f = k / (n - 1); // 0 at the baseline, 1 at the head
+      return { x: fromStage(colX(i, b)), y: fromStage(b.y1 + (top - b.y1) * f), r: (r0 + 0.02 * s * f) * beat, w: (0.18 + (0.45 + 0.7 * s) * Math.pow(f, 1.4)) * (0.3 + 0.7 * e) * beat, p: i === weekTop && k === n - 1 ? 1 : 0 };
+    });
+  });
+}
+
+const cmono = (size, u) => `500 ${(size * u).toFixed(1)}px "Geist Mono", ui-monospace, monospace`;
+function cline(x, a, b, w, alpha, dash) { x.globalAlpha = alpha; x.lineWidth = w; x.setLineDash(dash ?? []); x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.stroke(); }
+// The chart over the heat: dashed gridlines, a baseline, a heavy bar per day (dashed at the weekend), and your
+// favourite day as an ink chip with a pink reading and a target mark, the way Classification names your poles.
+function drawColumns(x, W, H, u, age) {
+  const b = cadBox(), X = (v) => v * W, Y = (v) => v * H, show = easeOut((age - 0.1) / 0.8), tag = easeOut((age - 1.3) / 0.6);
+  const L = X(b.x0) - 7 * u, R = X(b.x1) + 5 * u, base = Y(b.y1);
+  x.font = cmono(1.45, u); x.textAlign = "right";
+  for (let v = colStep; v <= colMax; v += colStep) {
+    const y = Y(b.y1 - ((b.y1 - b.y0) * v) / colMax);
+    cline(x, [L, y], [R, y], 1, 0.35 * show, [0.5 * u, 0.7 * u]);
+    x.globalAlpha = 0.6 * show; x.fillText(fmt(v), L - 1.2 * u, y);
+  }
+  cline(x, [L, base], [R, base], 1, 0.85 * show);
+  weekVals.forEach((v, i) => {
+    const e = colGrow(i, age), cx = X(colX(i, b)), top = Y(b.y1 - ((b.y1 - b.y0) * v * e) / colMax), wk = isWknd(i);
+    cline(x, [cx, base], [cx, top], 0.5 * u, show * (wk ? 0.75 : 1), wk ? [0.7 * u, 0.6 * u] : null);
+    x.font = cmono(1.85, u); x.textAlign = "center"; x.globalAlpha = (wk ? 0.5 : 0.85) * show;
+    x.fillText(DAYS[WEEK[i]].toUpperCase(), cx, base + 3.2 * u);
+    const val = fmt(Math.round(v * e));
+    if (i !== weekTop) {
+      cline(x, [cx - 1.4 * u, top], [cx + 1.4 * u, top], 1, show);
+      x.font = cmono(1.6, u); x.globalAlpha = 0.85 * tag; x.fillText(val, cx, top - 3 * u);
+      return;
+    }
+    // Target mark on the peak.
+    const r = 1.1 * u;
+    x.globalAlpha = show; x.setLineDash([]); x.lineWidth = 1; x.strokeStyle = x.fillStyle = ACCENT;
+    x.strokeRect(cx - r, top - r, r * 2, r * 2); x.fillRect(cx - r * 0.45, top - r * 0.45, r * 0.9, r * 0.9);
+    // Its chip, kept on the page.
+    x.font = cmono(1.85, u);
+    const word = "FAVOURITE", ww = x.measureText(word).width + 1.8 * u, vw = x.measureText(val).width + 1.8 * u, h = 3.4 * u;
+    const x0 = Math.max(3 * u, Math.min(W - 3 * u - ww - vw, cx - (ww + vw) / 2)), y0 = top - 6.4 * u, ty = y0 + h / 2 + 0.1 * u;
+    x.globalAlpha = tag; x.textAlign = "left";
+    x.fillStyle = INK; x.fillRect(x0, y0, ww, h); x.fillStyle = PAPER; x.fillText(word, x0 + 0.9 * u, ty);
+    x.fillStyle = ACCENT; x.fillRect(x0 + ww, y0, vw, h); x.fillStyle = "#fff"; x.fillText(val, x0 + ww + 0.9 * u, ty);
+    x.strokeStyle = x.fillStyle = INK;
+  });
+}
+function cadenceTick(el, age) {
+  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  if (!w) return;
+  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  const x = c.getContext("2d");
+  x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+  x.save(); x.strokeStyle = x.fillStyle = INK; x.textBaseline = "middle";
+  try { x.letterSpacing = `${(0.06 * 1.6 * (w / 100)).toFixed(2)}px`; } catch {}
+  drawColumns(x, w, h, w / 100, tw.speed ? age : Infinity);
+  x.restore();
 }
 
 // How far a 0..100 reading leans, in words, pointing at the side it leans to.
@@ -938,8 +995,14 @@ const slides = [
     },
   },
   {
-    card: [4, 30, "top"], pal: "dawn", sheet: 36, fg: "#161616", bands: true, fade: 0.5, field: () => scatter(5, 6, [0, 0, 1, 0.66]),
-    top: () => [hud("04", "Cadence"), weekChart()],
+    card: [4, 4, "top"], pal: "bloom", sheet: 36, fg: "#161616", still: true, live: columnLayout, field: () => columnLayout(0),
+    // In .abs so the chart moves down with the heat under the top card.
+    extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: cadenceTick,
+    top: () => [
+      hud("04", "Cadence"),
+      `<p class="micro" style="opacity:0.7">Prompts by day of the week</p>`,
+      `<div class="fp-key"><span><i></i>Prompts</span><span><i class="d"></i>Weekend</span><span><i class="h"></i>Heat = how busy</span></div>`,
+    ],
     bottom: () => [
       head("Longest streak"),
       `<div class="cells">${cell("In a row", `${S.time.longestStreak.length}<span class="sub">days</span>`)}${cell("Favourite day", favDay())}</div>`,
@@ -1043,7 +1106,7 @@ slides.forEach((s) => {
 // ---------- colour field ----------
 
 const field = document.getElementById("field"), fctx = field.getContext("2d");
-const FW = field.width, NB = 32;
+const FW = field.width, NB = 48;
 let FH = field.height, img = fctx.createImageData(FW, FH);
 // Match the field's pixel grid to the stage shape.
 function sizeField() { FH = Math.round(FW * AR); field.height = FH; img = fctx.createImageData(FW, FH); }
