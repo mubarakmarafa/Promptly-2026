@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode light|dark] [--out file.html] [--hide-projects]
+// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects]
 
 import fs from "node:fs";
 import os from "node:os";
@@ -46,8 +46,8 @@ const payload = {
 };
 
 // The user's colour preferences. Flags override what the agent put in persona.json.
-const LOOKS = { mood: ["mixed", "warm", "cool", "electric"], mode: ["light", "dark"] };
-const look = { mood: args.mood ?? persona.look?.mood ?? "mixed", mode: args.mode ?? persona.look?.mode ?? "light" };
+const LOOKS = { mood: ["mixed", "warm", "cool", "electric"], mode: ["auto", "light", "dark"] };
+const look = { mood: args.mood ?? persona.look?.mood ?? "mixed", mode: args.mode ?? persona.look?.mode ?? "auto" };
 for (const [key, allowed] of Object.entries(LOOKS)) {
   if (!allowed.includes(look[key])) {
     console.error(`unknown ${key} "${look[key]}", expected one of: ${allowed.join(", ")}`);

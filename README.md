@@ -45,10 +45,10 @@ Requires Node 18+, and Node 22.5+ to include Cursor history.
 ## How it works
 
 1. `scripts/extract.mjs` reads your history locally and computes the stats: when you prompt, how long your prompts are, your catchphrases, your manners, your top projects. It redacts secrets, emails and paths, then saves the stats plus a small sample of prompts to a temp file. It takes a few seconds and has no dependencies.
-2. Your agent reads that file and writes your personality: an archetype, captions, a roast, and three greatest-hits quotes.
+2. Your agent reads that file and writes your personality: an archetype, three tells (what your writing gives away), captions, a roast, and three greatest-hits quotes.
 3. `scripts/render.mjs` puts it all into a single HTML file on your Desktop: a live colour field that morphs between slides, with your stats drawn as pictures (a star chart of your agents, a thermal clock, a receipt of your most-typed replies, a trait fingerprint). The last slide saves a share image.
 
-Before it starts, it asks what to call you, what you do, which colours you like (warm, cool, electric or a mix) and light or dark mode. Your personality type comes from how you write (what you care about, how you treat your agents, how you handle bugs), not from the commands you repeat most.
+Before it starts, it asks what to call you, what you do, and which colours you like (warm, cool, electric or a mix). Light and dark mode follow your device. Your personality type comes from how you write (what you care about, how you treat your agents, how you handle bugs), not from the commands you repeat most.
 
 Design by [Chelsea](https://github.com/Chelsealuna).
 
@@ -56,6 +56,7 @@ Design by [Chelsea](https://github.com/Chelsealuna).
 
 - Nothing leaves your machine except what your own agent already sends to its model: the stats and a sample of about 150 redacted prompts.
 - The HTML page contains only aggregate stats and the quotes you approve. The raw sample stays in your temp folder.
+- The page loads its fonts from Google Fonts. Tapping a slide's share button also downloads a small screenshot library (modern-screenshot, from jsDelivr) to capture that slide; the capture happens in your browser and nothing is uploaded.
 - Your agent asks before anything goes on the page that you might not want to share. Pass `--hide-projects` to `render.mjs` to leave out project names.
 
 ## Where it looks

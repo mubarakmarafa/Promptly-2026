@@ -31,7 +31,7 @@ Start like a personality quiz: a quick, playful warm-up before the results. Ask 
    - Cool: mint, sky, lilac and deep blue (`cool`)
    - Electric: hot, saturated colour with thermal bands (`electric`)
    - A bit of everything: a different palette on every slide (`mixed`, the default)
-4. **Light or dark?** Light paper (default) or dark. Maps to `look.mode`: `light` or `dark`.
+Light and dark mode follow the user's device setting automatically, so don't ask. If they ask for one explicitly, set `look.mode` to `light` or `dark`; otherwise leave it out (or `auto`).
 
 Only these preferences change. The layout, type and visuals stay the same for everyone.
 
@@ -39,7 +39,7 @@ The roast is medium by default. If the user asks for gentle or extra spicy when 
 
 The time range defaults to all time. If the user mentions one ("this year", "last 90 days"), pass `--days` to the extractor: days since 1 January for this year, or the number they gave.
 
-Skip any question the user already answered when invoking you (for example `/wrapped call me Sam, designer, cool, dark, extra spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, mixed colours, light, medium roast. Don't stall waiting for an answer.
+Skip any question the user already answered when invoking you (for example `/wrapped call me Sam, designer, cool, extra spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, mixed colours, medium roast. Don't stall waiting for an answer.
 
 While you wait for answers, don't read any history.
 
@@ -97,14 +97,17 @@ Write `persona.json` in the same directory as the data file:
 {
   "name": "What they asked to be called, or null",
   "role": "Their job in a few lowercase words, e.g. product designer, or null",
-  "look": { "mood": "mixed | warm | cool | electric", "mode": "light | dark" },
+  "look": { "mood": "mixed | warm | cool | electric" },
   "archetype": {
     "name": "The ___ ___ (2-4 words)",
     "tagline": "A short line in their voice that captures their disposition",
     "description": "2-3 sentences about who they are as a prompter, with specific evidence of how they write. Not a list of stats."
   },
+  "tells": [
+    { "label": "Thinks out loud", "note": "One or two sentences, with a phrase or two of theirs as evidence" }
+  ],
   "captions": {
-    "intro": "...", "numbers": "...", "tools": "...", "clock": "...", "rhythm": "...",
+    "intro": "...", "tools": "...", "clock": "...", "rhythm": "...",
     "style": "...", "phrases": "...", "manners": "...", "projects": "..."
   },
   "quotes": [
@@ -127,7 +130,8 @@ What makes it good:
   2. Feel / Function: do they care more about how it feels or whether it works?
   3. Explorer / Executor: do they wander into new ideas or drive the plan to done?
   4. Steady / Fired up: is their tone even, or does it swing with every win and bug?
-- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `numbers` = total prompts and words, `tools` = split between agents, `clock` = hour of day, `rhythm` = streak and busiest day, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
+- **Tells:** exactly 3, and they get their own slide near the start. This is the heart of the page: a read on *how* they write, like a handwriting analyst would give, that makes them think "huh, I do do that". Things like hedging before a strong opinion, narrating their feelings to the agent, apologising to it, praising it like a colleague, getting terse when tired, explaining the why. `label` is 2-4 words in sentence case; `note` is under 30 words with a short phrase of theirs as evidence. Draw them from the profile in 3a, never from a count, and don't use numbers at all.
+- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `tools` = split between agents, `clock` = hour of day, `rhythm` = streak and favourite weekday, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
 - **Quotes:** exactly 3, from `sample`, `shortSample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm. Aim for at least one that shows their personality, not just a habit.
 - **Roast:** affectionate, like a friend who's read all their messages. Habits are fair game here. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
 - **Compliment:** sincere and specific, about who they are as a collaborator.
@@ -139,7 +143,7 @@ What makes it good:
 node scripts/render.mjs --data <data.json> --persona <persona.json>
 ```
 
-The colours come from `look` in `persona.json`. `--mood` and `--mode` override it, which is handy if the user wants to try another palette.
+The colours come from `look` in `persona.json`. `--mood` and `--mode` (`auto`, `light`, `dark`) override it, which is handy if the user wants to try another palette.
 
 This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
 
