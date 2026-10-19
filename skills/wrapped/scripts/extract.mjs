@@ -2,6 +2,13 @@
 // Reads local AI chat history (Claude Code, Codex, Cursor), computes prompting stats,
 // and writes a compact, redacted JSON file for the agent to analyse.
 // Usage: node extract.mjs [--out path] [--days N] [--sample N]
+//
+// Query mode prints matching prompts (redacted) instead of writing the file, so the agent can dig for evidence:
+//   node extract.mjs --grep "maybe|i wonder" [--limit 20] [--from 2026-05-01] [--to 2026-06-30]
+//   node extract.mjs --from 2026-05-01 --to 2026-05-31 --limit 30     (a spread of prompts from a date range)
+// Output: { total, pct, byMonth, matches: [{ text, source, date, hour }] }. Same input, same output, every time.
+// Each query's numbers are also saved to facts.json next to the data file, where render.mjs picks them up to fill
+// {{q:"pattern"}} placeholders and to check the numbers in the persona. A fresh extraction clears them.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -14,6 +21,9 @@ const args = parseArgs(process.argv.slice(2));
 const OUT = args.out ?? path.join(os.tmpdir(), "how-i-ai", "wrapped-data.json");
 const SINCE = args.days ? Date.now() - Number(args.days) * 864e5 : 0;
 const SAMPLE_SIZE = Number(args.sample ?? 120);
+const FACTS = path.join(path.dirname(OUT), "facts.json");
+// A whole-history query is keyed by its pattern alone, which is what {{q:"pattern"}} looks up.
+const factKey = (a) => (a.from || a.to ? `${a.grep ?? ""} @ ${a.from ?? ""}..${a.to ?? ""}` : String(a.grep));
 // Ignore the last few minutes so the /wrapped session doesn't analyse itself.
 const UNTIL = Date.now() - 5 * 60e3;
 
@@ -312,6 +322,32 @@ const CATCHPHRASES = [
   "basically", "quick", "real quick", "can you", "could you", "i want", "i need", "what if", "why", "nice",
 ];
 
+const sortedKeys = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
+
+// How someone writes in one stretch of time, so the early and recent stretches can be compared.
+const HEDGE = /\b(maybe|perhaps|i wonder|kind of|kinda|sort of|i think|not sure|might|possibly)\b/i;
+const LAUGH = /\b(ha(ha)+h?|hah|lol|lmao)\b/i;
+function eraStats(list) {
+  const n = list.length, wc = list.map((p) => words(p.text).length).sort((a, b) => a - b);
+  const share = (f) => pct(count(list, f), n);
+  return {
+    prompts: n,
+    medianWords: wc[Math.floor(wc.length / 2)] ?? 0,
+    questionPct: share((p) => RE.question.test(p.text)),
+    pleasePct: share((p) => RE.please.test(p.text)),
+    hedgePct: share((p) => HEDGE.test(p.text)),
+    laughPct: share((p) => LAUGH.test(p.text)),
+    exclaimPct: share((p) => RE.exclaim.test(p.text)),
+    praisePct: share((p) => RE.praise.test(p.text)),
+    frustrationPct: share((p) => RE.frustration.test(p.text)),
+    lowercaseStartPct: share((p) => /^[a-z]/.test(p.text.trim())),
+    opsPct: share((p) => isOps(p.text)),
+  };
+}
+function era(list) {
+  return list.length ? { from: dayKey(list[0].ts), to: dayKey(list.at(-1).ts), stats: eraStats(list), sample: voiceSample(list, 25).filter(Boolean) } : null;
+}
+
 function capsRage(t) {
   const letters = t.replace(/[^A-Za-z]/g, "");
   return letters.length >= 8 && letters === letters.toUpperCase();
@@ -337,6 +373,9 @@ const isOps = (t) => words(t).length <= 12 && OPS.test(t.trim());
 // Language that shows how someone thinks: reasons, opinions, feelings, what they want for users.
 const VOICE = /\b(because|since|so that|i think|i feel|i want|i'?d (?:like|love)|ideally|should|feels?|looks?|love|hate|annoy\w*|wonder|maybe|what if|instead|rather|users?|people|honestly|actually|kind of|i'?m not sure|curious|why)\b/gi;
 
+// A stable stand-in for randomness, from the prompt's own text, so the same history always gives the same sample.
+const jitter = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return (h >>> 0) / 2 ** 32; };
+
 // Spread across time, one pick per bucket, scored by `score`.
 function spreadPick(list, n, score) {
   const sorted = [...list].sort((a, b) => a.ts - b.ts);
@@ -355,7 +394,7 @@ function voiceSample(list, n) {
   });
   return spreadPick(candidates, n, (p) =>
     (p.text.match(VOICE)?.length ?? 0) * 1.5 + (RE.praise.test(p.text) ? 1 : 0) + (RE.frustration.test(p.text) ? 1 : 0) +
-    (/!{2,}|\?{2,}|\.{3}|hah|lol|:\)|:\//i.test(p.text) ? 1 : 0) + Math.random() * 2,
+    (/!{2,}|\?{2,}|\.{3}|hah|lol|:\)|:\//i.test(p.text) ? 1 : 0) + jitter(p.text) * 2,
   );
 }
 
@@ -364,7 +403,7 @@ function shortSample(list, n) {
     const w = words(p.text).length;
     return w >= 1 && w < 8;
   });
-  return spreadPick(candidates, n, () => Math.random());
+  return spreadPick(candidates, n, (p) => jitter(p.text));
 }
 
 function fmtQuote(p) {
@@ -383,6 +422,7 @@ function computeStats(list) {
   const byWeekday = Array(7).fill(0);
   const byMonth = {};
   const byDay = {};
+  const bySourceDay = {};
   const bySource = {};
   const byProject = {};
   const openers = {};
@@ -399,6 +439,8 @@ function computeStats(list) {
     byMonth[month] = (byMonth[month] ?? 0) + 1;
     byDay[dayKey(p.ts)] = (byDay[dayKey(p.ts)] ?? 0) + 1;
     bySource[p.source] = (bySource[p.source] ?? 0) + 1;
+    const sd = (bySourceDay[p.source] ??= {});
+    sd[dayKey(p.ts)] = (sd[dayKey(p.ts)] ?? 0) + 1;
     if (p.project) byProject[p.project] = (byProject[p.project] ?? 0) + 1;
     const w = words(p.text.toLowerCase());
     if (w[0]) openers[w[0]] = (openers[w[0]] ?? 0) + 1;
@@ -441,6 +483,8 @@ function computeStats(list) {
       byHour,
       byWeekday,
       byMonth,
+      byDay: sortedKeys(byDay),
+      bySourceDay: Object.fromEntries(Object.entries(bySourceDay).map(([k, v]) => [k, sortedKeys(v)])),
       peakHour,
       lateNightPct: pct(lateNight, n),
       weekendPct: pct(byWeekday[0] + byWeekday[6], n),
@@ -519,7 +563,27 @@ const freq = {};
 for (const p of prompts) if (p.text.length > 40) freq[p.text] = (freq[p.text] ?? 0) + 1;
 const human = prompts.filter((p) => !(p.text.length > 40 && freq[p.text] >= 4)).sort((a, b) => a.ts - b.ts);
 
+// Query mode: print what matches and stop.
+if (args.grep || args.from || args.to) {
+  let re;
+  try { re = args.grep ? new RegExp(args.grep, "i") : null; } catch (err) { console.error(`bad --grep: ${err.message}`); process.exit(1); }
+  const hits = human.filter((p) => (!re || re.test(p.text)) && (!args.from || dayKey(p.ts) >= args.from) && (!args.to || dayKey(p.ts) <= args.to));
+  const byMonth = {};
+  for (const p of hits) byMonth[dayKey(p.ts).slice(0, 7)] = (byMonth[dayKey(p.ts).slice(0, 7)] ?? 0) + 1;
+  const limit = Number(args.limit ?? 20);
+  const picks = re ? spreadPick(hits, limit, (p) => jitter(p.text)) : voiceSample(hits, limit);
+  const fact = { total: hits.length, pct: pct(hits.length, human.length), byMonth: sortedKeys(byMonth) };
+  const facts = (() => { try { return JSON.parse(fs.readFileSync(FACTS, "utf8")); } catch { return {}; } })();
+  facts[factKey(args)] = fact;
+  fs.mkdirSync(path.dirname(FACTS), { recursive: true });
+  fs.writeFileSync(FACTS, JSON.stringify(facts, null, 1));
+  console.log(JSON.stringify({ ...fact, matches: picks.filter(Boolean).map(({ text, source, date, hour }) => ({ text, source, date, hour })) }, null, 1));
+  process.exit(0);
+}
+
 const stats = computeStats(human);
+// The first and last stretch of their history, a sixth of their prompts each, to see how their prompting changed.
+const slice = Math.max(1, Math.floor(human.length / 6));
 const output = {
   generatedAt: new Date().toISOString(),
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -537,11 +601,13 @@ const output = {
   ...stats,
   sample: voiceSample(human, SAMPLE_SIZE).filter(Boolean),
   shortSample: shortSample(human, 30).filter(Boolean),
+  eras: human.length >= 60 ? { early: era(human.slice(0, slice)), recent: era(human.slice(-slice)) } : null,
   errors,
 };
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(output, null, 1));
+fs.rmSync(FACTS, { force: true });
 const kb = Math.round(fs.statSync(OUT).size / 1024);
 console.log(
   `how-i-ai: ${human.length} prompts across ${stats.totals.sessions} sessions ` +
