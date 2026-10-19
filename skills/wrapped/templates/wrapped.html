@@ -103,6 +103,8 @@
   .hot { position: absolute; translate: -50% -50%; display: flex; flex-direction: column; align-items: flex-start; white-space: nowrap; }
   .hot i { padding: 0.35cqw 0.9cqw; background: #111; color: rgb(243 242 238 / 0.7); font: 500 1.5cqw/1.2 var(--mono); font-style: normal; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
   .hot.side { translate: 4.4cqw -50%; }
+  .redact { cursor: pointer; }
+  .redact:not(.shown) { letter-spacing: 0; opacity: 0.85; }
   .hot b { padding: 0.8cqw 1.5cqw 1cqw; background: #E9E6DF; color: #111; font: 400 4.6cqw/1 var(--sans); letter-spacing: -0.03em; }
   /* Manners that never happened: an empty dashed ring where the glow would be */
   .orb.ghost { position: absolute; translate: -50% -50%; display: flex; flex-direction: column; white-space: nowrap; color: var(--ink); text-shadow: none; opacity: 0; }
@@ -171,6 +173,41 @@
   .fp-key i.o { width: 2.2cqw; height: 2.2cqw; border: 1px dashed currentColor; border-radius: 50%; opacity: 0.6; }
   .fp-key i.h { width: 2.4cqw; height: 2.4cqw; border: 0; border-radius: 50%; background: radial-gradient(var(--c4), var(--c3) 45%, transparent 72%); }
 
+
+  /* Receipts: a quote marked up like a crit, its numbered notes reading like the lab's legend. Always black, like the
+     logs: it sits on the bright heart of the field. */
+  .rx { position: absolute; left: 6cqw; right: 8cqw; top: 13%; bottom: calc(var(--sheet) + 2cqw); display: flex; flex-direction: column; justify-content: center; gap: 3.6cqw; color: #161616; }
+  .rx .qq { font: 400 var(--fs)/1.08 var(--sans); letter-spacing: -0.035em; text-wrap: pretty; text-indent: -0.42em; }
+  .rx .hl { box-shadow: inset 0 -0.12em #FF4FA0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .rx .hn { position: relative; top: -0.95em; margin-left: 0.2em; padding: 0.4cqw 0.6cqw; background: #111; color: #F3F2EE; font: 500 1.7cqw/1 var(--mono); letter-spacing: 0.04em; vertical-align: baseline; }
+  .rx-notes { display: flex; flex-direction: column; font: 400 2.5cqw/1.3 var(--mono); }
+  .rx-notes p { display: flex; align-items: baseline; gap: 2cqw; padding: 1.5cqw 0; border-bottom: 1px solid rgb(22 22 22 / 0.18); }
+  .rx-notes p:first-child { border-top: 1px solid rgb(22 22 22 / 0.18); }
+  .rx-notes b { flex: none; padding: 0.4cqw 0.6cqw; background: #111; color: #F3F2EE; font: 500 1.7cqw/1 var(--mono); letter-spacing: 0.04em; }
+  .rx { opacity: 0; transform: translateY(2.4cqw); }
+  .slide.active .rx { animation: rise 620ms var(--ease-out) forwards 150ms; }
+  .verdict { display: flex; align-self: flex-start; font: 500 2.2cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .verdict b { padding: 1.2cqw 1.5cqw; background: var(--ink); color: var(--paper); font-weight: 500; }
+  .verdict span { padding: 1.2cqw 1.5cqw; background: #FF4FA0; color: #fff; }
+
+  /* Then and now: two quotes with before/after tracks between them. A hollow square is then, the pink one is now. */
+  .ev { position: absolute; left: 6cqw; right: 7cqw; top: 12%; bottom: calc(var(--sheet) + 2cqw); display: flex; flex-direction: column; justify-content: center; gap: 4.4cqw; color: #161616; }
+  .ev .qq { margin-top: 1.4cqw; font: 400 var(--fs)/1.1 var(--sans); letter-spacing: -0.03em; text-wrap: pretty; text-indent: -0.42em; }
+  .shifts { display: flex; flex-direction: column; gap: 2.4cqw; }
+  .sh { display: grid; grid-template-columns: 23cqw 1fr 15cqw; align-items: center; gap: 2.4cqw; }
+  .sh .lbl { font-size: 1.9cqw; }
+  .sh .lbl:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .trk { position: relative; height: 2.4cqw; }
+  .trk::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dashed rgb(22 22 22 / 0.4); }
+  .trk .bar { position: absolute; top: 50%; height: 0.5cqw; translate: 0 -50%; background: #161616; }
+  .trk .from, .trk .to { position: absolute; top: 50%; width: 2cqw; height: 2cqw; translate: -50% -50%; border: 1px solid #161616; background: rgb(255 255 255 / 0.5); }
+  .trk .to { border-color: #FF4FA0; background: none; }
+  .trk .to::after { content: ""; position: absolute; inset: 0.45cqw; background: #FF4FA0; }
+  .ev { opacity: 0; transform: translateY(2.4cqw); }
+  .slide.active .ev { animation: rise 620ms var(--ease-out) forwards 150ms; }
+  .fp-key i.ln1 { border-top-style: dashed; }
+  .fp-key i.ln2 { border-top-style: dotted; }
+  .fp-key i.ln3 { border-top-style: double; }
 
   /* Mood over time */
 
@@ -242,7 +279,7 @@
   .slide.active .panel > * { animation-delay: calc(var(--i, 0) * 80ms + 320ms); }
   @keyframes rise { to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
-    .slide.active .top > *, .slide.active .panel > *, .slide.active .fq { animation: none; opacity: 1; transform: none; }
+    .slide.active .top > *, .slide.active .panel > *, .slide.active .fq, .slide.active .rx, .slide.active .ev { animation: none; opacity: 1; transform: none; }
     .slide.active .vpole, .slide.active .vnote { animation: none; }
     .slide.active .orbit .ring { animation: none; stroke-dashoffset: 0; }
     .grain { animation: none; }
@@ -286,7 +323,9 @@
   /* Hidden but holding its place, so the middle group never slides sideways. */
   .dock button[hidden] { display: grid; visibility: hidden; opacity: 0; transition: opacity 300ms, visibility 0s 300ms; }
   .dock svg { width: 3.6cqw; height: 3.6cqw; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
-  .solo[data-act="restart"] { justify-self: start; }
+  .dock .left { justify-self: start; display: flex; gap: 1.6cqw; }
+  .solo .sun, :root.dark .solo .moon { display: none; }
+  :root.dark .solo .sun { display: inline; }
   .solo[data-act="expand"] { justify-self: end; }
   .solo .in, .solo[aria-pressed="true"] .out { display: none; }
   .solo[aria-pressed="true"] .in { display: inline; }
@@ -324,7 +363,10 @@
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
   <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
   <div class="dock" id="dock">
+    <div class="left">
+    <button class="solo" data-act="theme" aria-label="Switch to dark mode"><svg viewBox="0 0 24 24"><path class="moon" d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/><g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
     <button class="solo" data-act="restart" aria-label="Start again"><svg viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a7 7 0 1 0 1-7.5L4 10"/></svg></button>
+    </div>
     <div class="acts" id="acts">
       <p class="acts-say" id="acts-say" role="status" aria-live="polite"></p>
       <button data-act="share" aria-label="Share this slide"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 12v8h14v-8"/></svg></button>
@@ -399,6 +441,12 @@ const PALETTES = {
 // ---------- look: the user's colour preferences ----------
 
 const LOOK = { mood: D.look?.mood ?? "mixed", mode: D.look?.mode ?? "auto" };
+// The dock's theme button can override the mode on this device; picking the default again clears the override.
+const MODE_KEY = "how-i-ai-mode";
+const store = (() => { try { return localStorage; } catch { return null; } })();
+const picked = store?.getItem(MODE_KEY);
+const baseMode = LOOK.mode;
+if (picked === "light" || picked === "dark") LOOK.mode = picked;
 // "auto" follows the device, and switches with it.
 const darkQuery = matchMedia("(prefers-color-scheme: dark)");
 if (LOOK.mode === "auto") darkQuery.addEventListener("change", () => { location.hash = cur; location.reload(); });
@@ -679,7 +727,9 @@ function vibeLayout(age) {
 // ---------- panel helpers ----------
 
 const head = (title, right = ymd(S.totals.lastDate)) => `<div class="ph"><p class="lbl">${title}</p><p class="lbl">${right}</p></div>`;
-const hud = (code, title) => `<div class="hud"><span>${code} · ${title}</span><span>${serial}</span></div>`;
+// Slides number themselves in order as they're built, so skipped and added slides never leave gaps.
+let hudNo = 0;
+const hud = (title) => `<div class="hud"><span>${pad(hudNo)} · ${title}</span><span>${serial}</span></div>`;
 const cell = (label, value, sub = "") => `<div class="cell"><div><p class="micro" style="opacity:0.7">${label}</p><p class="val roll">${value}${sub ? `<span class="sub">${sub}</span>` : ""}</p></div></div>`;
 // A label that rides on hotspot `i`; `at` is its starting spot so nothing jumps before the first frame.
 const hot = (i, at, name, count, size = 4.6) => `<span class="hot" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0">${count == null ? "" : `<i class="roll">${count}</i>`}<b style="font-size:${size}cqw">${esc(name)}</b></span>`;
@@ -750,7 +800,26 @@ function phraseTick(el) {
 }
 
 // A thin white ring the size of a hotspot's glow, with its name and count set inside. It rides its hotspot.
-const orb = (i, at, name, count, size) => `<span class="hot orb" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0;--d:${(at.r * 1.1 * 2 * 100).toFixed(1)}cqw"><span class="ring"></span><b style="font-size:${size}cqw">${esc(name)}</b><i class="roll">${count}</i></span>`;
+const orb = (i, at, name, count, size, label = esc(name)) => `<span class="hot orb" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0;--d:${(at.r * 1.1 * 2 * 100).toFixed(1)}cqw"><span class="ring"></span><b style="font-size:${size}cqw">${label}</b><i class="roll">${count}</i></span>`;
+
+// Repo names stay hidden behind symbols until tapped, and go back into hiding for every screenshot and embed. The
+// symbols come from the name itself, so each name keeps its own disguise and length.
+const disguise = (name) => [...name].map((c, k) => (/\s/.test(c) ? c : GLYPHS[(c.charCodeAt(0) * 7 + k * 13) % GLYPHS.length])).join("");
+// Embeds and deployed pages arrive with the names already swapped for symbols.
+const redacted = (name) => (D.projectsHidden ? esc(name) : `<span class="redact" data-real="${esc(name)}" data-mask="${esc(disguise(name))}">${esc(disguise(name))}</span>`);
+function reveal(r) {
+  const on = !r.classList.contains("shown");
+  r.classList.toggle("shown", on);
+  const to = on ? r.dataset.real : r.dataset.mask, from = r.textContent, t0 = performance.now();
+  // Settles left to right through symbols, like the slide text.
+  const step = (t) => {
+    const k = Math.min(1, (t - t0) / 380);
+    r.textContent = [...to].map((c, i) => (i / to.length < k ? c : glyphFor(c))).join("") || from;
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const hideNames = () => { const shown = [...document.querySelectorAll(".redact.shown")]; shown.forEach((r) => (r.textContent = r.dataset.mask)); return () => shown.forEach((r) => (r.textContent = r.dataset.real)); };
 
 // Manners: kind words on the left, cross ones on the right, each a hotspot sized by how often it happened. Things
 // that never happened get an empty ring, so a zero still shows up.
@@ -782,7 +851,7 @@ function mannerLayer() {
 
 function projectLayer() {
   const L = projectLayout(0);
-  return `<div class="abs">${projects.map((p, i) => orb(i, L[i], p.name.slice(0, 18), `No. ${i + 1}`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2)).join("")}</div>`;
+  return `<div class="abs">${projects.map((p, i) => orb(i, L[i], "", `No. ${i + 1}`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2, redacted(p.name.slice(0, 18)))).join("")}</div>`;
 }
 
 // Syntax: prompt lengths as hotspots sized by area. A one-word prompt is a speck, the typical prompt a small glow,
@@ -792,7 +861,8 @@ const synR = (words) => Math.max(0.028, SYN_R * Math.sqrt(words / Math.max(1, S.
 const synSpots = [
   { x: 0.3, y: 0.21, words: S.style.medianWords, w: 1.25, c: 0, at: 0.3, name: `${fmt(S.style.medianWords)} words`, count: "Typical" },
   { x: 0.12, y: 0.12, words: 1, w: 1.6, c: 0, at: 0.6, name: "1 word", count: `${S.style.oneWordPct}% of prompts` },
-  { x: 0.7, y: 0.6, words: S.style.longestPromptWords, w: 1.05, c: 1, at: 0.9, name: `${fmt(S.style.longestPromptWords)} words`, count: "Longest" },
+  // Its label sits at the hotspot's heart, so the heart stays clear of the card however short the screen.
+  { x: 0.7, get y() { const s = slides.find((s) => s.live === synLayout); return Math.min(0.6, 1 - (s?.sheet ?? 38) / 100 - 0.07); }, words: S.style.longestPromptWords, w: 1.05, c: 1, at: 0.9, name: `${fmt(S.style.longestPromptWords)} words`, count: "Longest" },
 ];
 const synLayout = (age) => synSpots.map((p, i) => {
   if (!tw.speed) age = 99;
@@ -910,7 +980,8 @@ function drawColumns(x, W, H, u, age) {
     x.strokeStyle = x.fillStyle = INK;
   });
 }
-function cadenceTick(el, age) {
+// Draws a slide's chart onto its overlay canvas each frame, crisp at any pixel density.
+const canvasTick = (draw) => (el, age) => {
   const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
   if (!w) return;
   if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
@@ -918,9 +989,228 @@ function cadenceTick(el, age) {
   x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
   x.save(); x.strokeStyle = x.fillStyle = INK; x.textBaseline = "middle";
   try { x.letterSpacing = `${(0.06 * 1.6 * (w / 100)).toFixed(2)}px`; } catch {}
-  drawColumns(x, w, h, w / 100, tw.speed ? age : Infinity);
+  draw(x, w, h, w / 100, tw.speed ? age : Infinity);
   x.restore();
+};
+const cadenceTick = canvasTick(drawColumns);
+
+// Streak: every day as a square, a week to a row, the way GitHub draws contributions but turned on its side to fit a
+// phone. A hotspot sits on each week, weighted to its busiest days, and the sharp grid on top marks the days you showed
+// up: an outline for a day off, a filled square for a day on, bigger the busier it was.
+const DAY_MS = 864e5, utc = (k) => Date.parse(k + "T00:00:00Z"), mon = (t) => (new Date(t).getUTCDay() + 6) % 7;
+const gridDays = (() => {
+  const by = S.time.byDay ?? {}, first = utc(S.totals.firstDate), start = first - mon(first) * DAY_MS, out = [];
+  for (let t = start, end = utc(S.totals.lastDate); t <= end; t += DAY_MS) {
+    const k = new Date(t).toISOString().slice(0, 10);
+    out.push({ k, n: by[k] ?? 0, wk: Math.floor((t - start) / (7 * DAY_MS)), wd: mon(t), pre: t < first });
+  }
+  return out;
+})();
+const gridWeeks = (gridDays.at(-1)?.wk ?? 0) + 1;
+// Four levels like GitHub's, cut at the quartiles of the days you did prompt.
+const litCounts = gridDays.filter((d) => d.n).map((d) => d.n).sort((a, b) => a - b);
+const levelCuts = [0.25, 0.5, 0.75].map((f) => litCounts[Math.floor(f * (litCounts.length - 1))] ?? 1);
+const dayLevel = (n) => (n ? 1 + levelCuts.filter((c) => n > c).length : 0);
+const streak = S.time.longestStreak, inStreak = (k) => streak?.length > 1 && k >= streak.from && k <= streak.to;
+// Weeks share a hotspot when there are more of them than the field holds.
+const weekGroups = (() => {
+  const per = Math.ceil(gridWeeks / 40), out = [];
+  for (let w = 0; w < gridWeeks; w += per) {
+    const days = gridDays.filter((d) => d.wk >= w && d.wk < w + per && d.n), sum = days.reduce((a, d) => a + d.n, 0);
+    if (sum) out.push({ sum, wd: days.reduce((a, d) => a + d.n * d.wd, 0) / sum, wk: days.reduce((a, d) => a + d.n * d.wk, 0) / sum, hot: days.some((d) => d.k === S.time.busiestDay?.date) });
+  }
+  return out;
+})();
+const weekPeak = Math.max(1, ...weekGroups.map((g) => g.sum));
+// The grid's box in stage units: room on the right for the streak bracket and its chips, clear of the card.
+const gridBox = () => ({ x0: 0.13, x1: 0.7, y0: bare ? 0.1 : 0.2, y1: 1 - (slides[cur]?.sheet ?? 0) / 100 - 0.05 });
+function gridGeom() {
+  const b = gridBox(), c = Math.min((b.x1 - b.x0) / 7, ((b.y1 - b.y0) * AR) / gridWeeks);
+  const gx = (b.x0 + b.x1) / 2 - 3.5 * c, gy = (b.y0 + b.y1) / 2 - (gridWeeks * c) / AR / 2;
+  return { c, gx, gy, cx: (wd) => gx + (wd + 0.5) * c, cy: (wk) => gy + ((wk + 0.5) * c) / AR };
 }
+const gridGrow = (wk, age) => easeOut((age - 0.2 - (wk / gridWeeks) * 0.9) / 0.6);
+function streakLayout(age) {
+  const g = gridGeom();
+  return weekGroups.map((w) => {
+    const s = w.sum / weekPeak, beat = 1 + 0.05 * Math.sin(age * 2 + w.wk);
+    return { x: fromStage(g.cx(w.wd)), y: fromStage(g.cy(w.wk)), r: g.c * (1.2 + 1.4 * Math.sqrt(s)) * beat, w: (0.25 + 0.9 * s) * gridGrow(w.wk, age) * beat, p: w.hot ? 1 : 0 };
+  });
+}
+// An ink label with a pink reading, kept on the page, the way Cadence names your favourite day.
+function chipAt(x, W, u, at, y, word, val, alpha) {
+  x.font = cmono(1.85, u);
+  const ww = x.measureText(word).width + 1.8 * u, vw = x.measureText(val).width + 1.8 * u, h = 3.4 * u;
+  const x0 = Math.max(3 * u, Math.min(W - 3 * u - ww - vw, at)), y0 = y - h / 2, ty = y + 0.1 * u;
+  x.globalAlpha = alpha; x.textAlign = "left"; x.setLineDash([]);
+  x.fillStyle = INK; x.fillRect(x0, y0, ww, h); x.fillStyle = PAPER; x.fillText(word, x0 + 0.9 * u, ty);
+  x.fillStyle = ACCENT; x.fillRect(x0 + ww, y0, vw, h); x.fillStyle = "#fff"; x.fillText(val, x0 + ww + 0.9 * u, ty);
+  x.fillStyle = INK;
+}
+function drawGrid(x, W, H, u, age) {
+  const g = gridGeom(), X = (v) => v * W, Y = (v) => v * H, cp = g.c * W, half = cp * 0.36;
+  const show = easeOut((age - 0.1) / 0.8), tag = easeOut((age - 1.3) / 0.6), right = X(g.gx + 7 * g.c);
+  x.font = cmono(1.6, u); x.textAlign = "center";
+  [..."MTWTFSS"].forEach((ch, i) => { x.globalAlpha = (i > 4 ? 0.45 : 0.75) * show; x.fillText(ch, X(g.cx(i)), Y(g.gy) - 2.6 * u); });
+  // Each month labelled at the row its first day falls in.
+  x.textAlign = "right";
+  gridDays.forEach((d, i) => {
+    if (d.pre || !(d.k.endsWith("-01") || !gridDays[i - 1] || gridDays[i - 1].pre)) return;
+    x.globalAlpha = 0.7 * show; x.fillText(monthName(d.k).slice(0, 3).toUpperCase(), X(g.gx) - 2.2 * u, Y(g.cy(d.wk)));
+  });
+  for (const d of gridDays) {
+    const e = gridGrow(d.wk, age);
+    if (d.pre || e <= 0) continue;
+    const cx = X(g.cx(d.wd)), cy = Y(g.cy(d.wk)), lv = dayLevel(d.n), hot = inStreak(d.k);
+    x.lineWidth = 1; x.setLineDash([]); x.strokeStyle = hot ? ACCENT : INK; x.globalAlpha = e * (lv ? 0.9 : hot ? 0.6 : 0.25);
+    x.strokeRect(cx - half, cy - half, half * 2, half * 2);
+    if (lv) { const k = [0, 0.32, 0.55, 0.78, 1][lv] * half; x.globalAlpha = e; x.fillStyle = INK; x.fillRect(cx - k, cy - k, 2 * k, 2 * k); }
+  }
+  x.strokeStyle = x.fillStyle = INK;
+  // The longest streak as a bracket down the right, and your busiest day as a target mark, each with its chip.
+  let streakY = null;
+  if (streak?.length > 1) {
+    const a = gridDays.find((d) => d.k === streak.from), b = gridDays.find((d) => d.k === streak.to);
+    if (a && b) {
+      const bx = right + 2.4 * u, y0 = Y(g.cy(a.wk)) - half, y1 = Y(g.cy(b.wk)) + half, grow = gridGrow(b.wk, age);
+      x.strokeStyle = ACCENT; x.lineWidth = 0.4 * u;
+      cline(x, [bx, y0], [bx, y0 + (y1 - y0) * grow], 0.4 * u, show);
+      cline(x, [bx - 1.2 * u, y0], [bx, y0], 0.4 * u, show);
+      if (grow >= 1) cline(x, [bx - 1.2 * u, y1], [bx, y1], 0.4 * u, show);
+      streakY = (y0 + y1) / 2;
+      x.strokeStyle = INK;
+    }
+  }
+  const busy = gridDays.find((d) => d.k === S.time.busiestDay?.date);
+  if (busy) {
+    const cx = X(g.cx(busy.wd)), cy = Y(g.cy(busy.wk)), r = half + 0.8 * u;
+    x.globalAlpha = tag; x.strokeStyle = ACCENT; x.lineWidth = 1; x.setLineDash([]);
+    x.strokeRect(cx - r, cy - r, r * 2, r * 2);
+    // Its chip sits clear of the streak's.
+    const by = streakY !== null && Math.abs(cy - streakY) < 5 * u ? streakY + 5 * u : cy;
+    cline(x, [cx + r, cy], [right + 5 * u, by], 1, 0.6 * tag);
+    x.strokeStyle = INK;
+    chipAt(x, W, u, right + 5 * u, by, "BUSIEST", fmt(busy.n), tag);
+  }
+  if (streakY !== null) chipAt(x, W, u, right + 5 * u, streakY, "STREAK", `${streak.length} DAYS`, tag);
+}
+const streakTick = canvasTick(drawGrid);
+
+// Routing over time: prompts a week to each agent, one line apiece in its own dash, drawn sharp over a ribbon of heat
+// in that agent's colour. The week the busiest agent last changed hands gets a chip, so a change of studio shows up.
+const SD = S.time.bySourceDay;
+const routeSeries = SD ? agents.map(([k]) => {
+  const w = Array(gridWeeks).fill(0);
+  for (const d of gridDays) w[d.wk] += SD[k]?.[d.k] ?? 0;
+  // A light blur across neighbouring weeks, so one wild week reads as a bump, not a spike.
+  return w.map((v, i) => (2 * v + (w[i - 1] ?? v) + (w[i + 1] ?? v)) / 4);
+}) : null;
+const routeMax = routeSeries ? Math.max(1, ...routeSeries.flat()) : 1;
+const routeStep = (() => { for (let p = 1; ; p *= 10) for (const k of [1, 2, 2.5, 5]) if (routeMax / (k * p) <= 4) return k * p; })();
+const routeTop = Math.ceil(routeMax / routeStep) * routeStep;
+const routeBox = () => ({ x0: 0.14, x1: 0.9, y0: 0.2, y1: 1 - (slides[cur]?.sheet ?? 0) / 100 - 0.07 - shiftTo });
+const routeX = (i, b) => b.x0 + ((b.x1 - b.x0) * i) / Math.max(1, gridWeeks - 1);
+const routeY = (v, b) => b.y1 - ((b.y1 - b.y0) * v) / routeTop;
+const routeGrow = (age) => easeOut((age - 0.2) / 1.6);
+const routeSwitch = (() => {
+  if (!routeSeries || routeSeries.length < 2) return null;
+  const lead = [...Array(gridWeeks)].map((_, i) => routeSeries.reduce((best, s, a) => (s[i] > routeSeries[best][i] ? a : best), 0));
+  // Only a takeover that held for a few weeks counts.
+  for (let i = gridWeeks - 1; i > 0; i--) if (lead[i] !== lead[i - 1]) return lead.slice(i, i + 3).every((l) => l === lead[i]) ? { wk: i, a: lead[i] } : null;
+  return null;
+})();
+const ROUTE_DASH = [[], [1.6, 1], [0.05, 1], [2.4, 0.8, 0.05, 0.8]];
+const ROUTE_KEY = ["", "ln1", "ln2", "ln3"];
+const valueAt = (s, f) => { const p = f * (s.length - 1), i = Math.floor(p), t = p - i; return s[i] + ((s[i + 1] ?? s[i]) - s[i]) * t; };
+function routeLayout(age) {
+  const b = routeBox(), n = Math.floor(44 / routeSeries.length), g = routeGrow(age);
+  return routeSeries.flatMap((s, a) => [...Array(n)].map((_, k) => {
+    const f = k / (n - 1), v = valueAt(s, f) / routeMax, on = clamp01((g - f) * 8);
+    return { x: fromStage(b.x0 + (b.x1 - b.x0) * f), y: fromStage(routeY(valueAt(s, f), b)), r: 0.045 + 0.035 * v, w: (0.15 + 0.95 * v) * on, c: a };
+  }));
+}
+function drawRoutes(x, W, H, u, age) {
+  const b = routeBox(), X = (v) => v * W, Y = (v) => v * H, show = easeOut((age - 0.1) / 0.8), g = routeGrow(age), tag = easeOut((age - 1.8) / 0.6);
+  const L = X(b.x0) - 2 * u, R = X(b.x1) + 2 * u, base = Y(b.y1);
+  x.font = cmono(1.45, u); x.textAlign = "right";
+  for (let v = routeStep; v <= routeTop; v += routeStep) {
+    const y = Y(routeY(v, b));
+    cline(x, [L, y], [R, y], 1, 0.35 * show, [0.5 * u, 0.7 * u]);
+    x.globalAlpha = 0.6 * show; x.fillText(fmt(v), L - 1.2 * u, y);
+  }
+  cline(x, [L, base], [R, base], 1, 0.85 * show);
+  // Months along the baseline, each at the week its first day falls in.
+  x.textAlign = "center"; x.font = cmono(1.6, u);
+  for (const d of gridDays) {
+    if (d.pre || !d.k.endsWith("-01")) continue;
+    const mx = X(routeX(d.wk + d.wd / 7, b));
+    cline(x, [mx, base], [mx, base + u], 1, 0.7 * show);
+    x.globalAlpha = 0.7 * show; x.fillText(monthName(d.k).slice(0, 3).toUpperCase(), mx, base + 3.2 * u);
+  }
+  // Each line draws in from the left.
+  x.lineJoin = "round"; x.lineCap = "round";
+  routeSeries.forEach((s, a) => {
+    const end = g * (s.length - 1), i0 = Math.floor(end), t = end - i0;
+    x.globalAlpha = show; x.lineWidth = 0.5 * u; x.setLineDash(ROUTE_DASH[a % 4].map((v) => v * u));
+    x.beginPath();
+    for (let i = 0; i <= i0; i++) x[i ? "lineTo" : "moveTo"](X(routeX(i, b)), Y(routeY(s[i], b)));
+    if (t && i0 + 1 < s.length) x.lineTo(X(routeX(i0 + t, b)), Y(routeY(s[i0] + (s[i0 + 1] - s[i0]) * t, b)));
+    x.stroke();
+  });
+  x.setLineDash([]); x.lineCap = "butt";
+  if (routeSwitch) {
+    const s = routeSeries[routeSwitch.a], cx = X(routeX(routeSwitch.wk, b)), cy = Y(routeY(s[routeSwitch.wk], b)), r = 1.1 * u;
+    x.globalAlpha = tag; x.strokeStyle = x.fillStyle = ACCENT; x.lineWidth = 1;
+    x.strokeRect(cx - r, cy - r, r * 2, r * 2); x.fillRect(cx - r * 0.45, cy - r * 0.45, r * 0.9, r * 0.9);
+    x.strokeStyle = x.fillStyle = INK;
+    chipAt(x, W, u, cx - 14 * u, cy - 5 * u, "TOOK OVER", (SOURCE_LABEL[agents[routeSwitch.a][0]] ?? agents[routeSwitch.a][0]).toUpperCase(), tag);
+  }
+}
+const routeTick = canvasTick(drawRoutes);
+
+// Then and now: their first stretch of prompts against their latest. The three biggest shifts are before/after tracks
+// between a quote from each end, and the card carries the agent's read on what changed.
+const EV = S.eras, EVO = P.evolution;
+const SHIFT_LABEL = { medianWords: "Words a prompt", questionPct: "Questions", pleasePct: "Please", hedgePct: "Hedging", laughPct: "Laughing", exclaimPct: "Exclamations", praisePct: "Praise", frustrationPct: "Frustration", lowercaseStartPct: "Lowercase starts", opsPct: "Commands" };
+const shiftOf = (k) => ({ k, a: EV.early.stats[k] ?? 0, b: EV.recent.stats[k] ?? 0 });
+const shifts = !EV ? [] : (EVO?.shifts?.filter((k) => SHIFT_LABEL[k]).map(shiftOf) ??
+  Object.keys(SHIFT_LABEL).map(shiftOf).filter((m) => Math.abs(m.b - m.a) >= 3).sort((m, n) => Math.abs(n.b - n.a) / Math.max(n.a, n.b, 1) - Math.abs(m.b - m.a) / Math.max(m.a, m.b, 1))).slice(0, 3);
+const shiftVal = (k, v) => (k === "medianWords" ? fmt(Math.round(v)) : `${Math.round(v)}%`);
+function shiftRow({ k, a, b }, i) {
+  const top = Math.max(a, b, 1) * 1.25, pa = (a / top) * 100, pb = (b / top) * 100;
+  return `<div class="sh" style="--d:${i}"><p class="lbl">${SHIFT_LABEL[k]}</p><div class="trk"><i class="bar" style="left:${Math.min(pa, pb)}%;width:${Math.abs(pb - pa)}%"></i><i class="from" style="left:${pa}%"></i><i class="to" style="left:${pb}%"></i></div><p class="lbl">${shiftVal(k, a)} → ${shiftVal(k, b)}</p></div>`;
+}
+const evQuote = (q, when, heat) => (q?.text ? `<div><p class="lbl">${when}${q.meta ? ` · ${esc(q.meta)}` : ""}</p><p class="qq" data-heat="${heat}" style="--fs:${fit(q.text, [[40, 6.6], [80, 5.4], [Infinity, 4.6]])}cqw">“${esc(q.text)}”</p></div>` : "");
+
+// Receipts: a quote pinned to the field and marked up like a crit, numbered notes underneath, the heat pooling under
+// the words that gave you away. Anything with `data-heat` is measured each frame so the heat follows it as it settles.
+const receipts = (P.receipts ?? []).filter((r) => r?.text).slice(0, 6);
+function markUp(r) {
+  const spans = (r.marks ?? []).map((m, i) => ({ i, at: m?.text ? r.text.indexOf(m.text) : -1, len: m?.text?.length ?? 0 })).filter((m) => m.at >= 0).sort((a, b) => a.at - b.at);
+  let out = "", pos = 0;
+  for (const m of spans) {
+    if (m.at < pos) continue;
+    out += `${esc(r.text.slice(pos, m.at))}<span class="hl" data-heat="1">${esc(r.text.slice(m.at, m.at + m.len))}</span><sup class="hn">${pad(m.i + 1)}</sup>`;
+    pos = m.at + m.len;
+  }
+  return out + esc(r.text.slice(pos));
+}
+const rxSpots = [];
+function receiptTick(el) {
+  const st = stage.getBoundingClientRect();
+  rxSpots[cur] = [...el.querySelectorAll("[data-heat]")].map((h) => {
+    const r = h.getBoundingClientRect();
+    return { x: (r.left + r.width / 2 - st.left) / st.width, y: (r.top + r.height / 2 - st.top) / st.height, w: r.width / st.width, k: +h.dataset.heat };
+  });
+}
+const receiptLayout = (seed) => {
+  const base = wander(seed, 4);
+  return (age) => [
+    // Dark mode deepens the quiet end of the field, so the backdrop runs warmer to keep the black type readable.
+    ...base(age).map((b) => ({ ...b, w: b.w * (DARK ? 0.9 : 0.55) })),
+    ...(rxSpots[cur] ?? []).map((m, k) => ({ x: fromStage(m.x), y: fromStage(m.y), r: Math.min(0.2, 0.07 + m.w * 0.3), w: 1.2 * m.k * easeOut((age - 0.5 - k * 0.3) / 0.8), p: k ? 0 : 1 })),
+  ];
+};
 
 // How far a 0..100 reading leans, in words, pointing at the side it leans to.
 function leanWord(v) {
@@ -964,6 +1254,14 @@ const FINAL_PALS = {
   cool: ["mint", "frost", "abyss", "cobalt", "lagoon", "lilac"],
   electric: ["flare", "ember", "infra", "orchid", "rose"],
 };
+// The reveal names them: "Moby, the giddy feel director". Title-case words drop to lower case; acronyms stay.
+const title = (() => {
+  const name = String(P.archetype?.name ?? "").trim();
+  if (!D.name || !name) return name;
+  const words = name.split(/\s+/).map((w) => (/^[A-Z][a-z'’-]*$/.test(w) ? w.toLowerCase() : w));
+  if (!/^(the|a|an)$/i.test(words[0])) words.unshift("the");
+  return `${D.name}, ${words.join(" ")}`;
+})();
 const finalPal = ((list) => list[[...`${who}${P.archetype?.name}${S.totals.lastDate}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % list.length])(FINAL_PALS[LOOK.mood] ?? FINAL_PALS.mixed);
 
 // ---------- slides ----------
@@ -986,7 +1284,7 @@ const slides = [
   {
     skip: !tells.length,
     card: [4, 4], pal: "bloom", sheet: 46, fg: "#161616", still: true, live: tellLayout, field: () => tellLayout(0), extra: tellLayer,
-    top: () => [hud("01", "Tells"), `<p class="micro" style="opacity:0.7">What your writing gives away</p>`],
+    top: () => [hud("Tells"), `<p class="micro" style="opacity:0.7">What your writing gives away</p>`],
     bottom: () => {
       const fs = fit(tells.map((t) => t.label + t.note).join(""), [[260, 3.5], [360, 3.2], [Infinity, 2.9]]);
       return [
@@ -996,12 +1294,22 @@ const slides = [
     },
   },
   {
-    card: [4, 4, "top"], pal: "glacier", pals: ["glacier", "lilac"], sheet: 48, fg: "#161616", still: true, live: planetLayout, field: () => planetLayout(0), extra: planetLayer,
-    top: () => [hud("02", "Routing")],
+    card: [4, 4, "top"], pal: "glacier", sheet: 48, fg: "#161616", still: true,
+    // Older data has no per-day split by agent, so it gets the nested circles instead of lines over time.
+    ...(routeSeries
+      ? { pals: ["glacier", "lilac", "rose", "lime"].slice(0, agents.length), live: routeLayout, field: () => routeLayout(0), bareY: () => 0.5, extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: routeTick }
+      : { pals: ["glacier", "lilac"], live: planetLayout, field: () => planetLayout(0), extra: planetLayer }),
+    top: () => [
+      hud("Routing"),
+      ...(routeSeries ? [
+        `<p class="micro" style="opacity:0.7">Prompts a week, by agent</p>`,
+        `<div class="fp-key">${agents.map(([k, v], a) => `<span><i class="${ROUTE_KEY[a % 4]}"></i>${esc(SOURCE_LABEL[k] ?? k)} ${Math.round((v.prompts / total) * 100)}%</span>`).join("")}</div>`,
+      ] : []),
+    ],
     bottom: () => [
       head("Agents in rotation"),
       `<p class="lbl">${SOURCE_LABEL[sources[0][0]] ?? sources[0][0]} got</p>`,
-      bigNum(String(Math.round((sources[0][1].prompts / total) * 100)), "%", 24, "blend"),
+      bigNum(String(Math.round((sources[0][1].prompts / total) * 100)), "%", routeSeries ? 16 : 24, "blend"),
       `<p class="micro" style="opacity:0.7">${esc(sources.map(([, v]) => v.models?.[0]?.name).filter(Boolean).join(" · "))}</p>`,
       `<div class="grow"></div>`,
       `<p class="body">${cap("tools", `${SOURCE_LABEL[sources[0][0]]} got most of your attention.`)}</p>`,
@@ -1009,7 +1317,7 @@ const slides = [
   },
   {
     card: [4, 34], pal: "infra", sheet: 38, fg: "#161616", field: ring, still: true, extra: clockLayer,
-    top: () => [hud("03", "Temporal")],
+    top: () => [hud("Temporal")],
     bottom: () => {
       const h = S.time.peakHour;
       return [
@@ -1026,20 +1334,32 @@ const slides = [
     // Its chart already fills whatever room it's given, so expanded leaves it where it is.
     bareY: () => 0.5, extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: cadenceTick,
     top: () => [
-      hud("04", "Cadence"),
+      hud("Cadence"),
       `<p class="micro" style="opacity:0.7">Prompts by day of the week</p>`,
       `<div class="fp-key"><span><i></i>Prompts</span><span><i class="d"></i>Weekend</span><span><i class="h"></i>Heat = how busy</span></div>`,
     ],
     bottom: () => [
-      head("Longest streak"),
-      `<div class="cells">${cell("In a row", `${S.time.longestStreak.length}<span class="sub">days</span>`)}${cell("Favourite day", favDay())}</div>`,
+      head("Rhythm"),
+      `<div class="cells">${cell("Favourite day", favDay())}${cell("Weekends", S.time.weekendPct + "%")}</div>`,
       `<div class="grow"></div>`,
-      `<p class="body">${cap("rhythm", "Some weeks you just couldn't stop.")}</p>`,
+      `<p class="body">${cap("rhythm", "Some days of the week just hit different.")}</p>`,
+    ],
+  },
+  {
+    skip: !S.time.byDay,
+    card: [4, 4], pal: "mint", sheet: 34, fg: "#161616", still: true, live: streakLayout, field: () => streakLayout(0),
+    bareY: () => 0.5, extra: () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas></div>`, tick: streakTick,
+    top: () => [hud("Streak"), `<p class="micro" style="opacity:0.7">Every day since ${monthName(S.totals.firstDate)}, a week to a row</p>`],
+    bottom: () => [
+      head("Longest streak", streak.to === S.totals.lastDate ? "Still going" : ymd(streak.to)),
+      `<div class="cells">${cell("In a row", `${streak.length}<span class="sub">days</span>`)}${cell("Showed up", `${S.totals.activeDays}<span class="sub">of ${gridDays.filter((d) => !d.pre).length}</span>`)}</div>`,
+      `<div class="grow"></div>`,
+      `<p class="body">${cap("streak", "Some weeks you just couldn't stop.")}</p>`,
     ],
   },
   {
     card: [4, 38], pal: "flare", pals: ["orchid", "flare"], sheet: 30, fg: "#161616", still: true, live: synLayout, field: () => synLayout(0), extra: synLayer,
-    top: () => [hud("05", "Syntax"), `<p class="micro" style="opacity:0.7">Prompt length, by area</p>`],
+    top: () => [hud("Syntax"), `<p class="micro" style="opacity:0.7">Prompt length, by area</p>`],
     bottom: () => [
       head("Syntax", `${Math.round(S.style.longestPromptWords / Math.max(1, S.style.medianWords))}× apart`),
       `<div class="cells">${cell("Start lowercase", S.style.lowercaseStartPct + "%")}${cell("Are questions", S.style.questionPct + "%")}</div>`,
@@ -1055,16 +1375,34 @@ const slides = [
       PLOT.top = fromStage(mid - half); PLOT.bottom = fromStage(mid + half);
       return phraseLayer();
     },
-    top: () => [hud("06", "Lexicon"), `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`],
+    top: () => [hud("Lexicon"), `<p class="micro" style="opacity:0.7">Catchphrases, sized by use</p>`],
     bottom: () => [
       `<p class="lbl">Your most-you prompt</p>`,
       `<p class="mostyou">“${esc(mostYou)}”</p>`,
       `<p class="body">${cap("phrases", `Favourite first word: “${esc(S.phrases.topOpeners[0]?.name)}”.`)}</p>`,
     ],
   },
+  ...receipts.map((r, i) => {
+    const letter = "ABCDEF"[i], marks = (r.marks ?? []).filter((m) => m?.note);
+    return {
+      card: [4, 4], pal: ["dawn", "peach", "dusk", "bloom", "infra", "flare"][i], sheet: 30, fg: "#161616", still: true,
+      live: receiptLayout(70 + i * 9), field: () => receiptLayout(70 + i * 9)(0), tick: receiptTick,
+      top: () => [hud("Receipts"), `<p class="micro" style="opacity:0.7">Exhibit ${letter} of ${receipts.length}</p>`],
+      extra: () => `<div class="rx">
+        <p class="lbl">${esc(r.title ?? "Exhibit " + letter)}</p>
+        <p class="qq" style="--fs:${fit(r.text, [[40, 9.6], [80, 7.6], [140, 6.2], [Infinity, 5]])}cqw">“${markUp(r)}”</p>
+        ${marks.length ? `<div class="rx-notes">${(r.marks ?? []).map((m, k) => (m?.note ? `<p><b>${pad(k + 1)}</b><span>${esc(m.note)}</span></p>` : "")).join("")}</div>` : ""}
+      </div>`,
+      bottom: () => [
+        head(`Exhibit ${letter}`, esc(r.meta ?? "")),
+        r.verdict ? `<p class="verdict"><b>Verdict</b><span>${esc(r.verdict)}</span></p>` : "",
+        `<p class="body">${esc(r.take ?? "")}</p>`,
+      ].filter(Boolean),
+    };
+  }),
   {
     card: [4, 4], pal: "flare", pals: ["flare", "cobalt"], sheet: 30, fg: "#161616", still: true, live: mannerLayout, field: () => mannerLayout(0), extra: mannerLayer,
-    top: () => [hud("07", "Protocol"), `<p class="micro" style="opacity:0.7">Manners, sized by count</p>`],
+    top: () => [hud("Protocol"), `<p class="micro" style="opacity:0.7">Manners, sized by count</p>`],
     bottom: () => [
       head("Protocol"),
       `<div class="cells">${cell("Said please", S.style.pleasePct + "%")}${cell("Said thanks", S.style.thanksPct + "%")}</div>`,
@@ -1077,13 +1415,13 @@ const slides = [
     card: [30, 4, "top"], pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
     // The map's extent is its outermost rings.
     centre: () => { const L = projectLayout(0), y = (b, k) => toStage(b.y) + (k * b.r * 1.1) / AR; return [Math.min(...L.map((b) => y(b, -1))), Math.max(...L.map((b) => y(b, 1)))]; },
-    top: () => [hud("08", "Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went</p>`],
+    top: () => [hud("Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went${D.projectsHidden ? "" : " · Tap a name to reveal it"}</p>`],
     bottom: () => [head("Workload", `${projects.length} projects`), `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`],
   },
   ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
     pal: ["bloom", "dusk", "dawn"][i], fg: "#161616",
     sheet: 0, live: wander(40 + i * 7, 5), field: () => wander(40 + i * 7, 5)(0),
-    top: () => [hud(pad(9 + i), `Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
+    top: () => [hud(`Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
     // Three placements: high and left, low and right, centre with the note tucked under.
     extra: () => {
       const at = ["left:6cqw;right:12cqw;top:22%", "left:14cqw;right:6cqw;bottom:15%", "left:6cqw;right:8cqw;top:38%"][i];
@@ -1096,25 +1434,39 @@ const slides = [
     bottom: () => [],
   })),
   {
+    skip: !shifts.length || !EVO?.read,
+    card: [4, 4], pal: "dusk", sheet: 30, fg: "#161616", still: true, live: receiptLayout(140), field: () => receiptLayout(140)(0), tick: receiptTick,
+    top: () => [hud("Evolution"), `<p class="micro" style="opacity:0.7">Your first prompts against your latest</p>`],
+    extra: () => `<div class="ev">
+      ${evQuote(EVO.then, `Then · ${monthName(EV.early.from)}`, 0.6)}
+      <div class="shifts">${shifts.map(shiftRow).join("")}</div>
+      ${evQuote(EVO.now, `Now · ${monthName(EV.recent.to)}`, 1.2)}
+    </div>`,
+    bottom: () => [
+      head(esc(EVO.title ?? "Diagnosis"), `${monthName(EV.early.from)} → ${monthName(EV.recent.to)}`),
+      `<p class="body">${esc(EVO.read)}</p>`,
+    ],
+  },
+  {
     pal: "infra", sheet: 0, fg: "#161616", still: true, live: vibeLayout, field: () => vibeLayout(0), extra: vibeLayer, tick: vibeTick,
-    top: () => [hud("12", "Vibe check"), `<p class="micro" style="opacity:0.7">Where you sit on each dial</p>`],
+    top: () => [hud("Vibe check"), `<p class="micro" style="opacity:0.7">Where you sit on each dial</p>`],
     bottom: () => [],
   },
   {
     // Expanded, CSS re-stacks the dish in the middle of the room, so it doesn't shift.
     card: [4, 4], pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick, bareY: () => 0.5,
-    top: () => [hud("13", "Warning"), labReport()[0]],
+    top: () => [hud("Warning"), labReport()[0]],
     bottom: () => labReport().slice(1),
   },
   {
     pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0), bareY: () => toStage(FP.y),
     extra: () => `<canvas class="fpc" aria-hidden="true"></canvas>`, tick: fingerprintTick,
     top: () => [
-      hud("14", "Classification"),
+      hud("Classification"),
       `<p class="micro" style="opacity:0.7">Prompting fingerprint · 4 dials</p>`,
       `<div class="grow"></div>`,
       `<div class="fp-key"><span><i></i>Your lean</span><span><i class="d"></i>Other side</span><span><i class="o"></i>50 / 75 / 100%</span><span><i class="h"></i>Heat = how strongly</span></div>`,
-      `<h1 class="display" style="font-weight:500;font-size:${fit(P.archetype.name, [[16, 11], [24, 9.4], [Infinity, 8]])}cqw">${esc(P.archetype.name)}</h1>`,
+      `<h1 class="display" style="font-weight:500;font-size:${fit(title, [[16, 11], [24, 9.4], [32, 8], [Infinity, 7]])}cqw">${esc(title)}</h1>`,
       `<p class="body" style="font-size:4.2cqw">${esc(P.archetype.tagline)}</p>`,
       `<p class="body" style="opacity:0.85">${esc(P.archetype.description)}</p>`,
       P.prediction ? `<p class="micro" style="opacity:0.7;margin-top:1cqw">Forecast: ${esc(P.prediction)}</p>` : "",
@@ -1303,7 +1655,7 @@ let rollGen = 0, hotEls = [];
 // Text arrives already on screen as a churn of ASCII symbols that settle into the real words, left to right. Symbols,
 // not letters, so nobody starts reading until it's actually readable.
 const GLYPHS = "!<>-_\\/[]{}=+*^?#%&@$~|:;░▒▓";
-const SCRAMBLE = "h1, .lbl, .micro, .body, .mostyou, .qq, .tells span, .hud span, .ph p, .vpole, .vnote, .lab-legend span, .fp-key span";
+const SCRAMBLE = "h1, .lbl, .micro, .body, .mostyou, .qq, .rx-notes span, .verdict span, .tells span, .hud span, .ph p, .vpole, .vnote, .lab-legend span, .fp-key span";
 const glyphFor = (c) => (/\s/.test(c) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]);
 let scrGen = 0, scrJobs = [];
 function scrambleIn(roots) {
@@ -1318,11 +1670,11 @@ function scrambleIn(roots) {
     const delay = base + revealDelay(el, root), walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
     const nodes = [];
     for (let n; (n = walk.nextNode()); ) if (!seen.has(n) && n.data.trim()) { seen.add(n); nodes.push(n); }
-    // All symbols for a beat, then a quick sweep into words, so nothing is half-readable for long.
-    const len = nodes.reduce((a, n) => a + n.data.length, 0), spread = Math.min(450, 120 + len * 3);
+    // A blink of symbols, then a sweep into words that rushes through the start and eases into the last few letters.
+    const len = nodes.reduce((a, n) => a + n.data.length, 0), spread = Math.min(650, 220 + len * 3);
     let i = 0;
     for (const node of nodes) {
-      const text = node.data, starts = [...text].map(() => now + delay + 550 + (i++ / Math.max(1, len)) * spread + Math.random() * 90);
+      const text = node.data, starts = [...text].map(() => now + delay + 120 + (i++ / Math.max(1, len)) ** 2.2 * spread + Math.random() * 40);
       scrJobs.push({ node, text, chars: [...text], starts, end: Math.max(...starts) });
       node.data = [...text].map(glyphFor).join("");
     }
@@ -1330,7 +1682,7 @@ function scrambleIn(roots) {
   let last = 0;
   const tick = (t) => {
     if (gen !== scrGen) return;
-    if (t - last > 45) {
+    if (t - last > 32) {
       last = t;
       let busy = false;
       for (const j of scrJobs) {
@@ -1520,11 +1872,11 @@ function placeCard(s) {
 }
 function build() {
   measure(); sizeField(); layoutDial();
-  root.innerHTML = slides.map((s) => `
+  root.innerHTML = slides.map((s, i) => (hudNo = i, `
     <section class="slide" style="--sheet:${s.sheet}%;--fg:${s.fg}">
       ${s.extra ? s.extra() : ""}
       <div class="top">${s.top().map(withIndex).join("")}</div>
-    </section>`).join("");
+    </section>`)).join("");
   cbox.innerHTML = slides.map((s) => `<div class="cc">${s.card ? s.bottom().map(withIndex).join("") : ""}</div>`).join("");
   cards = [...cbox.children];
   progress.innerHTML = slides.map(() => "<span></span>").join("");
@@ -1562,6 +1914,13 @@ function go(i, force, keep) {
 }
 
 const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
+// The tap zones cover the slide, so a tap on a hidden name is caught here before it turns the page.
+document.getElementById("nav").addEventListener("click", (e) => {
+  // Labels let taps through to the page, so hit-test the names by hand, with a little slack around each.
+  const pad = stage.clientWidth * 0.02;
+  const r = [...els[cur].querySelectorAll(".redact")].find((n) => { const b = n.getBoundingClientRect(); return e.clientX > b.left - pad && e.clientX < b.right + pad && e.clientY > b.top - pad && e.clientY < b.bottom + pad; });
+  if (r) { e.stopImmediatePropagation(); reveal(r); }
+}, true);
 prevBtn.onclick = () => go(cur - 1);
 nextBtn.onclick = () => go(cur + 1);
 addEventListener("keydown", (e) => {
@@ -1622,13 +1981,24 @@ const dock = document.getElementById("dock"), acts = document.getElementById("ac
 const expandBtn = dock.querySelector('[data-act="expand"]'), restartBtn = dock.querySelector('[data-act="restart"]');
 expandBtn.onclick = (e) => { e.stopPropagation(); setBare(!bare); };
 restartBtn.onclick = (e) => { e.stopPropagation(); go(0); };
+const themeBtn = dock.querySelector('[data-act="theme"]');
+themeBtn.setAttribute("aria-label", DARK ? "Switch to light mode" : "Switch to dark mode");
+themeBtn.onclick = (e) => {
+  e.stopPropagation();
+  const next = DARK ? "light" : "dark";
+  const fallback = baseMode === "auto" ? (darkQuery.matches ? "dark" : "light") : baseMode;
+  try { next === fallback ? store.removeItem(MODE_KEY) : store.setItem(MODE_KEY, next); } catch {}
+  location.hash = cur;
+  location.reload();
+};
 progress.addEventListener("click", (e) => { const i = bars.indexOf(e.target); if (i >= 0) { e.stopPropagation(); go(i); } });
 let shotLib = null, shot = null, sayTimer;
 async function snapshot() {
   shotLib ??= import("https://cdn.jsdelivr.net/npm/modern-screenshot@4/+esm");
   const { domToBlob } = await shotLib, scale = 1080 / stage.clientWidth;
-  const skip = new Set([dock, document.getElementById("nav"), progress]);
-  return domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } });
+  const skip = new Set([dock, document.getElementById("nav"), progress]), restore = hideNames();
+  try { return await domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } }); }
+  finally { restore(); }
 }
 const shotName = () => `how-i-ai-${String(cur + 1).padStart(2, "0")}.png`;
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.png", { type: "image/png" })] });
@@ -1652,7 +2022,13 @@ async function copyText(text) {
 }
 // The page as it was written, before any slide was built: an iframe can carry the whole thing with no server. Plain
 // ASCII, so it reads right on a host page whatever its charset.
-const embedCode = () => `<iframe title="How I AI - Wrapped" style="width:100%;max-width:420px;aspect-ratio:9/16;border:0" srcdoc="${SOURCE.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/[^\x00-\x7f]/gu, (c) => `&#${c.codePointAt(0)};`)}"></iframe>`;
+// The embed travels to other people's pages, so its repo names are swapped for their symbols before it leaves.
+const embedSource = () => {
+  const data = { ...D, projectsHidden: true, stats: { ...S, projects: S.projects.map((p) => ({ ...p, name: disguise(p.name) })) } };
+  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  return SOURCE.replace(/(<script id="wrapped-data" type="application\/json">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json + b);
+};
+const embedCode = () => `<iframe title="How I AI - Wrapped" style="width:100%;max-width:420px;aspect-ratio:9/16;border:0" srcdoc="${embedSource().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/[^\x00-\x7f]/gu, (c) => `&#${c.codePointAt(0)};`)}"></iframe>`;
 // Already inside someone's page, there's nothing to embed.
 acts.querySelector('[data-act="embed"]').hidden = window.self !== window.top;
 

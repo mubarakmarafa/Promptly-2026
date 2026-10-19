@@ -45,18 +45,19 @@ Requires Node 18+, and Node 22.5+ to include Cursor history.
 ## How it works
 
 1. `scripts/extract.mjs` reads your history locally and computes the stats: when you prompt, how long your prompts are, your catchphrases, your manners, your top projects. It redacts secrets, emails and paths, then saves the stats plus a small sample of prompts to a temp file. It takes a few seconds and has no dependencies.
-2. Your agent reads that file and writes your personality: an archetype, three tells (what your writing gives away), captions, a roast, and three greatest-hits quotes.
-3. `scripts/render.mjs` puts it all into a single HTML file on your Desktop: a live colour field that morphs between slides, with your stats drawn as pictures (a star chart of your agents, a thermal clock, a receipt of your most-typed replies, a trait fingerprint). Every slide has buttons to share or save it as an image, copy an embed snippet for a portfolio, show just the picture, or start again; tap the progress bar to jump to any slide.
+2. Your agent reads that file, runs a few more queries against your history to check its hunches, and writes your personality: an archetype, three tells (what your writing gives away), captions, a roast, three greatest-hits quotes, a few receipts (prompts of yours marked up like a design crit, with a verdict), and a read on how your prompting changed from your first months to now. Every number in its writing is filled in by the scripts from your real data; the page won't render if the agent made one up.
+3. `scripts/render.mjs` puts it all into a single HTML file on your Desktop: a live colour field that morphs between slides, with your stats drawn as pictures (your agents over time, a thermal clock, a calendar of every day you showed up, a trait fingerprint), plus a few of your own prompts marked up and roasted. Every slide has buttons to share or save it as an image, copy an embed snippet for a portfolio, show just the picture, switch between light and dark, or start again; tap the progress bar to jump to any slide. If you have Vercel, Netlify, Cloudflare or the GitHub CLI logged in, the agent offers to publish it there once you're happy, and only does it when you say so.
 
-Before it starts, it asks what to call you, what you do, and which colours you like (warm, cool, electric or a mix). Light and dark mode follow your device. Your personality type comes from how you write (what you care about, how you treat your agents, how you handle bugs), not from the commands you repeat most.
+Before it starts, it asks what to call you, what you do, and which colours you like (warm, cool, electric or a mix). Light and dark mode follow your device until you switch them on the page. Your personality type comes from how you write (what you care about, how you treat your agents, how you handle bugs), not from the commands you repeat most.
 
 Design by [Chelsea](https://github.com/Chelsealuna).
 
 ## Privacy
 
-- Nothing leaves your machine except what your own agent already sends to its model: the stats and a sample of about 150 redacted prompts.
+- Nothing leaves your machine except what your own agent already sends to its model: the stats, a sample of redacted prompts (about 200, including the early and recent ones it compares), and the redacted examples from any queries it runs. Publishing, below, is the one exception, and only when you ask.
 - The HTML page contains only aggregate stats and the quotes you approve. The raw sample stays in your temp folder.
-- The page loads its fonts from Google Fonts. Sharing or saving a slide also downloads a small screenshot library (modern-screenshot, from jsDelivr) to capture that slide; the capture happens in your browser and nothing is uploaded. The embed snippet carries the whole page, so anything on it goes wherever you paste it.
+- The page loads its fonts from Google Fonts. Sharing or saving a slide also downloads a small screenshot library (modern-screenshot, from jsDelivr) to capture that slide; the capture happens in your browser and nothing is uploaded. Repo names show as symbols until you tap one, and screenshots, embeds and published pages always keep them hidden. Apart from that, the embed snippet carries the whole page, so anything on it goes wherever you paste it.
+- Publishing is opt-in: nothing goes online unless you tell the agent to, and it uses your own Vercel, Netlify, Cloudflare or GitHub account. A published page is public to anyone with the link.
 - Your agent asks before anything goes on the page that you might not want to share. Pass `--hide-projects` to `render.mjs` to leave out project names.
 
 ## Where it looks

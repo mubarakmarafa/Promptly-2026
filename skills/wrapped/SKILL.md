@@ -62,14 +62,38 @@ Read the JSON file. Key fields:
 - `shortSample`: 30 short prompts and commands. Useful for quotes and the roast, not for personality.
 - `moments`: the longest prompt, the latest-night prompt, the first prompt, the angriest and the politest.
 - `userFirstName`: the user's first name if the machine knows it. Use it for `name` only if they didn't answer question 1.
+- `eras`: their first and latest sixth of prompts, each with its dates, the same style numbers (`medianWords`, `hedgePct`, `pleasePct`, `questionPct` and so on) and its own 25-prompt `sample`. Compare the two for the evolution slide.
 
-Read the whole `sample` before writing anything.
+Read the whole `sample` and both `eras` samples before writing anything.
+
+#### Dig deeper with queries
+
+The samples are a spread, not everything. When you have a hunch (they hedge a lot, they laugh at their own bugs, they changed tools in the summer), check it against the whole history instead of guessing. The same script answers questions:
+
+```bash
+node scripts/extract.mjs --grep "maybe|i wonder|kind of" --limit 15
+node scripts/extract.mjs --grep "haha" --from 2026-09-01
+node scripts/extract.mjs --from 2026-05-01 --to 2026-05-31 --limit 20
+```
+
+Each prints `{ total, pct, byMonth, matches }`: how many prompts match, what share of all prompts that is, when, and a spread of redacted examples. The counts are saved to `facts.json` next to the data file, so you can put them on the page (see Numbers below). Run a few: this is the best way to find receipts and to back up a tell. Never paste what it prints back to the user.
+
+#### Numbers
+
+Testers notice when a number is off, so every number you write must come from the script, never from your own counting or estimating. Don't type digits for a figure; write a placeholder and the render fills in the real value:
+
+- `{{path}}` for anything in the data file, by its path: `{{time.longestStreak.length}}`, `{{style.pleasePct}}%`, `{{totals.prompts}}`, `{{time.busiestDay.prompts}}`, `{{phrases.catchphrases.0.count}}`. Add `|k` to round to thousands: `{{totals.words|k}}` gives "148k".
+- `{{q:"pattern"}}` for how many prompts match a query you ran with `--grep "pattern"`, or `{{q:"pattern"|pct}}` for that as a share of all prompts. Use the exact pattern you ran.
+
+So: "You asked for a server restart {{q:"(restart|refresh).*server"}} times", not "about 90 times".
+
+The render checks this. Any digit in your writing that isn't a placeholder and doesn't match a real figure (times, dates, years and anything in quotes are fine) stops the render with a list of what to fix. Replace it with a placeholder, run the query that backs it, or reword without it. Verbatim prompts in `text` aren't checked.
 
 ### 3. Write the persona
 
 There are two layers, and they come from different evidence:
 
-- **Habits:** what they do a lot. Frequent phrases, commands, hours, streaks. This feeds the captions, the roast and the quotes. "You asked for a server restart 40 times" is a great roast line.
+- **Habits:** what they do a lot. Frequent phrases, commands, hours, streaks. This feeds the captions, the roast and the quotes. "You keep asking for a server restart" is a great roast line.
 - **Personality:** who they are when they write. This feeds the archetype and the traits. It comes from *how* they say things, not *how often*.
 
 #### 3a. Profile first, in your head
@@ -88,7 +112,8 @@ The archetype comes from the profile. Rules:
 - **Never build it from a repeated command or phrase.** If they say "restart the server" constantly, that belongs in the roast, not in their name. Test: would the archetype still be true if they had never typed their single most common command or phrase?
 - **A friend should recognise them.** It should describe a disposition someone who knows them would nod at, like "The Hype-Man Art Director" (generous praise plus an exacting eye) or "The Patient Professor" (explains the why, never loses their cool).
 - **Specific, not generic.** "The Efficient Coder" or "The Innovator" could be anyone: start again.
-- **No made-up numbers.** Only quote figures that are in the stats. "Half your messages start with…" is a guess unless the data says so; describe the habit without inventing a count.
+- **No made-up numbers.** Only figures the script produced, written as placeholders (see Numbers above). "Half your messages start with…" is a guess unless a query says so.
+- **Reads after their name.** The reveal shows it as "Moby, the hype-man art director", so write it as "The …" in title case and keep it to a few words.
 - **Stable.** Run it twice on the same person and you should land on the same idea. Lean on the traits that show up across the whole time range, not in one week.
 
 Write `persona.json` in the same directory as the data file:
@@ -107,12 +132,29 @@ Write `persona.json` in the same directory as the data file:
     { "label": "Thinks out loud", "note": "One or two sentences, with a phrase or two of theirs as evidence" }
   ],
   "captions": {
-    "intro": "...", "tools": "...", "clock": "...", "rhythm": "...",
+    "intro": "...", "tools": "...", "clock": "...", "rhythm": "...", "streak": "...",
     "style": "...", "phrases": "...", "manners": "...", "projects": "..."
   },
   "quotes": [
     { "title": "2-3 word label", "text": "verbatim prompt, trimmed if needed", "meta": "Tool · Month, time", "caption": "your one-line reaction" }
   ],
+  "receipts": [
+    {
+      "title": "2-3 word label",
+      "text": "verbatim prompt, trimmed to the funny part",
+      "meta": "Tool · Month, time",
+      "marks": [{ "text": "exact words from text", "note": "short margin note" }],
+      "verdict": "1-3 words",
+      "take": "2-3 sentences of analysis or roast"
+    }
+  ],
+  "evolution": {
+    "title": "2-4 words naming the change",
+    "then": { "text": "a short early prompt, verbatim", "meta": "Tool" },
+    "now": { "text": "a short recent prompt, verbatim", "meta": "Tool" },
+    "shifts": ["medianWords", "hedgePct", "pleasePct"],
+    "read": "2-3 sentences on how and why their prompting changed"
+  },
   "traits": [
     { "left": "Collaborator", "right": "Commander", "value": 0, "note": "one line of evidence" }
   ],
@@ -131,10 +173,14 @@ What makes it good:
   3. Explorer / Executor: do they wander into new ideas or drive the plan to done?
   4. Steady / Fired up: is their tone even, or does it swing with every win and bug?
 - **Tells:** exactly 3, and they get their own slide near the start. This is the heart of the page: a read on *how* they write, like a handwriting analyst would give, that makes them think "huh, I do do that". Things like hedging before a strong opinion, narrating their feelings to the agent, apologising to it, praising it like a colleague, getting terse when tired, explaining the why. `label` is 2-4 words in sentence case; `note` is under 30 words with a short phrase of theirs as evidence. Draw them from the profile in 3a, never from a count, and don't use numbers at all.
-- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `tools` = split between agents, `clock` = hour of day, `rhythm` = streak and favourite weekday, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
+- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `tools` = split between agents, `clock` = hour of day, `rhythm` = favourite weekday and weekends, `streak` = the calendar of days they showed up and their longest run, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
 - **Quotes:** exactly 3, from `sample`, `shortSample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm. Aim for at least one that shows their personality, not just a habit.
+- **Receipts:** 4 or 5, each its own slide. This is where the page reads them most closely, so give it the most care. Pick prompts that are funny, unusual or very them, different from the 3 quotes, and trim each to the part that lands (under 25 words, their spelling and casing kept). Then mark it up like a design crit: 1-3 `marks`, each an exact run of words from `text` with a `note` under 8 words saying what it gives away ("three verys is now a unit"). The `take` is your read: what the prompt says about them, a roast, or both. The `verdict` is a stamp ("Triple hedge", "Hex by vibes"). Never invent a count here; this is pure reading.
+- **Evolution:** compare `eras.early` with `eras.recent`, numbers and samples both, and write a light psychoanalysis of how they changed: what they used to ask for, what they ask for now, and what that says about them (more confident, more delegating, more tired, more playful). `then` and `now` are one short prompt from each sample (under 20 words) that shows the change best. `shifts` picks the 3 numbers that tell the story, from `medianWords`, `questionPct`, `pleasePct`, `hedgePct`, `laughPct`, `exclaimPct`, `praisePct`, `frustrationPct`, `lowercaseStartPct` and `opsPct`; leave it out and the page picks the biggest changes. The `read` should agree with those numbers. Skip `evolution` if the two eras look the same.
 - **Roast:** affectionate, like a friend who's read all their messages. Habits are fair game here. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
 - **Compliment:** sincere and specific, about who they are as a collaborator.
+- **Readings over numbers.** The page already shows the stats. Your words should say what they mean about the person, not restate them. When a number does make the joke, it goes in as a placeholder.
+- **Never name a project or repo** in anything you write: captions, tells, quotes, receipts, roast. The page hides repo names behind symbols until the user taps them, and a name in your text would give it away. Say "the canvas prototype" or "your side project" instead, and leave out quotes that only work with the name.
 - **Tone:** playful and warm. No corporate words ("leverage", "journey", "landscape"). Write like a person, not a chatbot.
 
 ### 4. Render
@@ -147,6 +193,8 @@ The colours come from `look` in `persona.json`. `--mood` and `--mode` (`auto`, `
 
 This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
 
+If it stops with a list of numbers it can't trace to the data, fix each one as it says and run it again. Don't reach for `--skip-number-check`; it exists for debugging the template, not for shipping a page.
+
 Then open it: `open <path>` on macOS, `xdg-open` on Linux.
 
 ### 5. Hand it over
@@ -155,4 +203,24 @@ Tell the user, briefly:
 
 - Where the file is, and that they tap or use the arrow keys to move through it. Every slide has share, save and embed buttons along the bottom; embed copies an iframe snippet they can drop into a portfolio.
 - Their archetype name, to tease the reveal without spoiling the whole thing.
-- The 3 quotes and the top project names that appear in the page. Ask if they want any swapped out, the projects hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
+- The 3 quotes, the receipts and the top project names (hidden on the page until tapped, and always hidden in screenshots and embeds) that appear in the page. Ask if they want any swapped out, the projects hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
+
+Before you hand over, check quietly whether they could publish it:
+
+```bash
+node scripts/deploy.mjs --detect
+```
+
+It lists Vercel, Netlify, Cloudflare Pages and GitHub Pages, whether each is installed and logged in, and the account. If any are ready, end the hand-over by offering to publish the page there once they're happy with it, naming the host and account ("You're logged in to Vercel as moby. Want me to put this online?"). If none are ready, say they can share slides with the buttons, and don't push them to set anything up.
+
+### 6. Publish, only when they say so
+
+Publishing puts the page on the public internet, so only do it after the user has seen the page, made any changes, and clearly said yes to this host. Asking for changes isn't a yes.
+
+```bash
+node scripts/deploy.mjs --to vercel --file <page.html>
+```
+
+`--to` is `vercel`, `netlify`, `cloudflare` or `github`. It publishes to production under the name `how-i-ai-wrapped` (change it with `--name`), so publishing again later updates the same address. `--preview` gives a Vercel or Netlify preview URL instead; Vercel previews are often behind a login, so use production for something they want to share. The script swaps repo names for symbols before anything is uploaded, so the public page never carries them, even in its source.
+
+It prints the URL. Give it to them, and remind them that anyone with the link can see it and that they can take it down from their host's dashboard. If the deploy fails, show the error in a sentence and leave it there; don't try other hosts without asking.
