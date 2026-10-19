@@ -312,17 +312,17 @@
   :root.dark .cc .mostyou { color: color-mix(in srgb, var(--c3) 60%, #FFFFFF); }
 
   /* The dock along the bottom of every slide: start again on the left, share, save or embed in the middle, and show just
-     the picture on the right. Dressed like the card. */
+     the picture on the right. Bare icons straight on the field, no box behind them. */
   .dock { position: absolute; z-index: 11; left: 4cqw; right: 4cqw; bottom: 3cqw; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; pointer-events: none; --ink: #161616; --paper: #FBFAF7; }
   :root.dark .dock { --ink: #F3F2EE; --paper: #111; }
-  .dock button { pointer-events: auto; width: 8.4cqw; height: 8.4cqw; display: grid; place-items: center; appearance: none; border: 0; cursor: pointer; background: var(--paper); color: var(--ink);
-    box-shadow: inset 0 0 0 1px rgb(22 22 22 / 0.1), 0 1cqw 3cqw -1.5cqw rgb(22 22 22 / 0.25); transition: transform 140ms var(--ease-out), opacity 300ms, visibility 0s; }
-  :root.dark .dock button { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16); }
+  .dock button { pointer-events: auto; width: 8.4cqw; height: 8.4cqw; display: grid; place-items: center; appearance: none; border: 0; cursor: pointer; background: transparent; color: var(--ink);
+    transition: transform 140ms var(--ease-out), opacity 300ms, visibility 0s; }
+  .dock button:hover { opacity: 0.6; }
   .dock button:active { transform: scale(0.94); }
   .dock button:focus-visible { outline: 0.5cqw solid var(--c3); outline-offset: 0.5cqw; }
   /* Hidden but holding its place, so the middle group never slides sideways. */
   .dock button[hidden] { display: grid; visibility: hidden; opacity: 0; transition: opacity 300ms, visibility 0s 300ms; }
-  .dock svg { width: 3.6cqw; height: 3.6cqw; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
+  .dock svg { width: 4.4cqw; height: 4.4cqw; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
   .dock .left { justify-self: start; display: flex; gap: 1.6cqw; }
   .solo .sun, :root.dark .solo .moon { display: none; }
   :root.dark .solo .sun { display: inline; }
@@ -330,8 +330,6 @@
   .solo .in, .solo[aria-pressed="true"] .out { display: none; }
   .solo[aria-pressed="true"] .in { display: inline; }
   .acts { position: relative; display: flex; gap: 1.6cqw; }
-  .acts::before, .acts::after { content: ""; position: absolute; width: 1.4cqw; height: 1.4cqw; translate: -50% -50%; background: var(--c2); }
-  .acts::before { left: 0; top: 0; } .acts::after { left: 100%; top: 100%; background: var(--c4); }
   .acts-say { position: absolute; left: 50%; bottom: calc(100% + 2cqw); translate: -50% 0; white-space: nowrap; padding: 1.6cqw 2.4cqw; background: var(--ink); color: var(--paper);
     font: 500 2cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0; transition: opacity 200ms; pointer-events: none; }
   .acts-say.on { opacity: 1; }
