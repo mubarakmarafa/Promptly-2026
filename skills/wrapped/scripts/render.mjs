@@ -110,7 +110,7 @@ if (numberProblems.length && !args["skip-number-check"]) {
 const words = (s) => String(s ?? "").split(/\s+/).filter(Boolean).length;
 const LIMITS = {
   "archetype.name": [36, "chars"], "archetype.tagline": [14], "archetype.description": [60], "captions.*": [30],
-  "tells[].label": [4], "tells[].note": [30], "quotes[].text": [30], "quotes[].caption": [20],
+  "tells[].label": [4], "tells[].note": [25], "quotes[].text": [30], "quotes[].caption": [20],
   "receipts[].text": [25], "receipts[].marks[].note": [8], "receipts[].verdict": [3], "receipts[].take": [50],
   "evolution.then.text": [20], "evolution.now.text": [20], "evolution.read": [55],
   roast: [60], compliment: [45], prediction: [20],
