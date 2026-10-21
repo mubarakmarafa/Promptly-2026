@@ -29,7 +29,6 @@ const persona = JSON.parse(fs.readFileSync(personaPath, "utf8"));
 const problems = [];
 if (!persona.archetype?.name) problems.push("archetype.name is required");
 if (!persona.archetype?.tagline) problems.push("archetype.tagline is required");
-if (!persona.roast) problems.push("roast is required");
 if (!Array.isArray(persona.traits) || persona.traits.length < 3) problems.push("traits needs 3-4 entries");
 if (!Array.isArray(persona.quotes) || persona.quotes.length < 1) problems.push("quotes needs 1-3 entries");
 if (problems.length) {
@@ -113,7 +112,8 @@ const LIMITS = {
   "tells[].label": [4], "tells[].note": [25], "quotes[].text": [30], "quotes[].caption": [20],
   "receipts[].text": [25], "receipts[].marks[].note": [8], "receipts[].verdict": [3], "receipts[].take": [50],
   "evolution.then.text": [20], "evolution.now.text": [20], "evolution.read": [55],
-  roast: [60], compliment: [45], prediction: [20],
+  "doomsday.title": [6], "doomsday.read": [50], "doomsday.sentence": [12],
+  prediction: [20],
 };
 const strings = (v, where = "") => typeof v === "string" ? [[where, v]]
   : Array.isArray(v) ? v.flatMap((x, i) => strings(x, `${where}[${i}]`))
