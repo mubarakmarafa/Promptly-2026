@@ -124,9 +124,9 @@ Write `persona.json` in the same directory as the data file:
   "role": "Their job in a few lowercase words, e.g. product designer, or null",
   "look": { "mood": "mixed | warm | cool | electric" },
   "archetype": {
-    "name": "The ___ ___ (2-4 words)",
-    "tagline": "A short line in their voice that captures their disposition",
-    "description": "2-3 sentences about who they are as a prompter, with specific evidence of how they write. Not a list of stats."
+    "name": "The ___ ___ (2-4 words, 36 characters at most)",
+    "tagline": "A short line in their voice that captures their disposition (under 14 words)",
+    "description": "2-3 sentences (under 60 words) about who they are as a prompter, with specific evidence of how they write. Not a list of stats."
   },
   "tells": [
     { "label": "Thinks out loud", "note": "One or two sentences, with a phrase or two of theirs as evidence" }
@@ -136,7 +136,7 @@ Write `persona.json` in the same directory as the data file:
     "style": "...", "phrases": "...", "manners": "...", "projects": "..."
   },
   "quotes": [
-    { "title": "2-3 word label", "text": "verbatim prompt, trimmed if needed", "meta": "Tool · Month, time", "caption": "your one-line reaction" }
+    { "title": "2-3 word label", "text": "verbatim prompt, trimmed if needed", "meta": "Tool · Month, time", "caption": "your one-line reaction (under 20 words)" }
   ],
   "receipts": [
     {
@@ -145,7 +145,7 @@ Write `persona.json` in the same directory as the data file:
       "meta": "Tool · Month, time",
       "marks": [{ "text": "exact words from text", "note": "short margin note" }],
       "verdict": "1-3 words",
-      "take": "2-3 sentences of analysis or roast"
+      "take": "2-3 sentences of analysis or roast (under 50 words)"
     }
   ],
   "evolution": {
@@ -153,14 +153,14 @@ Write `persona.json` in the same directory as the data file:
     "then": { "text": "a short early prompt, verbatim", "meta": "Tool" },
     "now": { "text": "a short recent prompt, verbatim", "meta": "Tool" },
     "shifts": ["medianWords", "hedgePct", "pleasePct"],
-    "read": "2-3 sentences on how and why their prompting changed"
+    "read": "2-3 sentences (under 55 words) on how and why their prompting changed"
   },
   "traits": [
     { "left": "Collaborator", "right": "Commander", "value": 0, "note": "one line of evidence" }
   ],
-  "roast": "2-3 sentences",
-  "compliment": "1-2 sentences",
-  "prediction": "One line about their next year of prompting"
+  "roast": "2-3 sentences (under 60 words)",
+  "compliment": "1-2 sentences (under 45 words)",
+  "prediction": "One line about their next year of prompting (under 20 words)"
 }
 ```
 
@@ -193,7 +193,7 @@ The colours come from `look` in `persona.json`. `--mood` and `--mode` (`auto`, `
 
 This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
 
-If it stops with a list of numbers it can't trace to the data, fix each one as it says and run it again. Don't reach for `--skip-number-check`; it exists for debugging the template, not for shipping a page.
+If it stops with a list of numbers it can't trace to the data, fix each one as it says and run it again. Don't reach for `--skip-number-check`; it exists for debugging the template, not for shipping a page. The same goes for copy that's too long for its slide: it lists each field over its limit, so trim those and run it again rather than passing `--skip-length-check`.
 
 Then open it: `open <path>` on macOS, `xdg-open` on Linux.
 

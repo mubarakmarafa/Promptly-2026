@@ -116,6 +116,8 @@
   .orb { align-items: center; color: #fff; text-shadow: 0 0 2cqw rgb(60 20 80 / 0.25); }
   .orb .ring { position: absolute; left: 50%; top: 50%; width: var(--d); height: var(--d); translate: -50% -50%; border: 1px solid rgb(255 255 255 / 0.85); border-radius: 50%; }
   .orb b { padding: 0; background: none; color: inherit; }
+  /* Tells can run to four words, so their names wrap inside the ring instead of running past it. */
+  .orb.wrap b { width: max-content; max-width: calc(var(--d) * 0.86); white-space: normal; text-wrap: balance; text-align: center; line-height: 1.02; }
   .orb i { padding: 0; margin-top: 0.8cqw; background: none; color: rgb(255 255 255 / 0.85); font-size: 1.6cqw; }
 
   /* Cover: ASCII on three depth planes behind the title; the far ones are softer */
@@ -172,6 +174,19 @@
   .fp-key i.d { border-top: 1px dashed currentColor; opacity: 0.6; }
   .fp-key i.o { width: 2.2cqw; height: 2.2cqw; border: 1px dashed currentColor; border-radius: 50%; opacity: 0.6; }
   .fp-key i.h { width: 2.4cqw; height: 2.4cqw; border: 0; border-radius: 50%; background: radial-gradient(var(--c4), var(--c3) 45%, transparent 72%); }
+  .fp-key.one { flex-wrap: nowrap; white-space: nowrap; }
+  /* The archetype's headline wraps plainly, so its first line runs the full width; fitFinal sizes it. */
+  .fp-title { text-wrap: wrap; }
+  .nb { white-space: nowrap; }
+  /* Credits under the forecast. "Get yours" is for people who didn't make the page: published pages, embeds and saves. */
+  .credit { display: flex; justify-content: space-between; align-items: baseline; gap: 3cqw; margin-top: 2.4cqw; padding-top: 2.2cqw; border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    font: 500 1.75cqw/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .credit a { color: inherit; text-decoration: none; transition: opacity 200ms; }
+  .credit .who a { text-decoration: underline 1px color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 0.5cqw; }
+  .credit .repo { opacity: 0.6; }
+  .credit a.on { opacity: 0.6; }
+  .credit .repo.on { opacity: 1; }
+  :root:not(.visitor) .stage:not(.shooting) .credit .repo { display: none; }
 
 
   /* Receipts: a quote marked up like a crit, its numbered notes reading like the lab's legend. Always black, like the
@@ -313,6 +328,13 @@
 
   /* The dock along the bottom of every slide: start again on the left, share, save or embed in the middle, and show just
      the picture on the right. Bare icons straight on the field, no box behind them. */
+  /* Every saved slide carries where it came from, in the dock's spot, since the dock stays out of the picture. The
+     last slide already has its credits. */
+  .byline { position: absolute; z-index: 11; left: 0; right: 0; bottom: 5.4cqw; display: none; justify-content: center; gap: 2cqw; pointer-events: none;
+    font: 500 1.75cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
+  .byline span:last-child { opacity: 0.55; }
+  .stage.shooting .byline { display: flex; }
+  .stage.shooting.last .byline { display: none; }
   .dock { position: absolute; z-index: 11; left: 4cqw; right: 4cqw; bottom: 3cqw; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; pointer-events: none; --ink: #161616; --paper: #FBFAF7; }
   :root.dark .dock { --ink: #F3F2EE; --paper: #111; }
   .dock button { pointer-events: auto; width: 8.4cqw; height: 8.4cqw; display: grid; place-items: center; appearance: none; border: 0; cursor: pointer; background: transparent; color: var(--ink);
@@ -373,6 +395,7 @@
     </div>
     <button class="solo" data-act="expand" aria-label="Show just the picture" aria-pressed="false"><svg viewBox="0 0 24 24"><path class="out" d="M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6"/><path class="in" d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg></button>
   </div>
+  <div class="byline" aria-hidden="true"><span>How I AI · Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/how-i-ai</span></div>
   <div class="grain" id="grain"></div>
 </main>
 
@@ -390,6 +413,8 @@
 const SOURCE = "<!doctype html>\n" + document.documentElement.outerHTML;
 const D = JSON.parse(document.getElementById("wrapped-data").textContent);
 const S = D.stats, P = D.persona;
+// Published pages and embeds arrive with the names hidden: whoever's looking didn't make it.
+if (D.projectsHidden) document.documentElement.classList.add("visitor");
 
 const SOURCE_LABEL = { "claude-code": "Claude Code", codex: "Codex", cursor: "Cursor" };
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -557,7 +582,7 @@ const tellLayout = (age) => tells.map((_, i) => {
   const [x, y, r] = TELL_AT[i], e = easeOut((age - 0.2 - i * 0.25) / 1.2), beat = 1 + 0.05 * e * Math.sin(age * 1.5 + i * 2);
   return { x: fromStage(x), y: fromStage(y), r: (r / 1.1) * (0.3 + 0.7 * e) * beat, w: (1.15 - i * 0.12) * e };
 });
-const tellLayer = () => { const L = tellLayout(99); return `<div class="abs">${tells.map((t, i) => orb(i, L[i], t.label, pad(i + 1), [4.2, 3.6, 3.2][i])).join("")}</div>`; };
+const tellLayer = () => { const L = tellLayout(99); return `<div class="abs">${tells.map((t, i) => orb(i, L[i], t.label, pad(i + 1), [4.2, 3.6, 3.2][i], undefined, " wrap")).join("")}</div>`; };
 
 // Agents: one circle per agent, nested and centred, each its own colour. Areas follow prompt counts, so the
 // biggest agent is the outer circle and a small one is a small disc in the middle.
@@ -798,7 +823,7 @@ function phraseTick(el) {
 }
 
 // A thin white ring the size of a hotspot's glow, with its name and count set inside. It rides its hotspot.
-const orb = (i, at, name, count, size, label = esc(name)) => `<span class="hot orb" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0;--d:${(at.r * 1.1 * 2 * 100).toFixed(1)}cqw"><span class="ring"></span><b style="font-size:${size}cqw">${label}</b><i class="roll">${count}</i></span>`;
+const orb = (i, at, name, count, size, label = esc(name), cls = "") => `<span class="hot orb${cls}" data-b="${i}" style="left:${toStage(at.x) * 100}%;top:${toStage(at.y) * 100}%;opacity:0;--d:${(at.r * 1.1 * 2 * 100).toFixed(1)}cqw"><span class="ring"></span><b style="font-size:${size}cqw">${label}</b><i class="roll">${count}</i></span>`;
 
 // Repo names stay hidden behind symbols until tapped, and go back into hiding for every screenshot and embed. The
 // symbols come from the name itself, so each name keeps its own disguise and length.
@@ -891,7 +916,7 @@ function labTick(el) {
 }
 function labReport() {
   const period = `${monthName(S.totals.firstDate)}–${monthName(S.totals.lastDate)} ${S.totals.lastDate.slice(0, 4)}`;
-  const fs = fit(P.roast + P.compliment, [[520, 3.6], [680, 3.4], [840, 3.1], [Infinity, 2.8]]);
+  const fs = fit(P.roast + P.compliment, [[520, 3.6], [680, 3.4], [840, 3.2], [Infinity, 3]]);
   return [
     `<div class="lab-head">
       <div class="lab-legend">${colonies.map((c, i) => `<p><b>${pad(i + 1)}</b><span>“${esc(c.name)}”</span><i>×${fmt(c.count)}</i></p>`).join("")}</div>
@@ -1260,6 +1285,7 @@ const title = (() => {
   if (!/^(the|a|an)$/i.test(words[0])) words.unshift("the");
   return `${D.name}, ${words.join(" ")}`;
 })();
+const CREDITS = [["Moby", "https://www.callmemoby.design/"], ["Chelsea", "https://chelsealuna.com/"]], REPO = "github.com/mubarakmarafa/how-i-ai";
 const finalPal = ((list) => list[[...`${who}${P.archetype?.name}${S.totals.lastDate}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % list.length])(FINAL_PALS[LOOK.mood] ?? FINAL_PALS.mixed);
 
 // ---------- slides ----------
@@ -1284,7 +1310,7 @@ const slides = [
     card: [4, 4], pal: "bloom", sheet: 46, fg: "#161616", still: true, live: tellLayout, field: () => tellLayout(0), extra: tellLayer,
     top: () => [hud("Tells"), `<p class="micro" style="opacity:0.7">What your writing gives away</p>`],
     bottom: () => {
-      const fs = fit(tells.map((t) => t.label + t.note).join(""), [[260, 3.5], [360, 3.2], [Infinity, 2.9]]);
+      const fs = fit(tells.map((t) => t.label + t.note).join(""), [[260, 3.5], [360, 3.2], [Infinity, 3]]);
       return [
         head("Tells", esc(who)),
         `<div class="tells" style="--fs:${fs}cqw">${tells.map((t, i) => `<p><b>${pad(i + 1)}</b><span><strong>${esc(t.label)}.</strong> ${esc(t.note)}</span></p>`).join("")}</div>`,
@@ -1461,13 +1487,14 @@ const slides = [
     extra: () => `<canvas class="fpc" aria-hidden="true"></canvas>`, tick: fingerprintTick,
     top: () => [
       hud("Classification"),
-      `<p class="micro" style="opacity:0.7">Prompting fingerprint · 4 dials</p>`,
       `<div class="grow"></div>`,
-      `<div class="fp-key"><span><i></i>Your lean</span><span><i class="d"></i>Other side</span><span><i class="o"></i>50 / 75 / 100%</span><span><i class="h"></i>Heat = how strongly</span></div>`,
-      `<h1 class="display" style="font-weight:500;font-size:${fit(title, [[16, 11], [24, 9.4], [32, 8], [Infinity, 7]])}cqw">${esc(title)}</h1>`,
+      // The chart labels its own rings, so the key only explains the lines and the heat.
+      `<div class="fp-key one"><span><i></i>Your lean</span><span><i class="d"></i>Other side</span><span><i class="h"></i>Heat = how strongly</span></div>`,
+      `<h1 class="display fp-title" style="font-weight:500;font-size:7cqw">${esc(title).replace(/\S+-\S+/g, (w) => `<span class="nb">${w}</span>`)}</h1>`,
       `<p class="body" style="font-size:4.2cqw">${esc(P.archetype.tagline)}</p>`,
-      `<p class="body" style="opacity:0.85">${esc(P.archetype.description)}</p>`,
+      `<p class="body fp-desc" style="opacity:0.85">${esc(P.archetype.description)}</p>`,
       P.prediction ? `<p class="micro" style="opacity:0.7;margin-top:1cqw">Forecast: ${esc(P.prediction)}</p>` : "",
+      `<div class="credit"><span class="who">Made by ${CREDITS.map(([name, url]) => `<a href="${url}" target="_blank" rel="noopener">${name}</a>`).join(" &amp; ")}</span><a class="repo" href="https://${REPO}" target="_blank" rel="noopener">Get yours · ${REPO}</a></div>`,
     ],
     bottom: () => [],
   },
@@ -1879,7 +1906,53 @@ function build() {
   cards = [...cbox.children];
   progress.innerHTML = slides.map(() => "<span></span>").join("");
   els = [...root.children]; bars = [...progress.children];
+  glueProse(root, cbox);
+  fitFinal();
 }
+// Short words ride with the next one, and the last two words of a passage stay together, so no line ends on a
+// stranded "a" or "the" and no line is a single word.
+const PROSE = ".body, .qq, .mostyou, .tells span, .rx-notes span, .verdict span, .display";
+const SHORT = /(?<=^|\s)(a|an|the|to|of|in|on|at|by|for|and|or|I)\s+/gi;
+function glueProse(...roots) {
+  for (const r of roots) for (const p of r.querySelectorAll(PROSE)) {
+    const texts = [], walk = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+    while (walk.nextNode()) texts.push(walk.currentNode);
+    texts.forEach((t) => (t.data = t.data.replace(SHORT, "$1 ")));
+    const last = texts.findLast((t) => /\S\s+\S/.test(t.data));
+    if (last) last.data = last.data.replace(/\s+(\S+\s*)$/, " $1");
+  }
+}
+// The last slide's words share the page with the chart. The headline takes the biggest size that keeps it to two
+// lines (three for a long one), so a line runs the full width; then the chart shrinks (its top held in place, down
+// to 80%) to make room for the words. Only if that isn't enough do the headline, then the paragraph, give a little,
+// never below 3cqw: render.mjs keeps the copy short enough that they don't have to.
+const FP0 = { ...FP };
+function fitFinal() {
+  const el = els.find((n) => n.querySelector(".fp-title"));
+  if (!el) return;
+  const h1 = el.querySelector(".fp-title"), key = el.querySelector(".fp-key"), body = el.querySelector(".fp-desc");
+  const W = stage.clientWidth, H = stage.clientHeight, u = W / 100, S = 1.1 * W;
+  // Measure the real words, even mid-scramble: swap them in and back out before anything paints.
+  const live = scrJobs.filter((j) => !j.done && el.contains(j.node)), shown = live.map((j) => j.node.data);
+  live.forEach((j) => (j.node.data = j.text));
+  Object.assign(FP, FP0); body.style.fontSize = "";
+  const chartTop = toStage(FP.y) * H - FP.L * S, gap = 8.6 * u; // the gap clears the bottom pole's chip
+  const fitChart = () => {
+    FP.L = Math.max(FP0.L * 0.8, Math.min(FP0.L, (key.offsetTop - gap - chartTop) / (2 * S)));
+    FP.y = fromStage((chartTop + FP.L * S) / H);
+    return toStage(FP.y) * H + FP.L * S + gap <= key.offsetTop;
+  };
+  const lines = () => Math.round(h1.offsetHeight / (parseFloat(getComputedStyle(h1).fontSize) * 0.92));
+  const sizes = Array.from({ length: 26 }, (_, k) => 11 - k * 0.2), within = (n) => sizes.find((v) => { h1.style.fontSize = `${v}cqw`; return lines() <= n; });
+  let s = within(2) ?? within(3) ?? 6;
+  h1.style.fontSize = `${s}cqw`;
+  for (; !fitChart() && s > 6; s -= 0.2) h1.style.fontSize = `${s.toFixed(1)}cqw`;
+  for (let b = 34; !fitChart() && b >= 30; b--) body.style.fontSize = `${b / 10}cqw`;
+  live.forEach((j, k) => (j.node.data = shown[k]));
+}
+// It's measured in Geist, which arrives in pieces (curly quotes and ellipses can come in a file of their own, fetched
+// only once the slide first lays out), so fit again whenever more of it lands.
+document.fonts?.addEventListener("loadingdone", () => fitFinal());
 // Re-lay out when the stage changes shape (rotating a phone, resizing a window).
 let resizeTimer;
 new ResizeObserver(() => {
@@ -1902,7 +1975,9 @@ function go(i, force, keep) {
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
   absEls = [...el.querySelectorAll(".abs, .lab-head")];
+  stage.classList.toggle("last", cur === slides.length - 1);
   setBare(false);
+  if (cur === slides.length - 1) fitFinal(); // once the room for the dock is set, and before its words scramble
   stage.style.setProperty("--fg", s.fg);
   setField(s);
   rollNumbers(el);
@@ -1912,13 +1987,19 @@ function go(i, force, keep) {
 }
 
 const [prevBtn, nextBtn] = document.querySelectorAll("#nav button");
-// The tap zones cover the slide, so a tap on a hidden name is caught here before it turns the page.
-document.getElementById("nav").addEventListener("click", (e) => {
-  // Labels let taps through to the page, so hit-test the names by hand, with a little slack around each.
-  const pad = stage.clientWidth * 0.02;
-  const r = [...els[cur].querySelectorAll(".redact")].find((n) => { const b = n.getBoundingClientRect(); return e.clientX > b.left - pad && e.clientX < b.right + pad && e.clientY > b.top - pad && e.clientY < b.bottom + pad; });
+// The tap zones cover the slide, so a tap on a hidden name or a credit link is caught here before it turns the page.
+// Labels let taps through to the page, so hit-test them by hand, with a little slack around each.
+const hitAt = (e, sel, slack) => {
+  const pad = stage.clientWidth * slack;
+  return [...els[cur].querySelectorAll(sel)].filter((n) => n.checkVisibility?.() ?? true).find((n) => { const b = n.getBoundingClientRect(); return e.clientX > b.left - pad && e.clientX < b.right + pad && e.clientY > b.top - pad && e.clientY < b.bottom + pad; });
+};
+const nav = document.getElementById("nav");
+nav.addEventListener("click", (e) => {
+  const r = hitAt(e, ".redact", 0.02), a = !r && hitAt(e, ".credit a", 0.01);
   if (r) { e.stopImmediatePropagation(); reveal(r); }
+  if (a) { e.stopImmediatePropagation(); window.open(a.href, "_blank", "noopener"); }
 }, true);
+nav.addEventListener("pointermove", (e) => { const a = hitAt(e, ".credit a", 0.01); els[cur].querySelectorAll(".credit a").forEach((n) => n.classList.toggle("on", n === a)); });
 prevBtn.onclick = () => go(cur - 1);
 nextBtn.onclick = () => go(cur + 1);
 addEventListener("keydown", (e) => {
@@ -1995,8 +2076,9 @@ async function snapshot() {
   shotLib ??= import("https://cdn.jsdelivr.net/npm/modern-screenshot@4/+esm");
   const { domToBlob } = await shotLib, scale = 1080 / stage.clientWidth;
   const skip = new Set([dock, document.getElementById("nav"), progress]), restore = hideNames();
+  stage.classList.add("shooting");
   try { return await domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } }); }
-  finally { restore(); }
+  finally { restore(); stage.classList.remove("shooting"); }
 }
 const shotName = () => `how-i-ai-${String(cur + 1).padStart(2, "0")}.png`;
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.png", { type: "image/png" })] });

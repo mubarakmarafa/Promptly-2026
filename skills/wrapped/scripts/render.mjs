@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects]
+// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects] [--skip-number-check] [--skip-length-check]
 //
 // Every number in the persona's own writing has to come from the data. Write {{path}} for a stat (e.g.
 // {{time.longestStreak.length}}, {{style.pleasePct}}%, {{totals.words|k}}) or {{q:"pattern"}} / {{q:"pattern"|pct}} for
@@ -100,6 +100,31 @@ function walk(v, where) {
 Object.assign(persona, walk(persona, ""));
 if (numberProblems.length && !args["skip-number-check"]) {
   console.error(`persona.json has numbers that can't be traced to the data:\n  ${numberProblems.join("\n  ")}\n\nUse {{path}} for a stat or {{q:"pattern"}} for a query you ran with extract.mjs --grep, or reword without the number.`);
+  process.exit(1);
+}
+
+// ---------- lengths ----------
+
+// Each slide is laid out to hold its copy up to these limits without the type getting too small to read, so longer
+// copy has to be trimmed rather than squeezed in. Words, unless it says chars.
+const words = (s) => String(s ?? "").split(/\s+/).filter(Boolean).length;
+const LIMITS = {
+  "archetype.name": [36, "chars"], "archetype.tagline": [14], "archetype.description": [60], "captions.*": [30],
+  "tells[].label": [4], "tells[].note": [30], "quotes[].text": [30], "quotes[].caption": [20],
+  "receipts[].text": [25], "receipts[].marks[].note": [8], "receipts[].verdict": [3], "receipts[].take": [50],
+  "evolution.then.text": [20], "evolution.now.text": [20], "evolution.read": [55],
+  roast: [60], compliment: [45], prediction: [20],
+};
+const strings = (v, where = "") => typeof v === "string" ? [[where, v]]
+  : Array.isArray(v) ? v.flatMap((x, i) => strings(x, `${where}[${i}]`))
+  : v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => strings(x, where ? `${where}.${k}` : k)) : [];
+const lengthProblems = strings(persona).flatMap(([where, s]) => {
+  const [max, unit = "words"] = LIMITS[where.replace(/\[\d+\]/g, "[]").replace(/^captions\..+/, "captions.*")] ?? [];
+  const n = unit === "chars" ? s.length : words(s);
+  return max && n > max ? [`${where}: ${n} ${unit}, limit ${max}, in "${s.length > 90 ? s.slice(0, 90) + "…" : s}"`] : [];
+});
+if (lengthProblems.length && !args["skip-length-check"]) {
+  console.error(`persona.json has copy too long for its slide:\n  ${lengthProblems.join("\n  ")}\n\nTrim each one to its limit (the slides are laid out for these lengths), then run this again.`);
   process.exit(1);
 }
 
