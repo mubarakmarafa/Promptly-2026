@@ -6,7 +6,8 @@
 <title>How I AI · Wrapped</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- crossorigin lets the image capture read this sheet and embed the fonts; without it saved slides fall back to wider system fonts. -->
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" crossorigin>
 <style>
   :root {
     --ink: #161616;
@@ -90,6 +91,8 @@
   .unit { font: 300 0.22em var(--sans); letter-spacing: -0.01em; opacity: 0.6; margin-left: 0.25em; }
   .quote { font: 400 8cqw/1.05 var(--sans); letter-spacing: -0.03em; text-wrap: pretty; }
 
+  /* The slide labels hold one line, whatever font they end up in. */
+  .hud span:first-child, .ph p:first-child { white-space: nowrap; }
   .ph { display: flex; justify-content: space-between; align-items: flex-start; gap: 3cqw; padding-bottom: 2.2cqw; border-bottom: 0.25cqw solid color-mix(in srgb, var(--ink) 12%, transparent); }
 
   .cells { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw 5cqw; }
@@ -331,7 +334,7 @@
      the picture on the right. Bare icons straight on the field, no box behind them. */
   /* Every saved slide carries where it came from, in the dock's spot, since the dock stays out of the picture. The
      last slide already has its credits. */
-  .byline { position: absolute; z-index: 11; left: 0; right: 0; bottom: 5.4cqw; display: none; justify-content: center; gap: 2cqw; pointer-events: none;
+  .byline { position: absolute; z-index: 11; left: 0; right: 0; bottom: 5.4cqw; display: none; justify-content: center; gap: 2cqw; white-space: nowrap; pointer-events: none;
     font: 500 1.75cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink); }
   .byline span:last-child { opacity: 0.55; }
   .stage.shooting .byline { display: flex; }
@@ -396,7 +399,7 @@
     </div>
     <button class="solo" data-act="expand" aria-label="Show just the picture" aria-pressed="false"><svg viewBox="0 0 24 24"><path class="out" d="M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6"/><path class="in" d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg></button>
   </div>
-  <div class="byline" aria-hidden="true"><span>How I AI · Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/how-i-ai</span></div>
+  <div class="byline" aria-hidden="true"><span>By Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/how-i-ai</span></div>
   <div class="grain" id="grain"></div>
 </main>
 
