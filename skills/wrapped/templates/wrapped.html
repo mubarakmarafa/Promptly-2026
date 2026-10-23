@@ -59,6 +59,14 @@
     .edge.t { top: 0; } .edge.b { bottom: 0; }
   }
 
+  /* Everything that's picture (the field, the slides and the card) sits in one layer that pinches to zoom. The
+     progress bar, dock and grain stay outside it, so they hold still. Unzoomed it carries no transform, which would
+     make it a stacking context of its own. The stage takes over the pinch so the page itself doesn't zoom. */
+  .stage { touch-action: none; }
+  .view { position: absolute; inset: 0; transform-origin: 0 0; }
+  .stage.zoomed .nav button { cursor: grab; }
+  .stage.zoomed.panning .nav button { cursor: grabbing; }
+
   /* Morphing colour field, rendered small and blurred up */
   #field { position: absolute; inset: -5%; width: 110%; height: 110%; filter: blur(var(--blur)); }
   .sheet { position: absolute; inset: auto 0 0; height: var(--sheet, 40%); background: var(--paper); transition: height 820ms var(--ease-out); }
@@ -401,13 +409,15 @@
 <body>
 <i class="edge t" id="edge-t"></i><i class="edge b" id="edge-b"></i>
 <main class="stage" id="stage">
-  <canvas id="field" width="90" height="160" aria-hidden="true"></canvas>
-  <div class="sheet"></div>
+  <div class="view" id="view">
+    <canvas id="field" width="90" height="160" aria-hidden="true"></canvas>
+    <div class="sheet"></div>
+    <div id="slides"></div>
+    <canvas id="burn" aria-hidden="true"></canvas>
+    <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
+  </div>
   <div class="progress" id="progress"></div>
-  <div id="slides"></div>
-  <canvas id="burn" aria-hidden="true"></canvas>
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
-  <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
   <div class="dock" id="dock">
     <div class="left">
     <button class="solo" data-act="theme" aria-label="Switch to dark mode"><svg viewBox="0 0 24 24"><path class="moon" d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/><g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
@@ -572,6 +582,9 @@ const toStage = (v) => -0.05 + v * 1.1;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const easeOut = (k) => 1 - Math.pow(1 - clamp01(k), 3);
 // Cover ASCII: the heat field redrawn as a dense type grid, light to heavy glyphs, with bands that pulse outward.
+// Canvases draw at the screen's density times the zoom they're seen at, so a chart's labels stay sharp when pinched
+// in. Capped at about 8 million pixels a canvas, which phones handle redrawing every frame.
+const sharpness = (w, h) => Math.min(Math.min(2, devicePixelRatio || 1) * ZOOM.sharp, Math.sqrt(8e6 / Math.max(1, w * h)));
 // Two planes: a big, soft, faint one zoomed out behind, and a small crisp one in front. Hotter cells are more opaque.
 const RAMP = " ·-:/+=<>!?I3254968A0ON";
 const ASCII = [
@@ -580,7 +593,7 @@ const ASCII = [
 ];
 const asciiLayer = () => `<div class="ascii" aria-hidden="true">${ASCII.map((L) => `<canvas class="${L.cls}"></canvas>`).join("")}</div>`;
 function asciiTick(el, age) {
-  const W = el.clientWidth, H = el.clientHeight, dpr = Math.min(2, devicePixelRatio || 1), fade = tw.speed ? easeOut(age / 1.8) : 1;
+  const W = el.clientWidth, H = el.clientHeight, dpr = sharpness(W, H), fade = tw.speed ? easeOut(age / 1.8) : 1;
   const cx = toStage(SWARM.x), cy = toStage(SWARM.y), LV = 4;
   el.querySelectorAll(".ascii canvas").forEach((c, li) => {
     const L = ASCII[li], w = c.clientWidth, h = c.clientHeight;
@@ -759,9 +772,9 @@ function drawFingerprint(x, P, u, age = Infinity) {
 }
 // On the slide the chart rides the live field: same canvas coords as the field, redrawn every frame.
 function fingerprintTick(el, age) {
-  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = sharpness(w, h);
   if (!w) return;
-  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const x = c.getContext("2d");
   x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
   drawFingerprint(x, (fx, fy) => [toStage(fx) * w, (toStage(fy) + shiftNow) * h], w / 100, tw.speed ? age : Infinity);
@@ -1013,9 +1026,9 @@ function drawColumns(x, W, H, u, age) {
 }
 // Draws a slide's chart onto its overlay canvas each frame, crisp at any pixel density.
 const canvasTick = (draw) => (el, age) => {
-  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  const c = el.querySelector(".fpc"), w = c.clientWidth, h = c.clientHeight, dpr = sharpness(w, h);
   if (!w) return;
-  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const x = c.getContext("2d");
   x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
   x.save(); x.strokeStyle = x.fillStyle = INK; x.textBaseline = "middle";
@@ -1228,7 +1241,8 @@ function markUp(r) {
 }
 const rxSpots = [];
 function receiptTick(el) {
-  const st = stage.getBoundingClientRect();
+  // Measured against the zoomable layer, so the heat stays under its words when the picture is zoomed.
+  const st = view.getBoundingClientRect();
   rxSpots[cur] = [...el.querySelectorAll("[data-heat]")].map((h) => {
     const r = h.getBoundingClientRect();
     return { x: (r.left + r.width / 2 - st.left) / st.width, y: (r.top + r.height / 2 - st.top) / st.height, w: r.width / st.width, k: +h.dataset.heat };
@@ -1883,13 +1897,15 @@ function paintEdges(now) {
   if (!fullBleed.matches) return;
   if (now - edgeAt < 120) return;
   edgeAt = now;
-  // The field overhangs the stage by 5%, so the stage's own top and bottom rows sit a little way in.
+  // The field overhangs the stage by 5%, so the stage's own top and bottom rows sit a little way in. Zoomed, they're
+  // the rows of the field now at the stage's top and bottom.
+  const H = stage.clientHeight, ft = -ZOOM.y / ZOOM.s / H, fb = ft + 1 / ZOOM.s, at = (f) => Math.round(((f + 0.05) / 1.1) * (FH - 1));
   const d = img.data, row = (j) => {
     const c = [0, 0, 0];
     for (let i = 8; i < FW - 8; i++) { const p = (j * FW + i) * 4; c[0] += d[p]; c[1] += d[p + 1]; c[2] += d[p + 2]; }
     return "#" + c.map((v) => Math.round(v / (FW - 16)).toString(16).padStart(2, "0")).join("");
   };
-  const top = row(Math.round(0.05 * (FH - 1))), bottom = row(Math.round(0.95 * (FH - 1))), key = top + bottom;
+  const top = row(at(ft)), bottom = row(at(fb)), key = top + bottom;
   if (key === edgeLast) return;
   edgeLast = key;
   setEdges(top, bottom);
@@ -2024,7 +2040,7 @@ function burn(to) {
   cover.append(fc, sh, oldEl);
   // Going on stops the cover's counters mid-roll, so land them first.
   oldEl.querySelectorAll(".roll").forEach((n) => { if (n.dataset.final && n.firstChild?.nodeType === 3) n.firstChild.textContent = n.dataset.final; });
-  stage.insertBefore(cover, burnEl);
+  burnEl.before(cover);
   go(to, true, true);
 
   const start = performance.now();
@@ -2167,9 +2183,8 @@ function placeCard(s) {
   const W = stage.clientWidth, H = stage.clientHeight, u = W / 100;
   cards.forEach((c, j) => c.classList.toggle("on", j === cur && !!s.card && !bare));
   if (!s.card || bare) {
-    const r = card.getBoundingClientRect(), st = stage.getBoundingClientRect();
-    // Collapse to a small square where it is, then fade.
-    Object.assign(card.style, { left: `${r.left - st.left + r.width / 2 - 3 * u}px`, top: `${r.top - st.top + r.height / 2 - 3 * u}px`, width: `${6 * u}px`, height: `${6 * u}px` });
+    // Collapse to a small square where it is, then fade. Layout offsets, so a zoom doesn't throw it off.
+    Object.assign(card.style, { left: `${card.offsetLeft + card.offsetWidth / 2 - 3 * u}px`, top: `${card.offsetTop + card.offsetHeight / 2 - 3 * u}px`, width: `${6 * u}px`, height: `${6 * u}px` });
     card.classList.add("off");
     return ((CARD_BOTTOM - 3) * u / H) * 100;
   }
@@ -2259,6 +2274,7 @@ function go(i, force, keep) {
   i = Math.max(0, Math.min(slides.length - 1, i));
   if (i === cur && !force) return;
   if (burning && !force) return;
+  zoomTo(1, 0, 0);
   if (cur === 0 && i === 1 && !force && tw.speed) return burn(i);
   if (!keep) els[cur]?.classList.remove("active");
   cur = i;
@@ -2298,7 +2314,7 @@ addEventListener("keydown", (e) => {
   if (e.target.closest?.(".tweak")) return;
   if (["ArrowRight", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
   if (e.key === "ArrowLeft") go(cur - 1);
-  if (e.key === "Escape" && bare) setBare(false);
+  if (e.key === "Escape") { if (ZOOM.s > 1) zoomTo(1, 0, 0, true); else if (bare) setBare(false); }
 });
 // Expanded: the card and the slide's own text step aside and leave just the picture, slid to the middle of the room
 // between the progress bar and the dock. A slide can name its picture's middle itself (`bareY`, in stage heights);
@@ -2346,6 +2362,115 @@ function setBare(on) {
   expandBtn.setAttribute("aria-label", bare ? "Show the words again" : "Show just the picture");
   restartBtn.hidden = cur === 0;
 }
+
+// ---------- zoom ----------
+
+// Pinch the picture to read its small print or frame a screenshot, and drag it around once it's in close. The progress
+// bar and dock hold still. While zoomed, a tap eases back out instead of turning the page, and every slide starts
+// unzoomed. On a computer, pinch the trackpad or hold ctrl and scroll; scrolling pans.
+const view = document.getElementById("view"), ZMAX = 4, UI = "#dock, #progress, #tilt-ask";
+// s is the scale and x, y the offset in stage pixels; sharp is the zoom the canvases are drawn for.
+const ZOOM = { s: 1, x: 0, y: 0, sharp: 1 };
+// Held to between 1x and 4x, and panned no further than the picture's own edges.
+function zoomTo(s, x, y, ease) {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  s = Math.min(ZMAX, Math.max(1, s));
+  if (s < 1.02) s = 1;
+  Object.assign(ZOOM, { s, x: Math.min(0, Math.max(W - W * s, x)), y: Math.min(0, Math.max(H - H * s, y)) });
+  view.style.transition = ease ? "transform 360ms var(--ease-out)" : "none";
+  view.style.transform = s > 1 ? `translate(${ZOOM.x}px, ${ZOOM.y}px) scale(${s})` : "";
+  stage.classList.toggle("zoomed", s > 1);
+  if (ease || s === 1) ZOOM.sharp = s;
+}
+// Zoom to s keeping the point at (px, py), in stage pixels, where it is.
+const zoomAt = (s, px, py) => {
+  s = Math.min(ZMAX, Math.max(1, s));
+  zoomTo(s, px - ((px - ZOOM.x) / ZOOM.s) * s, py - ((py - ZOOM.y) / ZOOM.s) * s);
+};
+// Once a gesture lets go, the canvases redraw sharp for the zoom it landed on.
+const settle = () => zoomTo(ZOOM.s, ZOOM.x, ZOOM.y, true);
+const local = (p) => { const r = stage.getBoundingClientRect(); return [p.x - r.left, p.y - r.top]; };
+
+const touches = new Map();
+let pinch = null, pan = null, swallowUntil = 0;
+function startPinch() {
+  const [a, b] = touches.values(), [mx, my] = local({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  // The point of the picture between the fingers, which stays between them.
+  pinch = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), s: ZOOM.s, cx: (mx - ZOOM.x) / ZOOM.s, cy: (my - ZOOM.y) / ZOOM.s };
+  pan = null;
+}
+stage.addEventListener("pointerdown", (e) => {
+  if (e.button > 0 || e.target.closest(UI)) return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touches.size === 2) startPinch();
+  else if (touches.size === 1) pan = { x: e.clientX, y: e.clientY, zx: ZOOM.x, zy: ZOOM.y, moved: false };
+});
+addEventListener("pointermove", (e) => {
+  const p = touches.get(e.pointerId);
+  if (!p) return;
+  p.x = e.clientX; p.y = e.clientY;
+  if (pinch) {
+    const [a, b] = touches.values(), [mx, my] = local({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    const s = Math.min(ZMAX, Math.max(1, (pinch.s * Math.hypot(a.x - b.x, a.y - b.y)) / pinch.d));
+    zoomTo(s, mx - pinch.cx * s, my - pinch.cy * s);
+  } else if (pan && ZOOM.s > 1) {
+    const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    // A little slack, so a tap that wobbles is still a tap.
+    if (!pan.moved && Math.hypot(dx, dy) < 6) return;
+    pan.moved = true;
+    stage.classList.add("panning");
+    zoomTo(ZOOM.s, pan.zx + dx, pan.zy + dy);
+  }
+});
+function lift(e) {
+  if (!touches.delete(e.pointerId)) return;
+  // The tap that ends a pinch or a drag isn't a tap on the page.
+  if (pinch || pan?.moved) swallowUntil = performance.now() + 400;
+  if (pinch && touches.size < 2) {
+    pinch = null;
+    settle();
+    // The finger still down carries on as a drag.
+    const [p] = touches.values();
+    pan = p ? { x: p.x, y: p.y, zx: ZOOM.x, zy: ZOOM.y, moved: true } : null;
+  } else if (!touches.size) {
+    if (pan?.moved) settle();
+    pan = null;
+    stage.classList.remove("panning");
+  }
+}
+addEventListener("pointerup", lift);
+addEventListener("pointercancel", lift);
+// Runs before the page-turning tap zones see the click.
+stage.addEventListener("click", (e) => {
+  if (!e.target.closest("#nav")) return;
+  if (performance.now() < swallowUntil) return e.stopPropagation();
+  if (ZOOM.s > 1 && !hitAt(e, ".redact", 0.02) && !hitAt(e, ".credit a", 0.01)) { e.stopPropagation(); zoomTo(1, 0, 0, true); }
+}, true);
+
+let wheelTimer;
+stage.addEventListener("wheel", (e) => {
+  if (e.target.closest(UI)) return;
+  // A trackpad pinch arrives as a ctrl-scroll.
+  if (e.ctrlKey || e.metaKey) {
+    const [px, py] = local({ x: e.clientX, y: e.clientY });
+    zoomAt(ZOOM.s * Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.01)), px, py);
+  } else if (ZOOM.s > 1) zoomTo(ZOOM.s, ZOOM.x - e.deltaX, ZOOM.y - e.deltaY);
+  else return;
+  e.preventDefault();
+  clearTimeout(wheelTimer);
+  wheelTimer = setTimeout(settle, 200);
+}, { passive: false });
+// Safari on a Mac pinches with gesture events instead. On a phone they come alongside the touches, which already
+// zoom, so there they only need stopping before they zoom the whole page.
+let gesture = null;
+stage.addEventListener("gesturestart", (e) => { e.preventDefault(); gesture = touches.size ? null : { s: ZOOM.s }; });
+stage.addEventListener("gesturechange", (e) => {
+  e.preventDefault();
+  if (!gesture || touches.size) return;
+  const r = stage.getBoundingClientRect();
+  zoomAt(gesture.s * e.scale, (e.clientX ?? r.left + r.width / 2) - r.left, (e.clientY ?? r.top + r.height / 2) - r.top);
+});
+stage.addEventListener("gestureend", (e) => { e.preventDefault(); if (gesture) { gesture = null; settle(); } });
 
 // ---------- share, save, embed ----------
 
