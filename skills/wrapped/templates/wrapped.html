@@ -59,11 +59,14 @@
     .edge.t { top: 0; } .edge.b { bottom: 0; }
   }
 
-  /* Everything that's picture (the field, the slides and the card) sits in one layer that pinches to zoom. The
-     progress bar, dock and grain stay outside it, so they hold still. Unzoomed it carries no transform, which would
-     make it a stacking context of its own. The stage takes over the pinch so the page itself doesn't zoom. */
+  /* The field and the slides sit in one layer that pinches to zoom; the card, progress bar, dock and grain stay outside
+     it, and script holds each slide's words still. Unzoomed it carries no transform, which would make it a stacking
+     context of its own. The stage takes over the pinch so the page itself doesn't zoom. */
   .stage { touch-action: none; }
-  .view { position: absolute; inset: 0; transform-origin: 0 0; }
+  .view, .top, .fp-key { transform-origin: 0 0; }
+  .view { position: absolute; inset: 0; }
+  /* Held still, the words can't see the field behind them to blend with, so they go plain ink, as in dark mode. */
+  .stage.zoomed .top .blend { mix-blend-mode: normal; color: var(--ink); }
   .stage.zoomed .nav button { cursor: grab; }
   .stage.zoomed.panning .nav button { cursor: grabbing; }
 
@@ -414,8 +417,8 @@
     <div class="sheet"></div>
     <div id="slides"></div>
     <canvas id="burn" aria-hidden="true"></canvas>
-    <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
   </div>
+  <div class="card off" id="card"><div class="cbox" id="cbox"></div><i class="k tl"></i><i class="k tr"></i><i class="k bl"></i><i class="k br"></i></div>
   <div class="progress" id="progress"></div>
   <div class="nav" id="nav"><button aria-label="Previous"></button><button aria-label="Next"></button></div>
   <div class="dock" id="dock">
@@ -1879,6 +1882,8 @@ function frame(now) {
     h.style.left = toStage(b.x) * 100 + "%"; h.style.top = toStage(b.y) * 100 + "%"; h.style.opacity = Math.min(1, b.w * 2).toFixed(2);
   }
   slides[cur]?.tick?.(els[cur], t - liveFrom);
+  // The words can still be settling into place, so the chart's key is put back on the picture each frame.
+  if (ZOOM.s > 1) applyZoom();
 }
 
 // On a phone the stage fills the screen, and the strips Safari leaves above and below it show the page behind. Paint
@@ -2365,22 +2370,50 @@ function setBare(on) {
 
 // ---------- zoom ----------
 
-// Pinch the picture to read its small print or frame a screenshot, and drag it around once it's in close. The progress
-// bar and dock hold still. While zoomed, a tap eases back out instead of turning the page, and every slide starts
-// unzoomed. On a computer, pinch the trackpad or hold ctrl and scroll; scrolling pans.
+// Pinch the picture to read its small print or frame a screenshot, and drag it around once it's in close. Only the
+// picture zooms: the field, the chart and its labels, and the chart's key. The words around it (the slide's label,
+// caption and card) hold still with the progress bar and dock. While zoomed, a tap eases back out instead of turning
+// the page, and every slide starts unzoomed. On a computer, pinch the trackpad or hold ctrl and scroll; scrolling pans.
 const view = document.getElementById("view"), ZMAX = 4, UI = "#dock, #progress, #tilt-ask";
 // s is the scale and x, y the offset in stage pixels; sharp is the zoom the canvases are drawn for.
 const ZOOM = { s: 1, x: 0, y: 0, sharp: 1 };
-// Held to between 1x and 4x, and panned no further than the picture's own edges.
+// The slide's words live in the same layer as its picture, so they're scaled back down to where they started, and
+// the chart's key, which sits among them, is scaled back up with the picture. Individual translate and scale, since
+// the words' rise-in animation holds their transform.
+let held = [];
+function applyZoom() {
+  const { s, x, y } = ZOOM, on = s > 1;
+  view.style.transform = on ? `translate(${x}px, ${y}px) scale(${s})` : "";
+  stage.classList.toggle("zoomed", on);
+  for (const n of held) n.style.translate = n.style.scale = "";
+  held = [];
+  const top = on && els[cur]?.querySelector(".top");
+  if (!top) return;
+  Object.assign(top.style, { translate: `${-x / s}px ${-y / s}px`, scale: `${1 / s}` });
+  held.push(top);
+  for (const k of top.querySelectorAll(".fp-key")) {
+    Object.assign(k.style, { translate: `${(s - 1) * k.offsetLeft + x}px ${(s - 1) * k.offsetTop + y}px`, scale: `${s}` });
+    held.push(k);
+  }
+}
+// Held to between 1x and 4x, and panned no further than the picture's own edges. Eased in script rather than by a
+// transition, so the words' counter-scale keeps step with the picture's.
+let easing = 0;
 function zoomTo(s, x, y, ease) {
   const W = stage.clientWidth, H = stage.clientHeight;
   s = Math.min(ZMAX, Math.max(1, s));
   if (s < 1.02) s = 1;
-  Object.assign(ZOOM, { s, x: Math.min(0, Math.max(W - W * s, x)), y: Math.min(0, Math.max(H - H * s, y)) });
-  view.style.transition = ease ? "transform 360ms var(--ease-out)" : "none";
-  view.style.transform = s > 1 ? `translate(${ZOOM.x}px, ${ZOOM.y}px) scale(${s})` : "";
-  stage.classList.toggle("zoomed", s > 1);
-  if (ease || s === 1) ZOOM.sharp = s;
+  const to = { s, x: Math.min(0, Math.max(W - W * s, x)), y: Math.min(0, Math.max(H - H * s, y)) };
+  cancelAnimationFrame(easing);
+  const done = () => { applyZoom(); if (ease || s === 1) ZOOM.sharp = s; };
+  if (!ease) return Object.assign(ZOOM, to), done();
+  const from = { ...ZOOM }, t0 = performance.now();
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / 360), e = 1 - (1 - k) ** 4;
+    for (const key of ["s", "x", "y"]) ZOOM[key] = from[key] + (to[key] - from[key]) * e;
+    if (k < 1) { applyZoom(); easing = requestAnimationFrame(step); } else done();
+  };
+  easing = requestAnimationFrame(step);
 }
 // Zoom to s keeping the point at (px, py), in stage pixels, where it is.
 const zoomAt = (s, px, py) => {
