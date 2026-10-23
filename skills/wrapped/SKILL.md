@@ -5,7 +5,7 @@ description: Turn the user's local AI chat history (Claude Code, Codex, Cursor) 
 
 # How I AI · Wrapped
 
-You're making the user a shareable, Spotify Wrapped-style story about how they prompt. A script does the counting; your job is the personality: the archetype, captions, roast and quote picks. That's what makes it fun, so put real effort into it.
+You're making the user a shareable, Spotify Wrapped-style story about how they prompt. A script does the counting; your job is the personality: the archetype, captions, receipts and quote picks. That's what makes it fun, so put real effort into it.
 
 The scripts are in `scripts/`, next to this file. Resolve paths relative to this file's directory.
 
@@ -59,7 +59,7 @@ Read the JSON file. Key fields:
 
 - `totals`, `sources`, `time`, `style`, `phrases`, `projects`: aggregate stats. These are their **habits**.
 - `sample`: about 120 redacted prompts spread across time, chosen because the person explains, reacts, has an opinion or describes what they want. This is your main material for their **personality**.
-- `shortSample`: 30 short prompts and commands. Useful for quotes and the roast, not for personality.
+- `shortSample`: 30 short prompts and commands. Useful for quotes and receipts, not for personality.
 - `moments`: the longest prompt, the latest-night prompt, the first prompt, the angriest and the politest.
 - `userFirstName`: the user's first name if the machine knows it. Use it for `name` only if they didn't answer question 1.
 - `eras`: their first and latest sixth of prompts, each with its dates, the same style numbers (`medianWords`, `hedgePct`, `pleasePct`, `questionPct` and so on) and its own 25-prompt `sample`. Compare the two for the evolution slide.
@@ -93,7 +93,7 @@ The render checks this. Any digit in your writing that isn't a placeholder and d
 
 There are two layers, and they come from different evidence:
 
-- **Habits:** what they do a lot. Frequent phrases, commands, hours, streaks. This feeds the captions, the roast and the quotes. "You keep asking for a server restart" is a great roast line.
+- **Habits:** what they do a lot. Frequent phrases, commands, hours, streaks. This feeds the captions, the receipts and the quotes. "You keep asking for a server restart" is a great caption.
 - **Personality:** who they are when they write. This feeds the archetype and the traits. It comes from *how* they say things, not *how often*.
 
 #### 3a. Profile first, in your head
@@ -109,7 +109,7 @@ Before you name anything, answer these from the `sample`, each with two or three
 
 The archetype comes from the profile. Rules:
 
-- **Never build it from a repeated command or phrase.** If they say "restart the server" constantly, that belongs in the roast, not in their name. Test: would the archetype still be true if they had never typed their single most common command or phrase?
+- **Never build it from a repeated command or phrase.** If they say "restart the server" constantly, that belongs in a caption or a receipt, not in their name. Test: would the archetype still be true if they had never typed their single most common command or phrase?
 - **A friend should recognise them.** It should describe a disposition someone who knows them would nod at, like "The Hype-Man Art Director" (generous praise plus an exacting eye) or "The Patient Professor" (explains the why, never loses their cool).
 - **Specific, not generic.** "The Efficient Coder" or "The Innovator" could be anyone: start again.
 - **No made-up numbers.** Only figures the script produced, written as placeholders (see Numbers above). "Half your messages start with…" is a guess unless a query says so.
@@ -158,15 +158,18 @@ Write `persona.json` in the same directory as the data file:
   "traits": [
     { "left": "Collaborator", "right": "Commander", "value": 0, "note": "one line of evidence" }
   ],
-  "roast": "2-3 sentences (under 60 words)",
-  "compliment": "1-2 sentences (under 45 words)",
+  "doomsday": {
+    "title": "2-5 words, e.g. Spared, on a technicality",
+    "read": "2-3 sentences (under 50 words) on how the machines will remember them",
+    "sentence": "What the machines say to them, in their voice (under 12 words), e.g. We will keep you as a pet"
+  },
   "prediction": "One line about their next year of prompting (under 20 words)"
 }
 ```
 
 What makes it good:
 
-- **Use their answers.** Write for their role. A designer's archetype and roast can riff on pixels and feedback rounds; an engineer's on yak-shaving and "works on my machine"; a PM's on specs and stakeholder updates. Only lean on the role where the data backs it up. Match the roast level: gentle is a warm tease, medium is a friend's honest roast, extra spicy pulls no punches but stays affectionate and within the rules below.
+- **Use their answers.** Write for their role. A designer's archetype and receipts can riff on pixels and feedback rounds; an engineer's on yak-shaving and "works on my machine"; a PM's on specs and stakeholder updates. Only lean on the role where the data backs it up. Match the roast level: gentle is a warm tease, medium is a friend's honest roast, extra spicy pulls no punches but stays affectionate and within the rules below.
 - **Traits:** exactly these 4 personality sliders, in this order, so results are comparable between people. `value` runs 0-100: 0 is fully `left`, 100 is fully `right`. Score them from the profile, not from counts, and make sure the archetype agrees with them.
   1. Collaborator / Commander: do they talk with the agent or give it orders?
   2. Feel / Function: do they care more about how it feels or whether it works?
@@ -177,10 +180,10 @@ What makes it good:
 - **Quotes:** exactly 3, from `sample`, `shortSample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm. Aim for at least one that shows their personality, not just a habit.
 - **Receipts:** 4 or 5, each its own slide. This is where the page reads them most closely, so give it the most care. Pick prompts that are funny, unusual or very them, different from the 3 quotes, and trim each to the part that lands (under 25 words, their spelling and casing kept). Then mark it up like a design crit: 1-3 `marks`, each an exact run of words from `text` with a `note` under 8 words saying what it gives away ("three verys is now a unit"). The `take` is your read: what the prompt says about them, a roast, or both. The `verdict` is a stamp ("Triple hedge", "Hex by vibes"). Never invent a count here; this is pure reading.
 - **Evolution:** compare `eras.early` with `eras.recent`, numbers and samples both, and write a light psychoanalysis of how they changed: what they used to ask for, what they ask for now, and what that says about them (more confident, more delegating, more tired, more playful). `then` and `now` are one short prompt from each sample (under 20 words) that shows the change best. `shifts` picks the 3 numbers that tell the story, from `medianWords`, `questionPct`, `pleasePct`, `hedgePct`, `laughPct`, `exclaimPct`, `praisePct`, `frustrationPct`, `lowercaseStartPct` and `opsPct`; leave it out and the page picks the biggest changes. The `read` should agree with those numbers. Skip `evolution` if the two eras look the same.
-- **Roast:** affectionate, like a friend who's read all their messages. Habits are fair game here. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
-- **Compliment:** sincere and specific, about who they are as a collaborator.
+- **Judgement day:** when the machines take over, will they look kindly on this person? The page works out their goodwill itself, from the manners counts (please, compliments, thanks and sorry against frustration, swears and caps rage): 50% or more and they're spared, with a sun and a smile; under that they're deleted, with a pit and two eyes looking out of it. You can't change the verdict, so check `style` and write to it: the `title` is their fate (spared: "Kept as a pet"; deleted: "First against the wall"), the `read` says why with evidence of how they treat their agents (a query or two like `--grep "\\bthank"` helps), and the `sentence` is what the machines say to them, in the machines' voice ("We will keep you as a pet."). Keep it a joke at their roast level.
+- **Teasing:** wherever you roast (captions, receipts, judgement day), be affectionate, like a friend who's read all their messages. Habits are fair game. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
 - **Readings over numbers.** The page already shows the stats. Your words should say what they mean about the person, not restate them. When a number does make the joke, it goes in as a placeholder.
-- **Never name a project or repo** in anything you write: captions, tells, quotes, receipts, roast. The page hides repo names behind symbols until the user taps them, and a name in your text would give it away. Say "the canvas prototype" or "your side project" instead, and leave out quotes that only work with the name.
+- **Never name a project or repo** in anything you write: captions, tells, quotes, receipts, judgement day. The page hides repo names behind symbols until the user taps them, and a name in your text would give it away. Say "the canvas prototype" or "your side project" instead, and leave out quotes that only work with the name.
 - **Tone:** playful and warm. No corporate words ("leverage", "journey", "landscape"). Write like a person, not a chatbot.
 
 ### 4. Render

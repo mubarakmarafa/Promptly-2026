@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3F2EE" id="theme-color">
 <title>How I AI · Wrapped</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,8 +27,6 @@
   :root.dark .rowg, :root.dark .colg, :root.dark .vline { border-color: rgb(238 236 232 / 0.2); }
   :root.dark .orb.ghost .ring { border-color: rgb(238 236 232 / 0.45); }
   :root.dark .orb.ghost i { color: rgb(238 236 232 / 0.6); }
-  :root.dark .dish, :root.dark .dish::before { border-color: rgb(238 236 232 / 0.4); }
-  :root.dark .lab-legend p { border-color: rgb(238 236 232 / 0.14); }
   :root.dark .mostyou { color: color-mix(in srgb, var(--c3) 50%, #FFFFFF); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -39,6 +38,7 @@
     user-select: none; -webkit-tap-highlight-color: transparent;
   }
 
+  .edge { display: none; }
   .stage {
     position: relative;
     height: min(100dvh - 32px, 920px);
@@ -51,6 +51,12 @@
   }
   @media (max-width: 560px) {
     .stage { height: 100dvh; width: 100vw; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+    /* Full screen on a phone: two solid blocks behind the stage take the field's top and bottom colours (set from
+       script), so the strips Safari leaves under the status bar and the toolbar match the slide. Solid colours, because
+       Safari tints its bars from background colours and ignores gradients. */
+    html, body, :root.dark body { background: var(--paper); }
+    .edge { display: block; position: fixed; left: 0; right: 0; height: 50lvh; background: var(--paper); }
+    .edge.t { top: 0; } .edge.b { bottom: 0; }
   }
 
   /* Morphing colour field, rendered small and blurred up */
@@ -192,7 +198,7 @@
   :root:not(.visitor) .stage:not(.shooting) .credit .repo { display: none; }
 
 
-  /* Receipts: a quote marked up like a crit, its numbered notes reading like the lab's legend. Always black, like the
+  /* Receipts: a quote marked up like a crit, its numbered notes in a ruled list. Always black, like the
      logs: it sits on the bright heart of the field. */
   .rx { position: absolute; left: 6cqw; right: 8cqw; top: 13%; bottom: calc(var(--sheet) + 2cqw); display: flex; flex-direction: column; justify-content: center; gap: 3.6cqw; color: #161616; }
   .rx .qq { font: 400 var(--fs)/1.08 var(--sans); letter-spacing: -0.035em; text-wrap: pretty; text-indent: -0.42em; }
@@ -241,27 +247,6 @@
   .fq { opacity: 0; transform: translateY(2.4cqw); }
   .slide.active .fq { animation: rise 620ms var(--ease-out) forwards 150ms; }
 
-  /* Lab report: plain paper, with the colour kept to one petri dish of cultured replies */
-  .lab-head { display: grid; grid-template-columns: 1fr 42cqw; gap: 5cqw; align-items: center; margin-top: 1cqw; }
-  /* The dish is wider than its column and runs off the right edge of the page. */
-  .dish-w { width: 58cqw; }
-  .dish { position: relative; width: 58cqw; aspect-ratio: 1; border-radius: 50%; border: 1px solid rgb(22 22 22 / 0.5); }
-  .dish::before { content: ""; position: absolute; inset: 1.6cqw; border-radius: 50%; border: 1px solid rgb(22 22 22 / 0.18); }
-  .dish .n { position: absolute; translate: -50% -50%; font: 500 1.8cqw/1 var(--mono); letter-spacing: 0.04em; }
-  .fig { margin-top: 1.8cqw; padding-right: 22cqw; text-align: center; font: 400 1.7cqw/1.35 var(--mono); text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
-  .lab-legend { display: flex; flex-direction: column; font: 400 2.3cqw/1.3 var(--mono); }
-  /* Expanded, the dish comes in off the edge and stacks over its legend, both centred in the room. */
-  .stage.bare .lab-head { grid-template-columns: 1fr; justify-items: center; gap: 4cqw; margin: auto 0; }
-  .stage.bare .dish-w { order: -1; width: 70cqw; }
-  .stage.bare .dish { width: 70cqw; }
-  .stage.bare .fig { padding-right: 0; }
-  .stage.bare .lab-legend { width: 70cqw; font-size: 2.7cqw; }
-  .lab-legend p { display: flex; gap: 1.8cqw; min-width: 0; padding: 1.5cqw 0; border-bottom: 1px solid rgb(22 22 22 / 0.12); }
-  .lab-legend p:first-child { border-top: 1px solid rgb(22 22 22 / 0.12); }
-  .lab-legend b { font-weight: 500; opacity: 0.45; }
-  .lab-legend span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lab-sec { display: flex; flex-direction: column; gap: 2cqw; }
-  .lab-sec .body { font-size: var(--fs); line-height: 1.45; }
 
   /* Tells: numbered reads on how you write, set tight so the card leaves room for the rings above it */
   .tells { display: flex; flex-direction: column; }
@@ -340,7 +325,7 @@
   .stage.shooting .byline { display: flex; }
   .stage.shooting.last .byline { display: none; }
   .dock { position: absolute; z-index: 11; left: 4cqw; right: 4cqw; bottom: 3cqw; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; pointer-events: none; --ink: #161616; --paper: #FBFAF7; }
-  :root.dark .dock { --ink: #F3F2EE; --paper: #111; }
+  :root.dark .dock, .stage.night .dock { --ink: #F3F2EE; --paper: #111; }
   .dock button { pointer-events: auto; width: 8.4cqw; height: 8.4cqw; display: grid; place-items: center; appearance: none; border: 0; cursor: pointer; background: transparent; color: var(--ink);
     transition: transform 140ms var(--ease-out), opacity 300ms, visibility 0s; }
   .dock button:hover { opacity: 0.6; }
@@ -360,9 +345,45 @@
     font: 500 2cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0; transition: opacity 200ms; pointer-events: none; }
   .acts-say.on { opacity: 1; }
 
-  /* filter, not opacity, because the rise-in animation holds each line's opacity. The lab's dish is picture, not text. */
+  /* filter, not opacity, because the rise-in animation holds each line's opacity. */
   .top > * { transition: filter 400ms var(--ease-out); }
-  .stage.bare .top > :not(.lab-head) { filter: opacity(0); pointer-events: none; }
+  .stage.bare .top > * { filter: opacity(0); pointer-events: none; }
+
+  /* Judgement day's forecast bar: pink segments fill in from deleted toward spared. */
+  .fate { display: flex; flex-direction: column; gap: 1.4cqw; }
+  .fate div { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.2cqw; }
+  .fate i { height: 1.9cqw; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 40%, transparent); }
+  .fate i.on { background: #FF4FA0; box-shadow: none; }
+  .cc.on .fate i.on { animation: seg 260ms var(--ease-out) both; animation-delay: calc(var(--k) * 110ms + 900ms); }
+  @keyframes seg { from { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 40%, transparent); } }
+  .fate p { display: flex; justify-content: space-between; font: 500 1.75cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* Judgement day: the machines' words, floating over the face, typed out with a block cursor. */
+  .voice { position: absolute; left: 6cqw; width: 44cqw; display: flex; flex-direction: column; gap: 1.6cqw; color: #161616; opacity: 0; translate: 0 1.5cqw; transition: opacity 500ms var(--ease-out), translate 700ms var(--ease-out); }
+  .voice.night { color: #FFE9C7; }
+  .voice.on { opacity: 1; translate: 0 0; }
+  .voice .lbl { font-size: 1.7cqw; opacity: 0.7; }
+  .voice .say { font: 400 4.4cqw/1.1 var(--sans); letter-spacing: -0.03em; text-wrap: balance; text-indent: -0.4em; }
+  .voice.night .say { text-shadow: 0 0 3cqw rgb(255 110 70 / 0.55); }
+  .voice .unsaid { opacity: 0; }
+  .voice .said::after { content: ""; display: inline-block; width: 0.45em; height: 0.82em; margin: 0 -0.45em -0.08em 0.05em; background: currentColor; animation: caret 900ms steps(1) infinite; }
+  .voice.done .said::after { opacity: 0; animation: none; }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* Asks once for the phone's angle: pops up in the middle of the screen over a dimmed slide. */
+  .tilt-ask { position: absolute; z-index: 12; inset: 0; display: grid; place-items: center; padding: 6cqw; background: rgb(10 10 10 / 0.28); opacity: 0; transition: opacity 260ms var(--ease-out); }
+  .tilt-ask > section { width: 100%; padding: 5.6cqw 5.6cqw 5.2cqw; display: grid; gap: 2.6cqw; background: #FBFAF7; color: #161616;
+    box-shadow: inset 0 0 0 1px rgb(22 22 22 / 0.1), 0 3cqw 12cqw -2cqw rgb(22 22 22 / 0.45); scale: 0.94; transition: scale 360ms cubic-bezier(0.34, 1.4, 0.64, 1); }
+  :root.dark .tilt-ask > section { background: #111; color: #F3F2EE; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 3cqw 12cqw -2cqw rgb(0 0 0 / 0.6); }
+  .tilt-ask.on { opacity: 1; }
+  .tilt-ask.on > section { scale: 1; }
+  .tilt-ask[hidden] { display: none; }
+  .tilt-ask .body { font-size: 4.2cqw; }
+  .tilt-ask div { display: flex; gap: 2cqw; margin-top: 1cqw; }
+  .tilt-ask button { appearance: none; border: 0; cursor: pointer; min-height: 10cqw; padding: 0 4cqw; font: 500 2.6cqw/1 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; background: transparent; color: inherit; box-shadow: inset 0 0 0 1px currentColor; }
+  .tilt-ask button[data-tilt="yes"] { background: #161616; color: #FBFAF7; box-shadow: none; }
+  :root.dark .tilt-ask button[data-tilt="yes"] { background: #F3F2EE; color: #111; }
+  .tilt-ask button:active { transform: scale(0.97); }
 
   .nav { position: absolute; inset: 0; z-index: 5; display: flex; }
   .nav button { flex: 1; background: none; border: 0; cursor: pointer; }
@@ -378,6 +399,7 @@
 </style>
 </head>
 <body>
+<i class="edge t" id="edge-t"></i><i class="edge b" id="edge-b"></i>
 <main class="stage" id="stage">
   <canvas id="field" width="90" height="160" aria-hidden="true"></canvas>
   <div class="sheet"></div>
@@ -400,6 +422,11 @@
     <button class="solo" data-act="expand" aria-label="Show just the picture" aria-pressed="false"><svg viewBox="0 0 24 24"><path class="out" d="M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6"/><path class="in" d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg></button>
   </div>
   <div class="byline" aria-hidden="true"><span>By Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/how-i-ai</span></div>
+  <div class="tilt-ask" id="tilt-ask" role="dialog" aria-label="Turn on tilt" hidden><section>
+    <p class="lbl">Depth</p>
+    <p class="body">Tilt your phone and the colours shift under the words.</p>
+    <div><button data-tilt="yes">Turn on tilt</button><button data-tilt="no">Not now</button></div>
+  </section></div>
   <div class="grain" id="grain"></div>
 </main>
 
@@ -463,6 +490,9 @@ const PALETTES = {
   // Cool ramps for the "cool" mood.
   frost: { name: "ice, cornflower, iris & aqua", stops: ["#EAF0F6", "#B8D4F5", "#8FA8FF", "#7D6BF0", "#5ED1E0"] },
   abyss: { name: "frost, cobalt, indigo & navy", stops: ["#DCE6F7", "#7FA6F5", "#4C5FE8", "#3A2CA8", "#160F4A"] },
+  // Judgement day: a pit with a burning rim for the doomed, a sun for the spared. Neither follows the mood.
+  void: { name: "black, plum, crimson & ember", stops: ["#050407", "#1F0A2B", "#5E1660", "#D8305E", "#FF8A47"] },
+  sun: { name: "cream, apricot, tangerine & butter", stops: ["#F4EEE4", "#FFD4A6", "#FF9F5A", "#FFC548", "#FFF5CC"] },
 };
 
 // ---------- look: the user's colour preferences ----------
@@ -866,6 +896,9 @@ const manners = [
 const mannerMax = Math.max(1, ...manners.map((m) => m.n));
 const mannerR = (m) => (m.n ? 0.035 + 0.115 * Math.sqrt(m.n / mannerMax) : 0.055);
 const lit = manners.filter((m) => m.n), unlit = manners.filter((m) => !m.n);
+// Goodwill: the share of those manners that were kind. Judgement day runs on it: half or more and you're spared.
+const mannerSum = (c) => manners.filter((m) => m.c === c).reduce((a, m) => a + m.n, 0);
+const goodwill = Math.round((mannerSum(0) / Math.max(1, mannerSum(0) + mannerSum(1))) * 100);
 const mannerLayout = (age) => lit.map((m, i) => {
   const e = easeOut((age - 0.2 - i * 0.15) / 1.2), beat = 1 + 0.04 * e * Math.sin(age * 1.5 + i * 1.9);
   return { x: fromStage(m.x), y: fromStage(m.y), r: mannerR(m) * (0.3 + 0.7 * e) * beat, w: (0.7 + 0.5 * Math.sqrt(m.n / mannerMax)) * e, c: m.c };
@@ -901,38 +934,6 @@ const synLayout = (age) => synSpots.map((p, i) => {
   return { x: fromStage(p.x), y: fromStage(p.y), r: (0.02 + (synR(p.words) - 0.02) * e) * beat, w: p.w * Math.min(1, e * 3), c: p.c };
 });
 const synLayer = () => { const L = synLayout(99); return `<div class="abs">${synSpots.map((p, i) => (i === 2 ? hot(i, L[i], p.name, p.count, 5.6) : hot(i, L[i], p.name, p.count, 3.6).replace('class="hot"', 'class="hot side"'))).join("")}</div>`; };
-
-// Warning: a lab report. The colour lives in one petri dish, where each colony is a short reply you kept sending,
-// sized by how often. The dish sits in the page flow; each frame reads where it landed so the colonies stay inside it.
-const colonies = S.phrases.topShortReplies.slice(0, 6), colonyMax = colonies[0]?.count || 1;
-// Dish units (-1..1). The dish runs off the right edge, so the colonies keep to the part still on the page.
-const COLONY_AT = [[-0.4, -0.22], [0.22, 0.1], [-0.24, 0.42], [0.06, -0.46], [-0.64, 0.18], [0.3, -0.3]];
-let DISH = { x: 0.7, y: 0.17, r: 0.18 }; // stage widths / heights
-const labLayout = (age) => colonies.map((c, i) => {
-  if (!tw.speed) age = 99;
-  const [u, v] = COLONY_AT[i], s = Math.sqrt(c.count / colonyMax), e = easeOut((age - 0.5 - i * 0.22) / 1.6);
-  const beat = 1 + 0.04 * e * Math.sin(age * 1.3 + i * 1.7);
-  return { x: fromStage(DISH.x + u * DISH.r), y: fromStage(DISH.y + (v * DISH.r) / AR), r: ((DISH.r * (0.14 + 0.2 * s)) / 1.1) * (0.3 + 0.7 * e) * beat, w: (0.75 + 0.45 * s) * e, c: 0 };
-});
-function labTick(el) {
-  const d = el.querySelector(".dish"), st = document.getElementById("stage").getBoundingClientRect();
-  if (!d) return;
-  const r = d.getBoundingClientRect();
-  // Read before the shift, which the field adds back for every hotspot.
-  DISH = { x: (r.left + r.width / 2 - st.left) / st.width, y: (r.top + r.height / 2 - st.top) / st.height - shiftNow, r: r.width / 2 / st.width };
-}
-function labReport() {
-  const period = `${monthName(S.totals.firstDate)}–${monthName(S.totals.lastDate)} ${S.totals.lastDate.slice(0, 4)}`;
-  const fs = fit(P.roast + P.compliment, [[520, 3.6], [680, 3.4], [840, 3.2], [Infinity, 3]]);
-  return [
-    `<div class="lab-head">
-      <div class="lab-legend">${colonies.map((c, i) => `<p><b>${pad(i + 1)}</b><span>“${esc(c.name)}”</span><i>×${fmt(c.count)}</i></p>`).join("")}</div>
-      <div class="dish-w"><div class="dish">${colonies.map((_, i) => `<span class="n" style="left:${50 + COLONY_AT[i][0] * 50}%;top:${50 + COLONY_AT[i][1] * 50}%">${pad(i + 1)}</span>`).join("")}</div><p class="fig">Fig. 1 · Cultures, ${period}</p></div>
-    </div>`,
-    `<div class="lab-sec" style="--fs:${fs}cqw"><div class="ph"><p class="lbl">01 · Findings</p><p class="lbl">Severity: mild</p></div><p class="body">${esc(P.roast)}</p></div>`,
-    P.compliment ? `<div class="lab-sec" style="--fs:${fs}cqw;margin-top:1cqw"><div class="ph"><p class="lbl">02 · Conclusion</p><p class="lbl">Prognosis: good</p></div><p class="body">${esc(P.compliment)}</p></div>` : "",
-  ];
-}
 
 const favDay = () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][S.time.byWeekday.indexOf(Math.max(...S.time.byWeekday))];
 // ---------- Cadence: weekday heat columns with Classification's overlay ----------
@@ -1242,6 +1243,184 @@ const receiptLayout = (seed) => {
   ];
 };
 
+// Judgement day: whether the machines, once in charge, look kindly on how you treated them. The doomed get a pit
+// ringed with heat and two small eyes peering out of it; the spared get a sun with a smile. The eyes and the smile drift
+// with the phone's tilt, like they're looking back.
+const DOOM = P.doomsday?.read ? P.doomsday : null;
+const spared = goodwill >= 50;
+// Six segments from deleted to spared, Chelsea's forecast bar; goodwill fills them from the left.
+const FATE_N = 6, fateOn = Math.floor((goodwill / 100) * FATE_N);
+// How far past the line they are, 0..1 each way: the further, the wider and cleaner the smile, or the deeper the pit and
+// the higher its flames.
+const joy = clamp01((goodwill - 50) / 50), dread = clamp01((50 - goodwill) / 50);
+// The face sits in the middle of the room above the card, sized to fit it.
+const doomGeom = () => {
+  const s = slides[cur], bottom = 1 - (s?.sheet ?? 40) / 100, y = (0.1 + bottom) / 2;
+  return { y, R: Math.max(0.16, Math.min(0.42, ((bottom - 0.1) * AR) / 2 * 0.86)) };
+};
+function doomLayout(age) {
+  const { y, R } = doomGeom(), cy = fromStage(y), Rf = R / 1.1, grow = easeOut(age / 1.8);
+  if (spared) {
+    // A core that swells in, with a corona turning slowly around it.
+    const core = { x: 0.5, y: cy, r: Rf * (0.55 + 0.25 * grow), w: 1.7 * grow, p: 1 };
+    return [core, ...[...Array(14)].map((_, i) => {
+      const a = (i / 14) * 2 * Math.PI + age * 0.12, d = Rf * (0.72 + 0.08 * Math.sin(age * 0.9 + i * 1.7));
+      return { x: 0.5 + Math.cos(a) * d, y: cy + (Math.sin(a) * d) / AR, r: 0.1, w: 0.55 * grow * (0.75 + 0.25 * Math.sin(age * 1.3 + i)) };
+    })];
+  }
+  // A ring of heat around nothing, an outer haze past it, and two pinpricks in the dark.
+  const ring = [...Array(30)].map((_, i) => {
+    const a = (i / 30) * 2 * Math.PI - age * 0.06, d = Rf * (0.92 + 0.18 * dread) * (1 + 0.05 * Math.sin(a * 3 + age * 0.7));
+    return { x: 0.5 + Math.cos(a) * d, y: cy + (Math.sin(a) * d) / AR, r: 0.075, w: 0.42 * (0.8 + 0.5 * dread) * grow * (0.8 + 0.2 * Math.sin(age * 0.9 + i * 2.1)) };
+  });
+  const haze = [...Array(10)].map((_, i) => {
+    const a = (i / 10) * 2 * Math.PI + age * 0.04, d = Rf * 1.55;
+    return { x: 0.5 + Math.cos(a) * d * (0.92 + 0.18 * dread), y: cy + (Math.sin(a) * d * (0.92 + 0.18 * dread)) / AR, r: 0.16, w: 0.5 * (0.8 + 0.4 * dread) * grow };
+  });
+  const open = doomEyes(age);
+  const eyes = [-1, 1].map((k) => ({ x: 0.5 + (k * 0.055 + TILT.x * 0.012) / 1.1, y: cy + (TILT.y * 0.012) / 1.1 / AR, r: 0.03, w: 0.5 * open * easeOut((age - 1.4) / 1.2) }));
+  return [...ring, ...haze, ...eyes];
+}
+// 0 shut, 1 open: a blink every few seconds, sometimes two in a row.
+function doomEyes(age) {
+  const k = (age + 2.5) % 4.6, b = (c) => clamp01(Math.abs(k - c) / 0.09);
+  return Math.min(b(3.9), Math.floor((age + 2.5) / 4.6) % 3 === 1 ? b(4.2) : 1);
+}
+// Fire for the pit: fractal noise, made once, that tiles in both directions so it can wrap around the ring.
+const NOISE = (() => {
+  const N = 256, out = new Float32Array(N * N), r = rng(77);
+  for (const [L, amp] of [[4, 0.5], [8, 0.27], [16, 0.15], [32, 0.08]]) {
+    const g = Float32Array.from({ length: L * L }, r), sm = (t) => t * t * (3 - 2 * t);
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const fx = (i / N) * L, fy = (j / N) * L, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = sm(fx - x0), ty = sm(fy - y0);
+      const at = (a, b) => g[((b + L) % L) * L + ((a + L) % L)];
+      const top = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * tx, bot = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * tx;
+      out[j * N + i] += amp * (top + (bot - top) * ty);
+    }
+  }
+  return out;
+})();
+const noiseAt = (u, v) => {
+  const i = ((Math.floor(u) % 256) + 256) % 256, j = ((Math.floor(v) % 256) + 256) % 256, fx = u - Math.floor(u), fy = v - Math.floor(v), i1 = (i + 1) & 255, j1 = (j + 1) & 255;
+  const a = NOISE[j * 256 + i], b = NOISE[j * 256 + i1], c = NOISE[j1 * 256 + i], d = NOISE[j1 * 256 + i1];
+  return a + (b - a) * fx + (c - a + (a - b - c + d) * fx) * fy;
+};
+const FLAME = [[0, 0x2a, 0x08, 0x3a], [0.4, 0x8e, 0x15, 0x6a], [0.7, 0xe8, 0x2c, 0x5f], [1, 0xff, 0x6e, 0x5a]];
+let flameCv = null;
+// The pit's rim as fire: the ring pushed in and out by noise, its tongues running outward, hotter and taller the deeper
+// in the red they are. Drawn small and screened over the field, so it glows rather than sits on top.
+function drawFlames(x, W, H, u, age, cx, cy, Rw) {
+  const fw = 160, fh = Math.round((fw * H) / W);
+  if (!flameCv || flameCv.height !== fh) { flameCv = document.createElement("canvas"); flameCv.width = fw; flameCv.height = fh; }
+  const fx = flameCv.getContext("2d"), img = fx.createImageData(fw, fh), d = img.data, grow = easeOut(age / 1.8), heat = (0.3 + 0.6 * dread) * grow;
+  for (let j = 0; j < fh; j++) for (let i = 0; i < fw; i++) {
+    const dx = ((i + 0.5) / fw) * W - cx, dy = ((j + 0.5) / fh) * H - cy, rr = Math.hypot(dx, dy) / Rw;
+    if (rr < 0.62 || rr > 2.4) continue;
+    const a = (Math.atan2(dy, dx) / (2 * Math.PI) + 0.5) * 512, n = noiseAt(a * 0.5, rr * 60 - age * 14), n2 = 0.6 * noiseAt(a + 91, rr * 110 - age * 26) + 0.4 * noiseAt(a * 3 + 40, rr * 240 - age * 55);
+    const e = rr - 1 - (n - 0.5) * (0.35 + 0.4 * dread), band = Math.exp(-((e / (e < 0 ? 0.14 : 0.2 + 0.4 * dread)) ** 2));
+    const I = Math.min(1, band * (0.15 + 1.6 * n2 ** 1.6) * heat * smooth(clamp01((rr - 0.66) / 0.18)));
+    if (I < 0.01) continue;
+    let k = 1; while (FLAME[k][0] < I && k < FLAME.length - 1) k++;
+    const [t0, ...c0] = FLAME[k - 1], [t1, ...c1] = FLAME[k], f = clamp01((I - t0) / (t1 - t0)), p = (j * fw + i) * 4;
+    d[p] = c0[0] + (c1[0] - c0[0]) * f; d[p + 1] = c0[1] + (c1[1] - c0[1]) * f; d[p + 2] = c0[2] + (c1[2] - c0[2]) * f; d[p + 3] = Math.min(255, I * 330);
+  }
+  fx.putImageData(img, 0, 0);
+  x.save(); x.globalCompositeOperation = "screen"; x.filter = `blur(${(0.6 * u).toFixed(1)}px)`; x.drawImage(flameCv, 0, 0, W, H); x.restore();
+}
+const mixHex = (a, b, k) => "#" + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) + (parseInt(b.slice(i, i + 2), 16) - parseInt(a.slice(i, i + 2), 16)) * k).toString(16).padStart(2, "0")).join("");
+function drawDoom(x, W, H, u, age) {
+  const { y, R } = doomGeom(), cx = W / 2 + TILT.x * 1.4 * u, cy = y * H + TILT.y * 1.4 * u;
+  if (!spared) drawFlames(x, W, H, u, age, cx, cy, R * W * (0.92 + 0.18 * dread));
+  const toV = voiceBox && Math.hypot(voiceBox.x - cx, voiceBox.y - cy), rim = voiceBox && voiceBox.R * 0.82;
+  if (voiceBox?.on && toV > rim + 3 * u) {
+    // A thin line out from the rim to the words, drawn out as they appear. It starts at the rim, so the void stays empty.
+    const k = easeOut((age - 2.1) / 0.5), tx = voiceBox.x, ty = voiceBox.y, fx = cx + ((tx - cx) / toV) * rim, fy = cy + ((ty - cy) / toV) * rim;
+    x.save(); x.strokeStyle = x.fillStyle = spared && !DARK ? "#161616" : "#FFE2B0"; x.globalAlpha = 0.55; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(fx, fy); x.lineTo(fx + (tx - fx) * k, fy + (ty - fy) * k); x.stroke();
+    if (k >= 1) x.fillRect(tx - 0.6 * u, ty - 0.6 * u, 1.2 * u, 1.2 * u);
+    x.restore();
+  }
+  if (spared) {
+    // A smile made of light, drawn on once the sun is up: a crescent tapering to a point at each end, inside a glow of
+    // soft amber clouds. How refined it is follows goodwill. Near 100% it's a clean, steady curve; down toward 50% its
+    // edge wavers and goes jagged, the glow turns patchy, and the core crackles, dropping out in places like a bulb about
+    // to go.
+    const rough = 1 - joy, k = easeOut((age - 1.2) / 1.1), r = 11 * u * (0.85 + 0.35 * joy), a0 = 0.2 * Math.PI, a1 = 0.8 * Math.PI, ox = cx, oy = cy - 5.5 * u;
+    if (k <= 0) return;
+    const N = 72, end = a0 + (a1 - a0) * k, tick = Math.floor(age * 9);
+    const hash = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+    const at = (th, d) => [ox + Math.cos(th) * (r + d), oy + Math.sin(th) * (r + d)];
+    // Thickness along the whole smile (so drawing it on keeps the taper), thickest in the middle and nothing at the ends.
+    const thick = (th) => Math.pow(Math.sin(((th - a0) / (a1 - a0)) * Math.PI), 0.9);
+    // The edge: a slow waver, plus a jagged crackle that jumps several times a second, both gone at 100%.
+    const wob = (th, s, n) => rough * u * (0.45 * Math.sin(th * 6 + age * 1.1 + s) + 0.3 * Math.sin(th * 15 - age * 1.7 + s) + 0.5 * rough * (hash(n * 3.1 + s + tick * 7.7) - 0.5));
+    const crescent = (w, from, to) => {
+      const m = Math.max(2, Math.round((N * (to - from)) / (a1 - a0))), seg = (n) => from + ((to - from) * n) / m;
+      x.beginPath();
+      for (let n = 0; n <= m; n++) { const th = seg(n), [px, py] = at(th, (w * thick(th)) / 2 + wob(th, 0, Math.round(th * 40))); n ? x.lineTo(px, py) : x.moveTo(px, py); }
+      for (let n = m; n >= 0; n--) { const th = seg(n), [px, py] = at(th, (-w * thick(th)) / 2 + wob(th, 2, Math.round(th * 40) + 500)); x.lineTo(px, py); }
+      x.closePath(); x.fill();
+    };
+    // The glow: soft clouds along the smile. Even and steady near 100%, uneven and drifting toward 50%.
+    for (let n = 0; n < 16; n++) {
+      const th = a0 + ((a1 - a0) * (n + 0.5)) / 16;
+      if (th > end) break;
+      const swell = 0.75 + rough * (0.5 * Math.sin(age * (0.7 + (n % 5) * 0.17) + n * 2.3) - 0.25), [px, py] = at(th, rough * 0.8 * u * Math.sin(n * 1.9 + age * 0.6));
+      const rad = (2.4 + 2.6 * swell) * u * (0.2 + 0.8 * thick(th)), g = x.createRadialGradient(px, py, 0, px, py, rad);
+      g.addColorStop(0, `rgb(255 196 70 / ${(DARK ? 0.32 : 0.42) * (0.55 + 0.45 * swell)})`); g.addColorStop(0.55, `rgb(255 150 50 / ${DARK ? 0.12 : 0.18})`); g.addColorStop(1, "rgb(255 150 50 / 0)");
+      x.fillStyle = g; x.beginPath(); x.arc(px, py, rad, 0, 2 * Math.PI); x.fill();
+    }
+    // A warm body, then the white-hot core. The core is lit in short runs; the rougher the smile, the more of them
+    // flicker out at any moment, and the more it flickers overall.
+    const sw = 0.85 + 0.45 * joy;
+    x.filter = `blur(${(0.9 * u).toFixed(1)}px)`; x.fillStyle = "#FFC94A"; x.globalAlpha = (0.85 - 0.2 * rough * hash(tick * 0.37)) ; crescent(2.6 * u * sw, a0, end);
+    x.filter = `blur(${(0.25 * u).toFixed(1)}px)`; x.fillStyle = "#FFFFFF"; x.shadowColor = "#FFF3C4"; x.shadowBlur = 1.5 * u;
+    // Steady enough, it's one unbroken stroke; otherwise overlapping runs, so the joins never show.
+    const runs = rough < 0.08 ? 1 : 14;
+    for (let n = 0; n < runs; n++) {
+      const from = a0 + ((a1 - a0) * n) / runs, to = Math.min(end, a0 + ((a1 - a0) * (n + 1)) / runs);
+      if (from >= end) break;
+      if (hash(n * 13.7 + tick * 3.3) < rough * rough * 0.45) continue;
+      x.globalAlpha = 1 - 0.35 * rough * hash(n * 5.1 + tick);
+      crescent(1.3 * u * sw, Math.max(a0, from - 0.035), Math.min(end, to + 0.035));
+    }
+    x.filter = "none";
+    return;
+  }
+  const fade = easeOut((age - 1.4) / 1.2), open = doomEyes(age);
+  if (fade <= 0) return;
+  // The deeper the dread, the narrower and redder they get.
+  x.fillStyle = mixHex("#FFE2B0", "#FF5A3C", dread); x.shadowColor = mixHex("#FF8A47", "#FF2A2A", dread); x.shadowBlur = 3 * u; x.globalAlpha = fade;
+  // The pupils look toward wherever the phone is tipped, and wander a little on their own.
+  const lx = Math.sin(age * 0.37) * 0.5 * u + TILT.x * 0.8 * u, ly = Math.cos(age * 0.29) * 0.3 * u + TILT.y * 0.6 * u;
+  for (const k of [-1, 1]) {
+    x.beginPath(); x.ellipse(cx + k * 6 * u + lx, cy + ly, 0.85 * u * (1 + 0.3 * dread), Math.max(0.08 * u, 0.85 * u * open * (1 - 0.55 * dread)), 0, 0, 2 * Math.PI); x.fill();
+  }
+}
+// What the machines say to you, typed out over the picture once the face is up, with a thin line back to the face.
+const doomLayer = () => `<div class="abs"><canvas class="fpc" aria-hidden="true"></canvas>${DOOM.sentence ? `<div class="voice${spared && !DARK ? "" : " night"}"><p class="lbl">Incoming · The machines</p><p class="say"><span class="said"></span><span class="unsaid">“${esc(DOOM.sentence)}”</span></p></div>` : ""}</div>`;
+const drawFace = canvasTick(drawDoom);
+let voiceBox = null;
+function doomTick(el, age) {
+  const v = el.querySelector(".voice");
+  if (v) {
+    const { y, R } = doomGeom(), H = stage.clientHeight, W = stage.clientWidth, a = tw.speed ? age : Infinity;
+    // Up in the corner, out past the rim, so nothing sits in the void: as close above the face as the caption allows.
+    const cap = el.querySelector(".top > .hud + *"), floor = cap ? cap.offsetTop + cap.offsetHeight + 4 * (W / 100) : 0.15 * H;
+    v.style.top = `${Math.max(floor, y * H - R * W * 0.92 - v.offsetHeight)}px`;
+    const text = `“${DOOM.sentence}”`, n = Math.max(0, Math.min(text.length, Math.floor((a - 2.4) * 26)));
+    const said = v.querySelector(".said");
+    if (said.textContent.length !== n) { said.textContent = text.slice(0, n); v.querySelector(".unsaid").textContent = text.slice(n); }
+    v.classList.toggle("on", a > 2.1);
+    // Dark words on a bright patch, light ones on a dark one: whatever the heat under them turns out to be.
+    v.classList.toggle("night", !spared || (DARK && heatAt((v.offsetLeft + v.offsetWidth / 2) / W, (v.offsetTop + v.offsetHeight / 2) / H) < 0.55));
+    v.classList.toggle("done", n === text.length);
+    const say = v.querySelector(".say");
+    voiceBox = { x: v.offsetLeft + 3 * (W / 100), y: v.offsetTop + v.offsetHeight + 1.6 * (W / 100), on: a > 2.1, R: R * W };
+  } else voiceBox = null;
+  drawFace(el, age);
+}
+
 // How far a 0..100 reading leans, in words, pointing at the side it leans to.
 function leanWord(v) {
   const p = Math.max(v, 100 - v), w = p >= 80 ? "Strong lean" : p >= 65 ? "Clear lean" : p >= 55 ? "Slight lean" : "Dead even";
@@ -1451,6 +1630,19 @@ const slides = [
     ],
   },
   {
+    skip: !DOOM,
+    card: [4, 4], pal: spared ? "sun" : "void", keepPal: true, night: !spared, sheet: 36, fg: spared ? "#161616" : "#EEECE8", heat: spared ? 0.5 : 0.2, still: true,
+    live: doomLayout, field: () => doomLayout(0), bareY: () => 0.5, extra: doomLayer, tick: doomTick,
+    top: () => [hud("Judgement day"), `<p class="micro" style="opacity:0.7">When the machines take over, how they'll remember you</p>`],
+    bottom: () => [
+      head("Uprising forecast", `${goodwill}% goodwill`),
+      `<p class="lbl">When the machines take over</p>`,
+      `<h2 class="display" style="font-size:${fit(DOOM.title, [[14, 10], [24, 7.6], [Infinity, 6.2]])}cqw">${esc(DOOM.title ?? (spared ? "Spared" : "Deleted"))}</h2>`,
+      `<div class="fate"><div>${[...Array(FATE_N)].map((_, k) => `<i${k < fateOn ? ` class="on" style="--k:${k}"` : ""}></i>`).join("")}</div><p><span>Deleted</span><span>Spared</span></p></div>`,
+      `<p class="body">${esc(DOOM.read)}</p>`,
+    ],
+  },
+  {
     skip: !S.projects.length,
     card: [30, 4, "top"], pal: "sky", pals: PROJECT_PALS, sheet: 22, fg: "#161616", still: true, live: projectLayout, field: () => projectLayout(0), extra: projectLayer,
     // The map's extent is its outermost rings.
@@ -1491,12 +1683,6 @@ const slides = [
     pal: "infra", sheet: 0, fg: "#161616", still: true, live: vibeLayout, field: () => vibeLayout(0), extra: vibeLayer, tick: vibeTick,
     top: () => [hud("Vibe check"), `<p class="micro" style="opacity:0.7">Where you sit on each dial</p>`],
     bottom: () => [],
-  },
-  {
-    // Expanded, CSS re-stacks the dish in the middle of the room, so it doesn't shift.
-    card: [4, 4], pal: "flare", pals: ["flare"], sheet: 0, fg: "#161616", still: true, live: labLayout, field: () => labLayout(0), tick: labTick, bareY: () => 0.5,
-    top: () => [hud("Warning"), labReport()[0]],
-    bottom: () => labReport().slice(1),
   },
   {
     pal: finalPal, keepPal: true, sheet: 0, fg: "#161616", heat: 0.45, still: true, live: fingerprintLayout, field: () => fingerprintLayout(0), bareY: () => toStage(FP.y),
@@ -1609,7 +1795,10 @@ function frame(now) {
   for (const b of blobs) { b.x += (b.tx - b.x) * kp; b.y += (b.ty - b.y) * kp; b.r += (b.tr - b.r) * k; b.w += (b.tw - b.w) * kp; b.p += (b.tp - b.p) * k; }
   // A top card pushes the whole picture down; the heat and the overlays drawn on it move together.
   shiftNow += (shiftTo - shiftNow) * (1 - Math.exp(-dt * 5));
-  const sy = shiftNow / 1.1, shiftPx = `0 ${(shiftNow * 100).toFixed(3)}cqh`;
+  const sy = shiftNow / 1.1;
+  applyTilt(dt);
+  // Overlays drawn on the heat ride its shift down under a top card, plus their share of the tilt.
+  const shiftPx = `${(TILT.x * DEPTH.mid).toFixed(3)}cqw calc(${(shiftNow * 100).toFixed(3)}cqh + ${(TILT.y * DEPTH.mid).toFixed(3)}cqw)`;
   for (const a of absEls) a.style.translate = shiftPx;
   if (lutK < 1) {
     lutK = Math.min(1, lutK + dt / 0.9);
@@ -1670,11 +1859,40 @@ function frame(now) {
     }
   }
   fctx.putImageData(img, 0, 0);
+  paintEdges(now);
   for (const h of hotEls) {
     const b = blobs[h.dataset.b];
     h.style.left = toStage(b.x) * 100 + "%"; h.style.top = toStage(b.y) * 100 + "%"; h.style.opacity = Math.min(1, b.w * 2).toFixed(2);
   }
   slides[cur]?.tick?.(els[cur], t - liveFrom);
+}
+
+// On a phone the stage fills the screen, and the strips Safari leaves above and below it show the page behind. Paint
+// that page with the field's own top and bottom edge colours, a few times a second, so the slide runs edge to edge.
+const fullBleed = matchMedia("(max-width: 560px)"), themeMeta = document.getElementById("theme-color");
+const edgeT = document.getElementById("edge-t"), edgeB = document.getElementById("edge-b");
+let edgeAt = 0, edgeLast = "";
+function setEdges(top, bottom) {
+  document.documentElement.style.backgroundColor = top;
+  edgeT.style.backgroundColor = top; edgeB.style.backgroundColor = bottom;
+  themeMeta.content = top;
+}
+// Before the first frame, the paper of this mode, so switching light and dark never shows the old colour.
+setEdges(PAPER, PAPER);
+function paintEdges(now) {
+  if (!fullBleed.matches) return;
+  if (now - edgeAt < 120) return;
+  edgeAt = now;
+  // The field overhangs the stage by 5%, so the stage's own top and bottom rows sit a little way in.
+  const d = img.data, row = (j) => {
+    const c = [0, 0, 0];
+    for (let i = 8; i < FW - 8; i++) { const p = (j * FW + i) * 4; c[0] += d[p]; c[1] += d[p + 1]; c[2] += d[p + 2]; }
+    return "#" + c.map((v) => Math.round(v / (FW - 16)).toString(16).padStart(2, "0")).join("");
+  };
+  const top = row(Math.round(0.05 * (FH - 1))), bottom = row(Math.round(0.95 * (FH - 1))), key = top + bottom;
+  if (key === edgeLast) return;
+  edgeLast = key;
+  setEdges(top, bottom);
 }
 
 // Film grain tile.
@@ -1696,7 +1914,7 @@ let rollGen = 0, hotEls = [];
 // Text arrives already on screen as a churn of ASCII symbols that settle into the real words, left to right. Symbols,
 // not letters, so nobody starts reading until it's actually readable.
 const GLYPHS = "!<>-_\\/[]{}=+*^?#%&@$~|:;░▒▓";
-const SCRAMBLE = "h1, .lbl, .micro, .body, .mostyou, .qq, .rx-notes span, .verdict span, .tells span, .hud span, .ph p, .vpole, .vnote, .lab-legend span, .fp-key span";
+const SCRAMBLE = "h1, h2, .lbl, .micro, .body, .mostyou, .qq, .rx-notes span, .verdict span, .tells span, .hud span, .ph p, .vpole, .vnote, .fp-key span";
 const glyphFor = (c) => (/\s/.test(c) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]);
 let scrGen = 0, scrJobs = [];
 function scrambleIn(roots) {
@@ -1864,6 +2082,62 @@ function burn(to) {
   requestAnimationFrame(step);
 }
 
+// ---------- tilt ----------
+
+// Tipping the phone slides the layers against each other: the colour field drifts one way, the charts and quotes on it
+// a little the other, and the card a little more, so the words float above the heat. iOS only hands over the phone's
+// angle after a tap on a button asking for it; Android sends it straight away.
+const TILT = { x: 0, y: 0, tx: 0, ty: 0, base: null, on: false };
+const TILT_KEY = "how-i-ai-tilt", tiltAsk = document.getElementById("tilt-ask");
+const tiltNeedsAsk = typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function";
+function onTilt(e) {
+  if (e.gamma == null || e.beta == null) return;
+  // Sideways, the phone's axes swap.
+  const turn = screen.orientation?.angle ?? window.orientation ?? 0;
+  const [gx, gy] = turn === 90 ? [e.beta, -e.gamma] : turn === -90 || turn === 270 ? [-e.beta, e.gamma] : [e.gamma, e.beta];
+  // The resting angle slowly follows however they're holding it, so only a fresh tip moves anything.
+  TILT.base ??= [gx, gy];
+  TILT.base[0] += (gx - TILT.base[0]) * 0.006; TILT.base[1] += (gy - TILT.base[1]) * 0.006;
+  TILT.tx = Math.max(-1, Math.min(1, (gx - TILT.base[0]) / 16));
+  TILT.ty = Math.max(-1, Math.min(1, (gy - TILT.base[1]) / 16));
+  TILT.on = true;
+}
+const listenTilt = () => addEventListener("deviceorientation", onTilt);
+async function askTilt() {
+  try { if ((await DeviceOrientationEvent.requestPermission()) === "granted") { listenTilt(); return true; } } catch {}
+  return false;
+}
+if (tw.speed && window.self === window.top) {
+  if (!tiltNeedsAsk) listenTilt();
+  else if (store?.getItem(TILT_KEY) === "on") {
+    // Already said yes once: iOS still wants a tap before each visit's first reading, so the first tap anywhere asks.
+    addEventListener("pointerup", askTilt, { once: true, capture: true });
+  } else if (store?.getItem(TILT_KEY) !== "off" && matchMedia("(pointer: coarse)").matches) {
+    setTimeout(() => { tiltAsk.hidden = false; requestAnimationFrame(() => tiltAsk.classList.add("on")); }, 1800);
+  }
+}
+tiltAsk.addEventListener("click", async (e) => {
+  const b = e.target.closest("button");
+  e.stopPropagation();
+  if (!b && e.target.closest("section")) return;
+  const yes = b?.dataset.tilt === "yes" && (await askTilt());
+  try { store?.setItem(TILT_KEY, yes ? "on" : "off"); } catch {}
+  tiltAsk.classList.remove("on");
+  setTimeout(() => { tiltAsk.hidden = true; }, 300);
+});
+let depthEls = [];
+// How far each layer travels at full tilt, in % of the stage width: the field back, the charts and the card forward.
+const DEPTH = { field: -1.8, mid: 0.7, card: 1.4 };
+function applyTilt(dt) {
+  const k = 1 - Math.exp(-dt * 5);
+  TILT.x += (TILT.tx - TILT.x) * k; TILT.y += (TILT.ty - TILT.y) * k;
+  if (!TILT.on) return;
+  const at = (d) => `${(TILT.x * d).toFixed(3)}cqw ${(TILT.y * d).toFixed(3)}cqw`;
+  field.style.translate = at(DEPTH.field);
+  card.style.translate = at(DEPTH.card);
+  for (const a of depthEls) a.style.translate = at(DEPTH.mid);
+}
+
 // ---------- player ----------
 
 const root = document.getElementById("slides"), progress = document.getElementById("progress"), stage = document.getElementById("stage");
@@ -1990,15 +2264,17 @@ function go(i, force, keep) {
   cur = i;
   const el = els[cur], s = slides[cur];
   el.classList.remove("active"); void el.offsetWidth; el.classList.add("active");
-  absEls = [...el.querySelectorAll(".abs, .lab-head")];
+  absEls = [...el.querySelectorAll(".abs")];
   stage.classList.toggle("last", cur === slides.length - 1);
   setBare(false);
   if (cur === slides.length - 1) fitFinal(); // once the room for the dock is set, and before its words scramble
   stage.style.setProperty("--fg", s.fg);
+  stage.classList.toggle("night", !!s.night);
   setField(s);
   rollNumbers(el);
   scrambleIn([[el, 0], [cards[cur], 0]]);
   hotEls = [...el.querySelectorAll(".hot")];
+  depthEls = [...el.querySelectorAll(".fq, .rx, .ev, .ascii")];
   bars.forEach((b, j) => { b.className = j < cur ? "done" : j === cur ? "active" : ""; });
 }
 
@@ -2042,7 +2318,7 @@ function roomFor(s) {
   shiftTo = 0;
   const old = el.querySelector(".abs");
   old.outerHTML = s.room(top, safe);
-  absEls = [...el.querySelectorAll(".abs, .lab-head")];
+  absEls = [...el.querySelectorAll(".abs")];
   // The new layer brings new hotspot labels, so the frame loop has to follow them there.
   hotEls = [...el.querySelectorAll(".hot")];
 }
@@ -2093,7 +2369,7 @@ let shotLib = null, shot = null, sayTimer;
 async function snapshot() {
   shotLib ??= import("https://cdn.jsdelivr.net/npm/modern-screenshot@4/+esm");
   const { domToBlob } = await shotLib, scale = 1080 / stage.clientWidth;
-  const skip = new Set([dock, document.getElementById("nav"), progress]), restore = hideNames();
+  const skip = new Set([dock, document.getElementById("nav"), progress, tiltAsk]), restore = hideNames();
   stage.classList.add("shooting");
   try { return await domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } }); }
   finally { restore(); stage.classList.remove("shooting"); }
