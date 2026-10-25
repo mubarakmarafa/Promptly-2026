@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Publishes the wrapped page to a host the user is already logged in to.
+// Publishes the Promptly page to a host the user is already logged in to.
 // Usage:
 //   node deploy.mjs --detect                         which hosts are installed and logged in
 //   node deploy.mjs --to vercel [--file page.html]   publish (vercel | netlify | cloudflare | github)
@@ -18,8 +18,8 @@ const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   if (argv[i].startsWith("--")) args[argv[i].slice(2)] = argv[i + 1]?.startsWith("--") || argv[i + 1] === undefined ? true : argv[++i];
 }
-const file = args.file ?? path.join(os.homedir(), "Desktop", "how-i-ai-wrapped.html");
-const name = String(args.name ?? "how-i-ai-wrapped").toLowerCase().replace(/[^a-z0-9-]/g, "-");
+const file = args.file ?? path.join(os.homedir(), "Desktop", "promptly-2026.html");
+const name = String(args.name ?? "promptly-2026").toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
 const run = (cmd, cmdArgs, opts = {}) => {
   const r = spawnSync(cmd, cmdArgs, { encoding: "utf8", timeout: opts.timeout ?? 15000, cwd: opts.cwd, stdio: opts.inherit ? ["inherit", "pipe", "pipe"] : "pipe" });
@@ -58,7 +58,7 @@ const HOSTS = {
       const steps = [
         ["git", ["init", "-q", "-b", "main"]],
         ["git", ["add", "index.html"]],
-        ["git", ["-c", "user.name=how-i-ai", "-c", "user.email=how-i-ai@users.noreply.github.com", "commit", "-q", "-m", "Publish How I AI Wrapped"]],
+        ["git", ["-c", "user.name=promptly", "-c", "user.email=promptly@users.noreply.github.com", "commit", "-q", "-m", "Publish Promptly 2026"]],
       ];
       for (const [c, a] of steps) { const r = run(c, a, { cwd: dir }); if (!r.ok) return r; }
       // A repo of this name from an earlier deploy gets the new page pushed over it.
@@ -93,10 +93,10 @@ if (!host.ready()) {
 const GLYPHS = "!<>-_\\/[]{}=+*^?#%&@$~|:;░▒▓";
 const disguise = (s) => [...s].map((c, k) => (/\s/.test(c) ? c : GLYPHS[(c.charCodeAt(0) * 7 + k * 13) % GLYPHS.length])).join("");
 const html = fs.readFileSync(file, "utf8");
-const DATA = /(<script id="wrapped-data" type="application\/json">)([\s\S]*?)(<\/script>)/;
+const DATA = /(<script id="promptly-data" type="application\/json">)([\s\S]*?)(<\/script>)/;
 const m = html.match(DATA);
 if (!m) {
-  console.error(`${file} doesn't look like a How I AI page`);
+  console.error(`${file} doesn't look like a Promptly page`);
   process.exit(1);
 }
 const data = JSON.parse(m[2]);
@@ -104,7 +104,7 @@ data.projectsHidden = true;
 data.stats.projects = (data.stats.projects ?? []).map((p) => ({ ...p, name: disguise(p.name) }));
 const json = JSON.stringify(data).replace(/</g, "\\u003c");
 
-const dir = path.join(os.tmpdir(), "how-i-ai-deploy", name);
+const dir = path.join(os.tmpdir(), "promptly-deploy", name);
 fs.rmSync(dir, { recursive: true, force: true });
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(path.join(dir, "index.html"), html.replace(DATA, (_, a, __, b) => a + json + b));

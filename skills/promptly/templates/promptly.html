@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3F2EE" id="theme-color">
-<title>How I AI · Wrapped</title>
+<title>Promptly 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- crossorigin lets the image capture read this sheet and embed the fonts; without it saved slides fall back to wider system fonts. -->
@@ -434,7 +434,7 @@
     </div>
     <button class="solo" data-act="expand" aria-label="Show just the picture" aria-pressed="false"><svg viewBox="0 0 24 24"><path class="out" d="M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6"/><path class="in" d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg></button>
   </div>
-  <div class="byline" aria-hidden="true"><span>By Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/how-i-ai</span></div>
+  <div class="byline" aria-hidden="true"><span>By Moby &amp; Chelsea</span><span>github.com/mubarakmarafa/Promptly-2026</span></div>
   <div class="tilt-ask" id="tilt-ask" role="dialog" aria-label="Turn on tilt" hidden><section>
     <p class="lbl">Depth</p>
     <p class="body">Tilt your phone and the colours shift under the words.</p>
@@ -452,10 +452,10 @@
   <label>Speed <input type="range" id="tw-speed" min="0" max="4" step="0.1" value="1"></label>
 </aside>
 
-<script id="wrapped-data" type="application/json">/*__WRAPPED_DATA__*/</script>
+<script id="promptly-data" type="application/json">/*__PROMPTLY_DATA__*/</script>
 <script>
 const SOURCE = "<!doctype html>\n" + document.documentElement.outerHTML;
-const D = JSON.parse(document.getElementById("wrapped-data").textContent);
+const D = JSON.parse(document.getElementById("promptly-data").textContent);
 const S = D.stats, P = D.persona;
 // Published pages and embeds arrive with the names hidden: whoever's looking didn't make it.
 if (D.projectsHidden) document.documentElement.classList.add("visitor");
@@ -474,7 +474,7 @@ const fit = (text, steps) => (steps.find(([n]) => String(text ?? "").length <= n
 const sources = Object.entries(D.sources).filter(([, v]) => v.prompts > 0).sort((a, b) => b[1].prompts - a[1].prompts);
 const total = S.totals.prompts;
 const who = D.name ?? "You";
-const serial = "HIA-" + (S.totals.lastDate ?? "").replace(/-/g, "").slice(2);
+const serial = "PRM-" + (S.totals.lastDate ?? "").replace(/-/g, "").slice(2);
 const maxHour = Math.max(...S.time.byHour) || 1;
 
 // ---------- palettes: low → high intensity ----------
@@ -512,7 +512,7 @@ const PALETTES = {
 
 const LOOK = { mood: D.look?.mood ?? "mixed", mode: D.look?.mode ?? "auto" };
 // The dock's theme button can override the mode on this device; picking the default again clears the override.
-const MODE_KEY = "how-i-ai-mode";
+const MODE_KEY = "promptly-mode";
 const store = (() => { try { return localStorage; } catch { return null; } })();
 const picked = store?.getItem(MODE_KEY);
 const baseMode = LOOK.mode;
@@ -1488,7 +1488,7 @@ const title = (() => {
   if (!/^(the|a|an)$/i.test(words[0])) words.unshift("the");
   return `${D.name}, ${words.join(" ")}`;
 })();
-const CREDITS = [["Moby", "https://www.callmemoby.design/"], ["Chelsea", "https://chelsealuna.com/"]], REPO = "github.com/mubarakmarafa/how-i-ai";
+const CREDITS = [["Moby", "https://www.callmemoby.design/"], ["Chelsea", "https://chelsealuna.com/"]], REPO = "github.com/mubarakmarafa/Promptly-2026";
 const finalPal = ((list) => list[[...`${who}${P.archetype?.name}${S.totals.lastDate}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % list.length])(FINAL_PALS[LOOK.mood] ?? FINAL_PALS.mixed);
 
 // ---------- slides ----------
@@ -1497,7 +1497,7 @@ const slides = [
   {
     card: [4, 4], pal: "flare", sheet: 36, fg: "#161616", bands: 0.4, heat: 1, live: swarmLayout, field: () => swarmLayout(0), extra: asciiLayer, tick: asciiTick,
     top: () => [
-      `<div class="hud"><span>How I AI · Wrapped</span><span>${ymd(S.totals.firstDate)} — ${ymd(S.totals.lastDate)}</span></div>`,
+      `<div class="hud"><span>Promptly 2026</span><span>${ymd(S.totals.firstDate)} — ${ymd(S.totals.lastDate)}</span></div>`,
       `<div class="grow"></div>`,
       `<h1 class="display blend" style="font-weight:500;font-size:12.5cqw;letter-spacing:-0.055em">This is how<br>you AI'd.</h1>`,
     ],
@@ -2109,7 +2109,7 @@ function burn(to) {
 // a little the other, and the card a little more, so the words float above the heat. iOS only hands over the phone's
 // angle after a tap on a button asking for it; Android sends it straight away.
 const TILT = { x: 0, y: 0, tx: 0, ty: 0, base: null, on: false };
-const TILT_KEY = "how-i-ai-tilt", tiltAsk = document.getElementById("tilt-ask");
+const TILT_KEY = "promptly-tilt", tiltAsk = document.getElementById("tilt-ask");
 const tiltNeedsAsk = typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function";
 function onTilt(e) {
   if (e.gamma == null || e.beta == null) return;
@@ -2532,7 +2532,7 @@ async function snapshot() {
   try { return await domToBlob(stage, { scale, type: "image/png", filter: (n) => !skip.has(n), style: { borderRadius: "0", boxShadow: "none" } }); }
   finally { restore(); stage.classList.remove("shooting"); }
 }
-const shotName = () => `how-i-ai-${String(cur + 1).padStart(2, "0")}.png`;
+const shotName = () => `promptly-${String(cur + 1).padStart(2, "0")}.png`;
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.png", { type: "image/png" })] });
 const canCopyImage = !!(navigator.clipboard?.write && window.ClipboardItem);
 function tell(text, ms = 1600) {
@@ -2558,9 +2558,9 @@ async function copyText(text) {
 const embedSource = () => {
   const data = { ...D, projectsHidden: true, stats: { ...S, projects: S.projects.map((p) => ({ ...p, name: disguise(p.name) })) } };
   const json = JSON.stringify(data).replace(/</g, "\\u003c");
-  return SOURCE.replace(/(<script id="wrapped-data" type="application\/json">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json + b);
+  return SOURCE.replace(/(<script id="promptly-data" type="application\/json">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json + b);
 };
-const embedCode = () => `<iframe title="How I AI - Wrapped" style="width:100%;max-width:420px;aspect-ratio:9/16;border:0" srcdoc="${embedSource().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/[^\x00-\x7f]/gu, (c) => `&#${c.codePointAt(0)};`)}"></iframe>`;
+const embedCode = () => `<iframe title="Promptly 2026" style="width:100%;max-width:420px;aspect-ratio:9/16;border:0" srcdoc="${embedSource().replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/[^\x00-\x7f]/gu, (c) => `&#${c.codePointAt(0)};`)}"></iframe>`;
 // Already inside someone's page, there's nothing to embed.
 acts.querySelector('[data-act="embed"]').hidden = window.self !== window.top;
 
@@ -2577,7 +2577,7 @@ acts.onclick = async (e) => {
     const blob = await (shot ?? snapshot());
     if (act === "save") { saveBlob(blob); tell("Saved"); }
     else if (canShareFiles) {
-      try { await navigator.share({ files: [new File([blob], shotName(), { type: "image/png" })], title: "How I AI · Wrapped" }); say.classList.remove("on"); }
+      try { await navigator.share({ files: [new File([blob], shotName(), { type: "image/png" })], title: "Promptly 2026" }); say.classList.remove("on"); }
       catch (err) { if (err?.name === "AbortError") say.classList.remove("on"); else { saveBlob(blob); tell("Saved instead"); } }
     } else if (canCopyImage) { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); tell("Image copied"); }
     else { saveBlob(blob); tell("Saved"); }

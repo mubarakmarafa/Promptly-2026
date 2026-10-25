@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data wrapped-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects] [--skip-number-check] [--skip-length-check]
+// Usage: node render.mjs --data promptly-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects] [--skip-number-check] [--skip-length-check]
 //
 // Every number in the persona's own writing has to come from the data. Write {{path}} for a stat (e.g.
 // {{time.longestStreak.length}}, {{style.pleasePct}}%, {{totals.words|k}}) or {{q:"pattern"}} / {{q:"pattern"|pct}} for
@@ -19,9 +19,9 @@ for (let i = 0; i < argv.length; i++) {
 }
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const dataPath = args.data ?? path.join(os.tmpdir(), "how-i-ai", "wrapped-data.json");
-const personaPath = args.persona ?? path.join(os.tmpdir(), "how-i-ai", "persona.json");
-const out = args.out ?? path.join(os.homedir(), "Desktop", "how-i-ai-wrapped.html");
+const dataPath = args.data ?? path.join(os.tmpdir(), "promptly", "promptly-data.json");
+const personaPath = args.persona ?? path.join(os.tmpdir(), "promptly", "persona.json");
+const out = args.out ?? path.join(os.homedir(), "Desktop", "promptly-2026.html");
 
 const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
 const persona = JSON.parse(fs.readFileSync(personaPath, "utf8"));
@@ -153,8 +153,8 @@ for (const [key, allowed] of Object.entries(LOOKS)) {
   }
 }
 payload.look = look;
-const template = fs.readFileSync(path.join(here, "..", "templates", "wrapped.html"), "utf8");
+const template = fs.readFileSync(path.join(here, "..", "templates", "promptly.html"), "utf8");
 const json = JSON.stringify(payload).replace(/</g, "\\u003c");
 fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, template.replace("/*__WRAPPED_DATA__*/", () => json));
+fs.writeFileSync(out, template.replace("/*__PROMPTLY_DATA__*/", () => json));
 console.log(`wrote ${out} (${look.mood}, ${look.mode})`);
