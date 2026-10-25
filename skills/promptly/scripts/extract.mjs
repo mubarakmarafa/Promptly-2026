@@ -18,13 +18,13 @@ import { execFileSync } from "node:child_process";
 
 const HOME = os.homedir();
 const args = parseArgs(process.argv.slice(2));
-const OUT = args.out ?? path.join(os.tmpdir(), "how-i-ai", "wrapped-data.json");
+const OUT = args.out ?? path.join(os.tmpdir(), "promptly", "promptly-data.json");
 const SINCE = args.days ? Date.now() - Number(args.days) * 864e5 : 0;
 const SAMPLE_SIZE = Number(args.sample ?? 120);
 const FACTS = path.join(path.dirname(OUT), "facts.json");
 // A whole-history query is keyed by its pattern alone, which is what {{q:"pattern"}} looks up.
 const factKey = (a) => (a.from || a.to ? `${a.grep ?? ""} @ ${a.from ?? ""}..${a.to ?? ""}` : String(a.grep));
-// Ignore the last few minutes so the /wrapped session doesn't analyse itself.
+// Ignore the last few minutes so the /promptly session doesn't analyse itself.
 const UNTIL = Date.now() - 5 * 60e3;
 
 function parseArgs(argv) {
@@ -610,7 +610,7 @@ fs.writeFileSync(OUT, JSON.stringify(output, null, 1));
 fs.rmSync(FACTS, { force: true });
 const kb = Math.round(fs.statSync(OUT).size / 1024);
 console.log(
-  `how-i-ai: ${human.length} prompts across ${stats.totals.sessions} sessions ` +
+  `promptly: ${human.length} prompts across ${stats.totals.sessions} sessions ` +
     `(claude-code ${output.sources["claude-code"].prompts}, codex ${output.sources.codex.prompts}, cursor ${output.sources.cursor.prompts}) ` +
     `in ${((Date.now() - started) / 1000).toFixed(1)}s`,
 );

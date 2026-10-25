@@ -1,9 +1,9 @@
 ---
-name: wrapped
-description: Turn the user's local AI chat history (Claude Code, Codex, Cursor) into a Spotify Wrapped-style page about their prompting personality. Use when the user says /wrapped, asks for their "AI wrapped", "prompting wrapped", "how I AI", or wants a fun summary of how they talk to their agents.
+name: promptly
+description: Turn the user's local AI chat history (Claude Code, Codex, Cursor) into a Spotify Wrapped-style page about their prompting personality. Use when the user says /promptly or /wrapped, asks for their "Promptly", "AI wrapped", "prompting wrapped", "how I AI", or wants a fun summary of how they talk to their agents.
 ---
 
-# How I AI · Wrapped
+# Promptly 2026
 
 You're making the user a shareable, Spotify Wrapped-style story about how they prompt. A script does the counting; your job is the personality: the archetype, captions, receipts and quote picks. That's what makes it fun, so put real effort into it.
 
@@ -39,7 +39,7 @@ The roast is medium by default. If the user asks for gentle or extra spicy when 
 
 The time range defaults to all time. If the user mentions one ("this year", "last 90 days"), pass `--days` to the extractor: days since 1 January for this year, or the number they gave.
 
-Skip any question the user already answered when invoking you (for example `/wrapped call me Sam, designer, cool, extra spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, mixed colours, medium roast. Don't stall waiting for an answer.
+Skip any question the user already answered when invoking you (for example `/promptly call me Sam, designer, cool, extra spicy`). If you can't ask, for example in a non-interactive run, use the defaults: their git first name, no role, mixed colours, medium roast. Don't stall waiting for an answer.
 
 While you wait for answers, don't read any history.
 
@@ -194,7 +194,7 @@ node scripts/render.mjs --data <data.json> --persona <persona.json>
 
 The colours come from `look` in `persona.json`. `--mood` and `--mode` (`auto`, `light`, `dark`) override it, which is handy if the user wants to try another palette.
 
-This writes `~/Desktop/how-i-ai-wrapped.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
+This writes `~/Desktop/promptly-2026.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
 
 If it stops with a list of numbers it can't trace to the data, fix each one as it says and run it again. Don't reach for `--skip-number-check`; it exists for debugging the template, not for shipping a page. The same goes for copy that's too long for its slide: it lists each field over its limit, so trim those and run it again rather than passing `--skip-length-check`.
 
@@ -224,6 +224,6 @@ Publishing puts the page on the public internet, so only do it after the user ha
 node scripts/deploy.mjs --to vercel --file <page.html>
 ```
 
-`--to` is `vercel`, `netlify`, `cloudflare` or `github`. It publishes to production under the name `how-i-ai-wrapped` (change it with `--name`), so publishing again later updates the same address. `--preview` gives a Vercel or Netlify preview URL instead; Vercel previews are often behind a login, so use production for something they want to share. The script swaps repo names for symbols before anything is uploaded, so the public page never carries them, even in its source.
+`--to` is `vercel`, `netlify`, `cloudflare` or `github`. It publishes to production under the name `promptly-2026` (change it with `--name`), so publishing again later updates the same address. `--preview` gives a Vercel or Netlify preview URL instead; Vercel previews are often behind a login, so use production for something they want to share. The script swaps repo names for symbols before anything is uploaded, so the public page never carries them, even in its source.
 
 It prints the URL. Give it to them, and remind them that anyone with the link can see it and that they can take it down from their host's dashboard. If the deploy fails, show the error in a sentence and leave it there; don't try other hosts without asking.

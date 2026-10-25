@@ -1,11 +1,11 @@
 {
-  "name": "how-i-ai",
+  "name": "promptly",
   "owner": { "name": "Mubarak Marafa" },
   "plugins": [
     {
-      "name": "how-i-ai",
+      "name": "promptly",
       "source": "./",
-      "description": "Spotify Wrapped for your prompting: /wrapped turns your local AI chat history into a shareable personality story."
+      "description": "Spotify Wrapped for your prompting: /promptly turns your local AI chat history into a shareable personality story."
     }
   ]
 }
