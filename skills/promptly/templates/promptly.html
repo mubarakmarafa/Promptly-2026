@@ -255,8 +255,6 @@
   .fq .qc .body { font-size: 3.4cqw; }
   .fq.r { text-align: right; align-items: flex-end; }
   .fq.r .qq { text-indent: 0; }
-  .fq .w { transition: color 400ms; }
-  .fq .w.dim { color: #EEECE8; }
   .fq { opacity: 0; transform: translateY(2.4cqw); }
   .slide.active .fq { animation: rise 620ms var(--ease-out) forwards 150ms; }
 
@@ -1470,20 +1468,6 @@ function vibeTick(el) {
   });
 }
 
-// Log quotes drift over bright and dark bands alike, so each word picks its ink from the colour under it: dark on a
-// bright patch, light on a dark one. The two thresholds give a word on the edge some room so it doesn't flicker.
-const inWords = (text) => esc(text).split(/(\s+)/).map((p) => (p.trim() ? `<span class="w">${p}</span>` : p)).join("");
-const lumAt = (d, x, y) => { const p = (y * FW + x) * 4; return 0.2126 * (d[p] / 255) ** 2.2 + 0.7152 * (d[p + 1] / 255) ** 2.2 + 0.0722 * (d[p + 2] / 255) ** 2.2; };
-function inkTick(el) {
-  const f = field.getBoundingClientRect(), d = img.data;
-  const px = (cx) => Math.min(FW - 1, Math.max(0, Math.floor(((cx - f.left) / f.width) * FW)));
-  for (const w of el.querySelectorAll(".fq .w")) {
-    const r = w.getBoundingClientRect(), y = Math.min(FH - 1, Math.max(0, Math.floor(((r.top + r.height / 2 - f.top) / f.height) * FH)));
-    const lum = (lumAt(d, px(r.left + r.width * 0.2), y) + lumAt(d, px(r.left + r.width / 2), y) + lumAt(d, px(r.right - r.width * 0.2), y)) / 3;
-    w.classList.toggle("dim", w.classList.contains("dim") ? lum < 0.2 : lum < 0.14);
-  }
-}
-
 // Log backgrounds: each hotspot loops on its own slow path, so the colours keep moving behind the card.
 const wander = (seed, n) => {
   const base = scatter(seed, n, [0, 0, 1, 1]), r = rng(seed + 99);
@@ -1687,15 +1671,15 @@ const slides = [
   },
   ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
     pal: ["bloom", "dusk", "dawn"][i], fg: "#161616",
-    sheet: 0, live: wander(40 + i * 7, 5), field: () => wander(40 + i * 7, 5)(0), tick: inkTick,
+    sheet: 0, live: wander(40 + i * 7, 5), field: () => wander(40 + i * 7, 5)(0),
     top: () => [hud(`Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
     // Three placements: high and left, low and right, centre with the note tucked under.
     extra: () => {
       const at = ["left:6cqw;right:12cqw;top:22%", "left:14cqw;right:6cqw;bottom:15%", "left:6cqw;right:8cqw;top:38%"][i];
       return `<div class="fq${i === 1 ? " r" : ""}" style="${at}">
-        <p class="lbl">${inWords(q.title ?? "Transmission")}</p>
-        <p class="qq" style="--fs:${fit(q.text, [[40, 10], [80, 8.2], [140, 6.6], [Infinity, 5.4]])}cqw">${inWords(`“${q.text}”`)}</p>
-        <div class="qc">${q.meta ? `<p class="micro" style="opacity:0.8">${inWords(q.meta)}</p>` : ""}<p class="body">${inWords(q.caption)}</p></div>
+        <p class="lbl">${esc(q.title ?? "Transmission")}</p>
+        <p class="qq" style="--fs:${fit(q.text, [[40, 10], [80, 8.2], [140, 6.6], [Infinity, 5.4]])}cqw">“${esc(q.text)}”</p>
+        <div class="qc">${q.meta ? `<p class="micro" style="opacity:0.8">${esc(q.meta)}</p>` : ""}<p class="body">${esc(q.caption)}</p></div>
       </div>`;
     },
     bottom: () => [],
