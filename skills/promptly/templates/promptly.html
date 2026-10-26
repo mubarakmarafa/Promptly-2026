@@ -1475,6 +1475,17 @@ const wander = (seed, n) => {
   return (age) => base.map((b, i) => { const [p, q, sx, sy] = path[i]; return { ...b, x: b.x + 0.22 * Math.sin(age * sx + p), y: b.y + 0.16 * Math.cos(age * sy + q) }; });
 };
 
+// In dark mode the field's quiet end is near-black, and a drifting band can pass right under a quote's dark words. Each
+// quote gets a glow of its own that follows it, so its words always land on colour.
+let quoteGlow = null;
+const glowing = (layout) => (age) => (DARK && quoteGlow ? [...layout(age), quoteGlow] : layout(age));
+function glowTick(el) {
+  const q = DARK && el.querySelector(".fq");
+  if (!q) return;
+  const f = field.getBoundingClientRect(), r = q.getBoundingClientRect();
+  quoteGlow = { x: (r.left + r.width / 2 - f.left) / f.width, y: (r.top + r.height / 2 - f.top) / f.height, r: (0.5 * Math.hypot(r.width, r.height)) / f.width, w: 1.1 };
+}
+
 // The archetype's heat map gets its own palette, picked from the person, so shared cards don't all match.
 const FINAL_PALS = {
   mixed: ["flare", "bloom", "infra", "orchid", "lagoon", "rose", "cobalt", "mint", "ember", "citrus"],
@@ -1671,7 +1682,7 @@ const slides = [
   },
   ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
     pal: ["bloom", "dusk", "dawn"][i], fg: "#161616",
-    sheet: 0, live: wander(40 + i * 7, 5), field: () => wander(40 + i * 7, 5)(0),
+    sheet: 0, live: glowing(wander(40 + i * 7, 5)), field: () => wander(40 + i * 7, 5)(0), tick: glowTick,
     top: () => [hud(`Log ${i + 1}/${Math.min(3, P.quotes.length)}`)],
     // Three placements: high and left, low and right, centre with the note tucked under.
     extra: () => {
