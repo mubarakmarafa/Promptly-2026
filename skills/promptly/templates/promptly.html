@@ -930,6 +930,32 @@ function mannerLayer() {
   </div>`;
 }
 
+// Toolkit: the skills they called themselves on the left, the ones their agent reached for on the right, each a
+// hotspot sized by use and stacked down its side. A side with nothing on it gets an empty ring.
+const SK = S.skills ?? { total: 0, top: [] };
+const skillSide = (by, x, c) => SK.top.filter((k) => k[by]).sort((a, b) => b[by] - a[by]).slice(0, 4).map((k, i, all) => ({
+  name: k.name, private: k.private, n: k[by], c,
+  x: x + (all.length > 1 ? (i % 2 ? 0.06 : -0.06) : 0), y: all.length > 1 ? 0.24 + (0.36 * i) / (all.length - 1) : 0.42,
+}));
+const skillSpots = [...skillSide("you", 0.26, 0), ...skillSide("agent", 0.74, 1)];
+const skillMax = Math.max(1, ...skillSpots.map((k) => k.n));
+const skillR = (k) => 0.05 + 0.08 * Math.sqrt(k.n / skillMax);
+const skillLayout = (age) => skillSpots.map((k, i) => {
+  const e = easeOut((age - 0.2 - i * 0.15) / 1.2), beat = 1 + 0.04 * e * Math.sin(age * 1.5 + i * 1.9);
+  return { x: fromStage(k.x), y: fromStage(k.y), r: skillR(k) * (0.3 + 0.7 * e) * beat, w: (0.7 + 0.5 * Math.sqrt(k.n / skillMax)) * e, c: k.c };
+});
+function skillLayer() {
+  const L = skillLayout(99), label = (k) => (k.private ? redacted(k.name.slice(0, 24)) : esc(k.name.slice(0, 24)));
+  // Names wrap at their hyphens inside the ring, so the type shrinks until the longest piece fits across it.
+  const size = (k, i) => Math.max(1.7, Math.min(2.3 + 1.4 * Math.sqrt(k.n / skillMax), (L[i].r * 220 * 0.78) / (0.55 * Math.max(...k.name.slice(0, 24).split(/[-_.]/).map((w) => w.length + 1)))));
+  const none = [[0, 0.27], [1, 0.73]].filter(([c]) => !skillSpots.some((k) => k.c === c));
+  return `<div class="abs">
+    <span class="micro side-h" style="left:6%">You called</span><span class="micro side-h" style="left:58%">Your agent picked</span>
+    ${skillSpots.map((k, i) => orb(i, L[i], k.name, `${fmt(k.n)}×`, size(k, i).toFixed(2), label(k), " wrap")).join("")}
+    ${none.map(([, x], i) => `<span class="orb ghost" style="left:${x * 100}%;top:42%;--d:11cqw;--k:${i}"><span class="ring"></span><b style="font-size:2.3cqw">none</b><i>0×</i></span>`).join("")}
+  </div>`;
+}
+
 function projectLayer() {
   const L = projectLayout(0);
   return `<div class="abs">${projects.map((p, i) => orb(i, L[i], "", `No. ${i + 1}`, i ? 2.8 + 1.4 * Math.sqrt(p.count / projMax) : 5.2, redacted(p.name.slice(0, 18)))).join("")}</div>`;
@@ -1679,6 +1705,17 @@ const slides = [
     centre: () => { const L = projectLayout(0), y = (b, k) => toStage(b.y) + (k * b.r * 1.1) / AR; return [Math.min(...L.map((b) => y(b, -1))), Math.max(...L.map((b) => y(b, 1)))]; },
     top: () => [hud("Workload"), `<p class="micro" style="opacity:0.7">Where your prompts went${D.projectsHidden ? "" : " · Tap a name to reveal it"}</p>`],
     bottom: () => [head("Workload", `${projects.length} projects`), `<p class="body">${cap("projects", "Some projects got your heart.")}</p>`],
+  },
+  {
+    // Only for people who actually use skills: a handful of calls across more than one.
+    skip: SK.total < 5 || SK.top.length < 2,
+    card: [4, 4], pal: "citrus", pals: ["citrus", "orchid"], sheet: 30, fg: "#161616", still: true, live: skillLayout, field: () => skillLayout(0), extra: skillLayer,
+    top: () => [hud("Toolkit"), `<p class="micro" style="opacity:0.7">Skills, sized by use${SK.top.some((k) => k.private) && !D.projectsHidden ? " · Tap a name to reveal it" : ""}</p>`],
+    bottom: () => [
+      head("Toolkit", `${fmt(SK.distinct)} skills`),
+      `<p class="body">${cap("skills", SK.you >= SK.agent ? "You know your tools and you call them by name." : "You mostly let your agent pick the tool.")}</p>`,
+      `<div class="cells">${cell("You called", `${fmt(SK.you)}×`)}${cell("Your agent picked", `${fmt(SK.agent)}×`)}</div>`,
+    ],
   },
   ...(P.quotes ?? []).slice(0, 3).map((q, i) => ({
     pal: ["bloom", "dusk", "dawn"][i], fg: "#161616",
@@ -2570,7 +2607,7 @@ async function copyText(text) {
 // ASCII, so it reads right on a host page whatever its charset.
 // The embed travels to other people's pages, so its repo names are swapped for their symbols before it leaves.
 const embedSource = () => {
-  const data = { ...D, projectsHidden: true, stats: { ...S, projects: S.projects.map((p) => ({ ...p, name: disguise(p.name) })) } };
+  const data = { ...D, projectsHidden: true, stats: { ...S, projects: S.projects.map((p) => ({ ...p, name: disguise(p.name) })), skills: S.skills && { ...S.skills, top: S.skills.top.map((k) => (k.private ? { ...k, name: disguise(k.name) } : k)) } } };
   const json = JSON.stringify(data).replace(/</g, "\\u003c");
   return SOURCE.replace(/(<script id="promptly-data" type="application\/json">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json + b);
 };

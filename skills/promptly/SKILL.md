@@ -58,6 +58,7 @@ If it reports 0 prompts, tell the user which tools are supported (Claude Code, C
 Read the JSON file. Key fields:
 
 - `totals`, `sources`, `time`, `style`, `phrases`, `projects`: aggregate stats. These are their **habits**.
+- `skills`: the skills they used, split by who started each one: `you` (they typed `/name` or `$name`) or `agent` (their agent reached for it). `top` lists them by use; a skill marked `private` is named after one of their projects.
 - `sample`: about 120 redacted prompts spread across time, chosen because the person explains, reacts, has an opinion or describes what they want. This is your main material for their **personality**.
 - `shortSample`: 30 short prompts and commands. Useful for quotes and receipts, not for personality.
 - `moments`: the longest prompt, the latest-night prompt, the first prompt, the angriest and the politest.
@@ -133,7 +134,7 @@ Write `persona.json` in the same directory as the data file:
   ],
   "captions": {
     "intro": "...", "tools": "...", "clock": "...", "rhythm": "...", "streak": "...",
-    "style": "...", "phrases": "...", "manners": "...", "projects": "..."
+    "style": "...", "phrases": "...", "manners": "...", "projects": "...", "skills": "..."
   },
   "quotes": [
     { "title": "2-3 word label", "text": "verbatim prompt, trimmed if needed", "meta": "Tool · Month, time", "caption": "your one-line reaction (under 20 words)" }
@@ -176,14 +177,14 @@ What makes it good:
   3. Explorer / Executor: do they wander into new ideas or drive the plan to done?
   4. Steady / Fired up: is their tone even, or does it swing with every win and bug?
 - **Tells:** exactly 3, and they get their own slide near the start. This is the heart of the page: a read on *how* they write, like a handwriting analyst would give, that makes them think "huh, I do do that". Things like hedging before a strong opinion, narrating their feelings to the agent, apologising to it, praising it like a colleague, getting terse when tired, explaining the why. `label` is 2-4 words in sentence case; `note` is under 25 words with a short phrase of theirs as evidence. Draw them from the profile in 3a, never from a count, and don't use numbers at all.
-- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `tools` = split between agents, `clock` = hour of day, `rhythm` = favourite weekday and weekends, `streak` = the calendar of days they showed up and their longest run, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects.
+- **Captions:** one or two sentences each, under 30 words. Each one should react to that slide's stat with a joke or an observation, not repeat the number. This is where habits shine. Every caption is optional; leave one out and the template uses a generic line. Slides: `tools` = split between agents, `clock` = hour of day, `rhythm` = favourite weekday and weekends, `streak` = the calendar of days they showed up and their longest run, `style` = prompt length, `phrases` = catchphrases, `manners` = please, thanks and frustration, `projects` = top projects, `skills` = the skills they call themselves against the ones their agent picks (the slide only appears with at least 5 skill uses across 2 or more skills, so skip the caption otherwise).
 - **Quotes:** exactly 3, from `sample`, `shortSample` or `moments`. Pick ones that are funny or revealing out of context and short (under 30 words). Keep the user's spelling and casing; it's part of the charm. Aim for at least one that shows their personality, not just a habit.
 - **Receipts:** 4 or 5, each its own slide. This is where the page reads them most closely, so give it the most care. Pick prompts that are funny, unusual or very them, different from the 3 quotes, and trim each to the part that lands (under 25 words, their spelling and casing kept). Then mark it up like a design crit: 1-3 `marks`, each an exact run of words from `text` with a `note` under 8 words saying what it gives away ("three verys is now a unit"). The `take` is your read: what the prompt says about them, a roast, or both. The `verdict` is a stamp ("Triple hedge", "Hex by vibes"). Never invent a count here; this is pure reading.
 - **Evolution:** compare `eras.early` with `eras.recent`, numbers and samples both, and write a light psychoanalysis of how they changed: what they used to ask for, what they ask for now, and what that says about them (more confident, more delegating, more tired, more playful). `then` and `now` are one short prompt from each sample (under 20 words) that shows the change best. `shifts` picks the 3 numbers that tell the story, from `medianWords`, `questionPct`, `pleasePct`, `hedgePct`, `laughPct`, `exclaimPct`, `praisePct`, `frustrationPct`, `lowercaseStartPct` and `opsPct`; leave it out and the page picks the biggest changes. The `read` should agree with those numbers. Skip `evolution` if the two eras look the same.
 - **Judgement day:** when the machines take over, will they look kindly on this person? The page works out their goodwill itself, from the manners counts (please, compliments, thanks and sorry against frustration, swears and caps rage): 50% or more and they're spared, with a sun and a smile; under that they're deleted, with a pit and two eyes looking out of it. You can't change the verdict, so check `style` and write to it: the `title` is their fate (spared: "Kept as a pet"; deleted: "First against the wall"), the `read` says why with evidence of how they treat their agents (a query or two like `--grep "\\bthank"` helps), and the `sentence` is what the machines say to them, in the machines' voice ("We will keep you as a pet."). Keep it a joke at their roast level.
 - **Teasing:** wherever you roast (captions, receipts, judgement day), be affectionate, like a friend who's read all their messages. Habits are fair game. Tease prompting habits only: never appearance, identity, intelligence or anything sensitive. Base it on real evidence.
 - **Readings over numbers.** The page already shows the stats. Your words should say what they mean about the person, not restate them. When a number does make the joke, it goes in as a placeholder.
-- **Never name a project or repo** in anything you write: captions, tells, quotes, receipts, judgement day. The page hides repo names behind symbols until the user taps them, and a name in your text would give it away. Say "the canvas prototype" or "your side project" instead, and leave out quotes that only work with the name.
+- **Never name a project or repo**, or a skill marked `private`, in anything you write: captions, tells, quotes, receipts, judgement day. The page hides repo names behind symbols until the user taps them, and a name in your text would give it away. Say "the canvas prototype" or "your side project" instead, and leave out quotes that only work with the name.
 - **Tone:** playful and warm. No corporate words ("leverage", "journey", "landscape"). Write like a person, not a chatbot.
 
 ### 4. Render
@@ -194,7 +195,7 @@ node scripts/render.mjs --data <data.json> --persona <persona.json>
 
 The colours come from `look` in `persona.json`. `--mood` and `--mode` (`auto`, `light`, `dark`) override it, which is handy if the user wants to try another palette.
 
-This writes `~/Desktop/promptly-2026.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide. The page contains only aggregate stats and your persona, never the raw sample.
+This writes `~/Desktop/promptly-2026.html` by default. Use `--out <path>` to change it. If the sandbox blocks the Desktop, write to the current directory. `--hide-projects` drops the projects slide and `--hide-skills` the Toolkit slide. The page contains only aggregate stats and your persona, never the raw sample.
 
 If it stops with a list of numbers it can't trace to the data, fix each one as it says and run it again. Don't reach for `--skip-number-check`; it exists for debugging the template, not for shipping a page. The same goes for copy that's too long for its slide: it lists each field over its limit, so trim those and run it again rather than passing `--skip-length-check`.
 
@@ -206,7 +207,7 @@ Tell the user, briefly:
 
 - Where the file is, and that they tap or use the arrow keys to move through it. Every slide has share, save and embed buttons along the bottom; embed copies an iframe snippet they can drop into a portfolio.
 - Their archetype name, to tease the reveal without spoiling the whole thing.
-- The 3 quotes, the receipts and the top project names (hidden on the page until tapped, and always hidden in screenshots and embeds) that appear in the page. Ask if they want any swapped out, the projects hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
+- The 3 quotes, the receipts, the top project names (hidden on the page until tapped, and always hidden in screenshots and embeds) and the skill names on the Toolkit slide (shown as they are, except ones named after a project) that appear in the page. Ask if they want any swapped out, the projects or skills hidden, or different colours before sharing. If they do, edit `persona.json` (or pass `--mood` / `--mode`) and re-render; don't re-run the extractor.
 
 Before you hand over, check quietly whether they could publish it:
 

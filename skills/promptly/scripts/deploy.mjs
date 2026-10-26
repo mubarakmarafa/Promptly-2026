@@ -102,6 +102,7 @@ if (!m) {
 const data = JSON.parse(m[2]);
 data.projectsHidden = true;
 data.stats.projects = (data.stats.projects ?? []).map((p) => ({ ...p, name: disguise(p.name) }));
+if (data.stats.skills) data.stats.skills.top = data.stats.skills.top.map((k) => (k.private ? { ...k, name: disguise(k.name) } : k));
 const json = JSON.stringify(data).replace(/</g, "\\u003c");
 
 const dir = path.join(os.tmpdir(), "promptly-deploy", name);
