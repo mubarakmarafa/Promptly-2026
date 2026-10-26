@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Merges extracted stats with the agent-written persona into a self-contained HTML page.
-// Usage: node render.mjs --data promptly-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects] [--skip-number-check] [--skip-length-check]
+// Usage: node render.mjs --data promptly-data.json --persona persona.json [--mood mixed|warm|cool|electric] [--mode auto|light|dark] [--out file.html] [--hide-projects] [--hide-skills] [--skip-number-check] [--skip-length-check]
 //
 // Every number in the persona's own writing has to come from the data. Write {{path}} for a stat (e.g.
 // {{time.longestStreak.length}}, {{style.pleasePct}}%, {{totals.words|k}}) or {{q:"pattern"}} / {{q:"pattern"|pct}} for
@@ -132,6 +132,7 @@ if (lengthProblems.length && !args["skip-length-check"]) {
 // The raw prompt sample and auto-picked moments stay on disk.
 const { sample, shortSample, moments, errors, userFirstName, eras, ...stats } = data;
 if (args["hide-projects"]) stats.projects = [];
+if (args["hide-skills"]) delete stats.skills;
 // Early and recent stretches keep their numbers; their prompt samples stay on disk too.
 if (eras?.early && eras?.recent) stats.eras = Object.fromEntries(Object.entries(eras).map(([k, { from, to, stats: s }]) => [k, { from, to, stats: s }]));
 

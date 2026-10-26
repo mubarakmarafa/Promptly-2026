@@ -105,6 +105,24 @@ function addPrompt(p) {
   prompts.push(p);
 }
 
+// Skills, and who started each one: "you" typed it (/name in Claude Code, $name in Codex), "agent" reached for it on
+// its own. A skill the agent loads straight after you asked for it is yours, so each turn remembers what you called.
+const skillUses = []; // { name, by, ts, source }
+// Claude Code's own commands run the app, not a skill.
+const CC_COMMANDS = new Set(("add-dir agents bashes bug btw clear color compact config context copy cost doctor effort exit export extra-usage " +
+  "fast feedback files help hooks ide install-github-app keybindings login logout mcp memory migrate-installer model output-style " +
+  "permissions plan plugin plugins privacy-settings quit release-notes remote-control rename restart resume rewind sandbox skills " +
+  "stats status statusline tasks terminal-setup theme todos upgrade usage vim voice").split(" "));
+// This skill, under its old and new names, doesn't count itself.
+const SELF = new Set(["promptly", "wrapped"]);
+function addSkill(raw, by, ts, source, turn) {
+  const name = String(raw ?? "").trim().replace(/^[/$]/, "").split(":").pop();
+  if (!name || !/^[\w.-]{2,60}$/.test(name) || SELF.has(name) || !ts || ts < SINCE || ts > UNTIL) return;
+  if (by === "agent" && turn.has(name)) return;
+  turn.add(name);
+  skillUses.push({ name, by, ts, source });
+}
+
 async function* readJsonl(file) {
   const rl = readline.createInterface({ input: fs.createReadStream(file), crlfDelay: Infinity });
   for await (const line of rl) {
@@ -134,10 +152,19 @@ async function collectClaudeCode() {
   const root = path.join(HOME, ".claude", "projects");
   // Top-level session files only; nested ones are subagent transcripts.
   const files = walk(root, (p) => p.endsWith(".jsonl") && path.dirname(path.dirname(p)) === root, 0, 1);
-  const seenMsgIds = new Set();
+  const seenMsgIds = new Set(), seenTools = new Set();
   for (const file of files) {
     meta.claudeCode.files++;
+    let turn = new Set();
     for await (const e of readJsonl(file)) {
+      // A message arrives in several entries, one per block, so look for skill calls in every one of them.
+      if (e.type === "assistant" && !e.isSidechain && Array.isArray(e.message?.content)) {
+        for (const b of e.message.content) {
+          if (b.type !== "tool_use" || b.name !== "Skill" || seenTools.has(b.id)) continue;
+          seenTools.add(b.id);
+          addSkill(b.input?.skill, "agent", Date.parse(e.timestamp), "claude-code", turn);
+        }
+      }
       if (e.type === "assistant" && e.message?.id && !seenMsgIds.has(e.message.id)) {
         seenMsgIds.add(e.message.id);
         const m = e.message.model;
@@ -155,8 +182,15 @@ async function collectClaudeCode() {
         raw = c.filter((b) => b.type === "text").map((b) => b.text).join("\n");
         extraImages = c.filter((b) => b.type === "image").length;
       }
+      const command = raw?.match(/<command-name>\/?([^<\s]+)<\/command-name>/)?.[1];
+      if (command) {
+        turn = new Set();
+        if (!CC_COMMANDS.has(command)) addSkill(command, "you", Date.parse(e.timestamp), "claude-code", turn);
+        continue;
+      }
       const cleaned = cleanPrompt(raw);
       if (!cleaned) continue;
+      turn = new Set();
       meta.claudeCode.sessions.add(e.sessionId);
       addPrompt({
         ...cleaned,
@@ -170,6 +204,7 @@ async function collectClaudeCode() {
   }
 }
 
+const codexSkills = new Set();
 async function collectCodex() {
   const root = path.join(HOME, ".codex", "sessions");
   const files = walk(root, (p) => p.endsWith(".jsonl"));
@@ -177,8 +212,17 @@ async function collectCodex() {
     let session = file;
     let cwd = null;
     let skip = false;
+    let turn = new Set();
     for await (const e of readJsonl(file)) {
       const p = e.payload ?? {};
+      // Codex lists its skills up front as "- name: what it does (file: …/SKILL.md)". Only those count, so a $HOME in a
+      // pasted script or a SKILL.md read for reference doesn't.
+      if (e.type === "response_item" && p.role === "developer") {
+        for (const b of p.content ?? []) for (const m of String(b.text ?? "").matchAll(/^- ([\w:.-]+): .*\(file: [^)]*SKILL\.md\)$/gm)) codexSkills.add(m[1]);
+      }
+      if (e.type === "response_item" && /call$/.test(p.type ?? "")) {
+        for (const m of JSON.stringify(p).matchAll(/([\w.-]+)\/SKILL\.md/g)) if (codexSkills.has(m[1])) addSkill(m[1], "agent", Date.parse(e.timestamp), "codex", turn);
+      }
       if (e.type === "session_meta") {
         if (JSON.stringify(p.source ?? "").includes("subagent")) {
           skip = true;
@@ -198,6 +242,8 @@ async function collectCodex() {
       const images = (p.content ?? []).filter((b) => b.type === "input_image").length;
       const cleaned = cleanPrompt(raw);
       if (!cleaned) continue;
+      turn = new Set();
+      for (const m of cleaned.text.matchAll(/(?:^|[\s(])\$([\w.-]+)/g)) if (codexSkills.has(m[1])) addSkill(m[1], "you", Date.parse(e.timestamp), "codex", turn);
       meta.codex.sessions.add(session);
       addPrompt({
         ...cleaned,
@@ -533,6 +579,19 @@ function computeStats(list) {
   };
 }
 
+// Skills by use, split by who started them. A skill named after one of their projects ("deploy-acme") would give the
+// project away, so it's marked private and the page hides it the way it hides project names.
+function skillStats(uses, projects) {
+  const by = {};
+  for (const u of uses) (by[u.name] ??= { name: u.name, count: 0, you: 0, agent: 0 })[u.by]++;
+  const squash = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const names = projects.map(squash).filter((n) => n.length >= 4);
+  const top = Object.values(by)
+    .map((s) => ({ ...s, count: s.you + s.agent, private: names.some((n) => squash(s.name).includes(n)) }))
+    .sort((a, b) => b.count - a.count || (a.name < b.name ? -1 : 1));
+  return { total: uses.length, you: count(uses, (u) => u.by === "you"), agent: count(uses, (u) => u.by === "agent"), distinct: top.length, top: top.slice(0, 10) };
+}
+
 function firstName() {
   try {
     const name = execFileSync("git", ["config", "--global", "user.name"], { encoding: "utf8" }).trim();
@@ -582,6 +641,7 @@ if (args.grep || args.from || args.to) {
 }
 
 const stats = computeStats(human);
+stats.skills = skillStats(skillUses, [...new Set(human.map((p) => p.project).filter(Boolean))]);
 // The first and last stretch of their history, a sixth of their prompts each, to see how their prompting changed.
 const slice = Math.max(1, Math.floor(human.length / 6));
 const output = {
