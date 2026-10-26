@@ -543,8 +543,10 @@ if (DARK) {
 function rng(seed) { let s = seed * 9301 + 49297; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
 const scatter = (seed, n = 5, [x0, y0, x1, y1] = [0, 0, 1, 0.7]) => { const r = rng(seed); return [...Array(n)].map(() => ({ x: x0 + r() * (x1 - x0), y: y0 + r() * (y1 - y0), r: 0.2 + r() * 0.24, w: 0.7 + r() * 0.7 })); };
 // Stage height / width. Everything round is laid out from this, so circles stay circles on any screen shape.
-let AR = 16 / 9;
-const measure = () => { const st = document.getElementById("stage"); AR = st.clientHeight / st.clientWidth || 16 / 9; };
+// The stage's shape, and the width it was last laid out at: the card is placed in pixels, so it has to be placed again
+// when the stage scales, even if its shape stays the same.
+let AR = 16 / 9, laidW = 0;
+const measure = () => { const st = document.getElementById("stage"); AR = st.clientHeight / st.clientWidth || 16 / 9; laidW = st.clientWidth; };
 // The field canvas overhangs the stage by 5% each side: field coord f maps to stage coord -0.05 + 1.1f.
 const fromStage = (v) => (v + 0.05) / 1.1;
 // Clock geometry in stage coords (x, R in widths; y in heights), fitted between the header and the panel.
@@ -2279,13 +2281,14 @@ function fitFinal() {
 // It's measured in Geist, which arrives in pieces (curly quotes and ellipses can come in a file of their own, fetched
 // only once the slide first lays out), so fit again whenever more of it lands.
 document.fonts?.addEventListener("loadingdone", () => fitFinal());
-// Re-lay out when the stage changes shape (rotating a phone, resizing a window).
+// Re-lay out when the stage changes shape (rotating a phone) or size (resizing a window). A phone's address bar sliding
+// away only nudges the height, which isn't worth starting the slide over for.
 let resizeTimer;
 new ResizeObserver(() => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     const st = document.getElementById("stage"), next = st.clientHeight / st.clientWidth;
-    if (!els.length || Math.abs(next - AR) < 0.01) return;
+    if (!els.length || (Math.abs(next - AR) < 0.01 && Math.abs(st.clientWidth - laidW) < 1)) return;
     const at = cur; build(); cur = -1; go(at);
   }, 150);
 }).observe(stage);
