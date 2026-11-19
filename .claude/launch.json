@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4173", "--directory", "lab"],
       "port": 4173
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["demo/build.mjs", "--serve", "4174"],
+      "port": 4174
     }
   ]
 }

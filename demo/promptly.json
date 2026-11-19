@@ -1,0 +1,929 @@
+{
+  "name": "Moby",
+  "role": "designer",
+  "sources": {
+    "claude-code": {
+      "prompts": 1025,
+      "sessions": 43,
+      "models": [
+        {
+          "name": "claude-opus-5-5",
+          "count": 24292
+        },
+        {
+          "name": "claude-fable-5-2",
+          "count": 4659
+        },
+        {
+          "name": "claude-haiku-5-5",
+          "count": 218
+        },
+        {
+          "name": "claude-haiku-4-5-20251001",
+          "count": 83
+        },
+        {
+          "name": "claude-sonnet-5-5",
+          "count": 1
+        }
+      ],
+      "outputTokens": 23818344
+    },
+    "codex": {
+      "prompts": 39,
+      "sessions": 8,
+      "models": [
+        {
+          "name": "gpt-6-astra",
+          "count": 57
+        },
+        {
+          "name": "gpt-6.1-sol",
+          "count": 7
+        },
+        {
+          "name": "gpt-6-luna",
+          "count": 3
+        },
+        {
+          "name": "gpt-5.6-luna",
+          "count": 2
+        }
+      ]
+    },
+    "cursor": {
+      "prompts": 16,
+      "sessions": 4,
+      "models": [
+        {
+          "name": "grok-4.5",
+          "count": 7
+        },
+        {
+          "name": "gpt-5.6-sol",
+          "count": 2
+        },
+        {
+          "name": "composer-2.5",
+          "count": 1
+        },
+        {
+          "name": "composer-2.5-fast",
+          "count": 1
+        }
+      ]
+    }
+  },
+  "stats": {
+    "generatedAt": "2026-11-19T17:50:03.675Z",
+    "timezone": "Europe/London",
+    "sources": {
+      "claude-code": {
+        "prompts": 1025,
+        "sessions": 43,
+        "models": [
+          {
+            "name": "claude-opus-5-5",
+            "count": 24292
+          },
+          {
+            "name": "claude-fable-5-2",
+            "count": 4659
+          },
+          {
+            "name": "claude-haiku-5-5",
+            "count": 218
+          },
+          {
+            "name": "claude-haiku-4-5-20251001",
+            "count": 83
+          },
+          {
+            "name": "claude-sonnet-5-5",
+            "count": 1
+          }
+        ],
+        "outputTokens": 23818344
+      },
+      "codex": {
+        "prompts": 39,
+        "sessions": 8,
+        "models": [
+          {
+            "name": "gpt-6-astra",
+            "count": 57
+          },
+          {
+            "name": "gpt-6.1-sol",
+            "count": 7
+          },
+          {
+            "name": "gpt-6-luna",
+            "count": 3
+          },
+          {
+            "name": "gpt-5.6-luna",
+            "count": 2
+          }
+        ]
+      },
+      "cursor": {
+        "prompts": 16,
+        "sessions": 4,
+        "models": [
+          {
+            "name": "grok-4.5",
+            "count": 7
+          },
+          {
+            "name": "gpt-5.6-sol",
+            "count": 2
+          },
+          {
+            "name": "composer-2.5",
+            "count": 1
+          },
+          {
+            "name": "composer-2.5-fast",
+            "count": 1
+          }
+        ]
+      }
+    },
+    "totals": {
+      "prompts": 1080,
+      "sessions": 55,
+      "words": 73986,
+      "activeDays": 36,
+      "firstDate": "2026-06-12",
+      "lastDate": "2026-11-19",
+      "imagesAttached": 465
+    },
+    "bySource": {
+      "cursor": 16,
+      "claude-code": 1025,
+      "codex": 39
+    },
+    "time": {
+      "byHour": [
+        74,
+        12,
+        21,
+        16,
+        1,
+        0,
+        0,
+        3,
+        1,
+        16,
+        19,
+        41,
+        61,
+        20,
+        81,
+        89,
+        91,
+        119,
+        78,
+        67,
+        53,
+        79,
+        71,
+        67
+      ],
+      "byWeekday": [
+        123,
+        174,
+        131,
+        192,
+        206,
+        128,
+        126
+      ],
+      "byMonth": {
+        "2026-06": 3,
+        "2026-08": 13,
+        "2026-10": 337,
+        "2026-11": 727
+      },
+      "byDay": {
+        "2026-06-12": 3,
+        "2026-08-08": 13,
+        "2026-10-15": 8,
+        "2026-10-16": 28,
+        "2026-10-18": 1,
+        "2026-10-19": 17,
+        "2026-10-20": 2,
+        "2026-10-21": 42,
+        "2026-10-22": 29,
+        "2026-10-23": 35,
+        "2026-10-24": 37,
+        "2026-10-25": 29,
+        "2026-10-26": 22,
+        "2026-10-27": 10,
+        "2026-10-28": 35,
+        "2026-10-29": 20,
+        "2026-10-30": 4,
+        "2026-10-31": 18,
+        "2026-11-01": 2,
+        "2026-11-02": 6,
+        "2026-11-04": 10,
+        "2026-11-05": 46,
+        "2026-11-06": 25,
+        "2026-11-07": 6,
+        "2026-11-08": 39,
+        "2026-11-09": 48,
+        "2026-11-10": 67,
+        "2026-11-11": 39,
+        "2026-11-12": 68,
+        "2026-11-13": 33,
+        "2026-11-14": 52,
+        "2026-11-15": 52,
+        "2026-11-16": 81,
+        "2026-11-17": 52,
+        "2026-11-18": 66,
+        "2026-11-19": 35
+      },
+      "bySourceDay": {
+        "cursor": {
+          "2026-06-12": 3,
+          "2026-08-08": 13
+        },
+        "claude-code": {
+          "2026-10-15": 8,
+          "2026-10-16": 28,
+          "2026-10-18": 1,
+          "2026-10-19": 15,
+          "2026-10-20": 2,
+          "2026-10-21": 42,
+          "2026-10-22": 4,
+          "2026-10-23": 32,
+          "2026-10-24": 34,
+          "2026-10-25": 29,
+          "2026-10-26": 22,
+          "2026-10-27": 10,
+          "2026-10-28": 35,
+          "2026-10-29": 20,
+          "2026-10-30": 4,
+          "2026-10-31": 18,
+          "2026-11-01": 2,
+          "2026-11-02": 6,
+          "2026-11-04": 10,
+          "2026-11-05": 46,
+          "2026-11-06": 25,
+          "2026-11-07": 6,
+          "2026-11-08": 39,
+          "2026-11-09": 43,
+          "2026-11-10": 67,
+          "2026-11-11": 39,
+          "2026-11-12": 68,
+          "2026-11-13": 33,
+          "2026-11-14": 52,
+          "2026-11-15": 52,
+          "2026-11-16": 81,
+          "2026-11-17": 51,
+          "2026-11-18": 66,
+          "2026-11-19": 35
+        },
+        "codex": {
+          "2026-10-19": 2,
+          "2026-10-22": 25,
+          "2026-10-23": 3,
+          "2026-10-24": 3,
+          "2026-11-09": 5,
+          "2026-11-17": 1
+        }
+      },
+      "peakHour": 17,
+      "lateNightPct": 11.5,
+      "weekendPct": 23.1,
+      "busiestDay": {
+        "date": "2026-11-16",
+        "prompts": 81
+      },
+      "longestStreak": {
+        "length": 16,
+        "from": "2026-10-18",
+        "to": "2026-11-02"
+      },
+      "avgPromptsPerActiveDay": 30
+    },
+    "style": {
+      "avgWords": 69,
+      "medianWords": 22,
+      "longestPromptWords": 2789,
+      "oneWordPct": 0.8,
+      "novelPct": 11.4,
+      "pleasePct": 6.1,
+      "thanksPct": 0.1,
+      "sorryCount": 8,
+      "swearCount": 2,
+      "capsRageCount": 0,
+      "praiseCount": 85,
+      "frustrationCount": 56,
+      "greetingPct": 2.4,
+      "questionPct": 29.9,
+      "exclaimPct": 8.6,
+      "lowercaseStartPct": 82.2,
+      "codePct": 0.9,
+      "emojiPct": 0.6,
+      "urlPct": 6.7,
+      "imagePct": 13.7,
+      "opsPct": 4.2
+    },
+    "phrases": {
+      "topOpeners": [
+        {
+          "name": "okay",
+          "count": 136
+        },
+        {
+          "name": "i",
+          "count": 95
+        },
+        {
+          "name": "yeah",
+          "count": 46
+        },
+        {
+          "name": "nice",
+          "count": 34
+        },
+        {
+          "name": "yes",
+          "count": 31
+        },
+        {
+          "name": "wait",
+          "count": 30
+        },
+        {
+          "name": "oh",
+          "count": 28
+        },
+        {
+          "name": "could",
+          "count": 25
+        },
+        {
+          "name": "what",
+          "count": 24
+        },
+        {
+          "name": "for",
+          "count": 21
+        }
+      ],
+      "topWords": [
+        {
+          "name": "agent",
+          "count": 210
+        },
+        {
+          "name": "maybe",
+          "count": 188
+        },
+        {
+          "name": "work",
+          "count": 153
+        },
+        {
+          "name": "app",
+          "count": 129
+        },
+        {
+          "name": "user",
+          "count": 128
+        },
+        {
+          "name": "board",
+          "count": 114
+        },
+        {
+          "name": "something",
+          "count": 81
+        },
+        {
+          "name": "same",
+          "count": 77
+        },
+        {
+          "name": "file",
+          "count": 75
+        },
+        {
+          "name": "give",
+          "count": 74
+        },
+        {
+          "name": "users",
+          "count": 72
+        },
+        {
+          "name": "about",
+          "count": 71
+        },
+        {
+          "name": "bit",
+          "count": 70
+        },
+        {
+          "name": "look",
+          "count": 68
+        },
+        {
+          "name": "design",
+          "count": 68
+        },
+        {
+          "name": "merge",
+          "count": 67
+        },
+        {
+          "name": "test",
+          "count": 62
+        },
+        {
+          "name": "card",
+          "count": 62
+        },
+        {
+          "name": "build",
+          "count": 61
+        },
+        {
+          "name": "open",
+          "count": 61
+        },
+        {
+          "name": "working",
+          "count": 58
+        },
+        {
+          "name": "nice",
+          "count": 58
+        },
+        {
+          "name": "back",
+          "count": 58
+        },
+        {
+          "name": "still",
+          "count": 56
+        },
+        {
+          "name": "little",
+          "count": 56
+        }
+      ],
+      "topShortReplies": [
+        {
+          "name": "merge it",
+          "count": 6
+        },
+        {
+          "name": "yeah do it",
+          "count": 3
+        },
+        {
+          "name": "okay done",
+          "count": 3
+        },
+        {
+          "name": "yes",
+          "count": 3
+        },
+        {
+          "name": "yes do it",
+          "count": 3
+        },
+        {
+          "name": "okay",
+          "count": 2
+        },
+        {
+          "name": "everything okay bro",
+          "count": 1
+        },
+        {
+          "name": "go go go",
+          "count": 1
+        },
+        {
+          "name": "the prd",
+          "count": 1
+        },
+        {
+          "name": "okay i authenticated",
+          "count": 1
+        },
+        {
+          "name": "where we at",
+          "count": 1
+        },
+        {
+          "name": "like my testing",
+          "count": 1
+        }
+      ],
+      "catchphrases": [
+        {
+          "name": "i want",
+          "count": 114
+        },
+        {
+          "name": "could you",
+          "count": 83
+        },
+        {
+          "name": "still",
+          "count": 69
+        },
+        {
+          "name": "make it",
+          "count": 63
+        },
+        {
+          "name": "nice",
+          "count": 62
+        },
+        {
+          "name": "actually",
+          "count": 47
+        },
+        {
+          "name": "do it",
+          "count": 38
+        },
+        {
+          "name": "go ahead",
+          "count": 38
+        },
+        {
+          "name": "quick",
+          "count": 25
+        },
+        {
+          "name": "continue",
+          "count": 24
+        },
+        {
+          "name": "basically",
+          "count": 24
+        },
+        {
+          "name": "i need",
+          "count": 24
+        }
+      ]
+    },
+    "projects": [
+      {
+        "name": "[/\\░;#?^/@░;",
+        "count": 233
+      },
+      {
+        "name": "~/@=%>]!",
+        "count": 202
+      },
+      {
+        "name": "!$@&;#",
+        "count": 185
+      },
+      {
+        "name": "~$▒&;#?^*@",
+        "count": 109
+      },
+      {
+        "name": "[/\\░;><[*▒",
+        "count": 67
+      },
+      {
+        "name": "!*\\&;#]",
+        "count": 37
+      },
+      {
+        "name": "~/+&;>| *\\░-{",
+        "count": 33
+      },
+      {
+        "name": "!$+&;:?[*\\░-:",
+        "count": 28
+      }
+    ],
+    "frustrationByMonth": {
+      "2026-08": 1,
+      "2026-10": 19,
+      "2026-11": 38
+    },
+    "skills": {
+      "total": 85,
+      "you": 5,
+      "agent": 80,
+      "distinct": 18,
+      "top": [
+        {
+          "name": "thermos",
+          "count": 16,
+          "you": 0,
+          "agent": 16,
+          "private": false
+        },
+        {
+          "name": "!$@&%:|!*\\",
+          "count": 14,
+          "you": 2,
+          "agent": 12,
+          "private": true
+        },
+        {
+          "name": "open-pull-request",
+          "count": 13,
+          "you": 0,
+          "agent": 13,
+          "private": false
+        },
+        {
+          "name": "^$+&}#<!*▒&;{?[",
+          "count": 12,
+          "you": 0,
+          "agent": 12,
+          "private": true
+        },
+        {
+          "name": "figma-design-to-code",
+          "count": 5,
+          "you": 0,
+          "agent": 5,
+          "private": false
+        },
+        {
+          "name": "imagegen",
+          "count": 5,
+          "you": 0,
+          "agent": 5,
+          "private": false
+        },
+        {
+          "name": "test-supaterm-app",
+          "count": 4,
+          "you": 0,
+          "agent": 4,
+          "private": false
+        },
+        {
+          "name": "bring-us-upstream",
+          "count": 3,
+          "you": 3,
+          "agent": 0,
+          "private": false
+        },
+        {
+          "name": "analytics-events",
+          "count": 2,
+          "you": 0,
+          "agent": 2,
+          "private": false
+        },
+        {
+          "name": "deep-research",
+          "count": 2,
+          "you": 0,
+          "agent": 2,
+          "private": false
+        }
+      ]
+    },
+    "eras": {
+      "early": {
+        "from": "2026-06-12",
+        "to": "2026-10-24",
+        "stats": {
+          "prompts": 180,
+          "medianWords": 25,
+          "questionPct": 32.2,
+          "pleasePct": 5.6,
+          "hedgePct": 31.1,
+          "laughPct": 5,
+          "exclaimPct": 8.9,
+          "praisePct": 14.4,
+          "frustrationPct": 8.3,
+          "lowercaseStartPct": 77.2,
+          "opsPct": 2.8
+        }
+      },
+      "recent": {
+        "from": "2026-11-16",
+        "to": "2026-11-19",
+        "stats": {
+          "prompts": 180,
+          "medianWords": 15,
+          "questionPct": 32.8,
+          "pleasePct": 2.8,
+          "hedgePct": 26.1,
+          "laughPct": 8.3,
+          "exclaimPct": 6.1,
+          "praisePct": 5.6,
+          "frustrationPct": 5.6,
+          "lowercaseStartPct": 81.1,
+          "opsPct": 3.3
+        }
+      }
+    }
+  },
+  "persona": {
+    "name": "Moby",
+    "role": "designer",
+    "look": {
+      "mood": "electric"
+    },
+    "archetype": {
+      "name": "The Laid-Back Pixel Perfectionist",
+      "tagline": "nice nice! okay, tiny bit of feedback though...",
+      "description": "You show up like a mate on the sofa: \"yo everything okay\", \"bro hahaha\", \"full send! do it :D\". Then you clock that the card fold appears without a hover and the dots sit on top of the ripple. Relaxed delivery, unforgiving eye."
+    },
+    "tells": [
+      {
+        "label": "Hype, then the crit",
+        "note": "Feedback opens with a cheer: \"brilliant. it looks like it's fixed. i really like it.\" The next sentence is the real brief."
+      },
+      {
+        "label": "Briefs in feelings",
+        "note": "You spec vibes, not values: \"make it feel more... light?\", \"the board feels a little bit bare\", \"make the board feel alive\"."
+      },
+      {
+        "label": "Ends on a shrug",
+        "note": "Firm ideas trail off into \"...?\" and \"maybe? try that\", as if you're not sure. You are sure."
+      }
+    ],
+    "captions": {
+      "intro": "1,080 prompts and 74k words. 136 of them start with \"okay\", which is how designers clear their throat.",
+      "tools": "Claude Code took 1,025 of them. Codex and Cursor are the exes you still text when a release needs a second opinion.",
+      "clock": "Peak hour is 17:00, end-of-day crit o'clock. After midnight is where \"one more thing\" quietly becomes a whole new feature.",
+      "rhythm": "Weekends still got 23.1% of your prompts. The dot grid doesn't ripple itself.",
+      "streak": "16 days straight without a day off. Your agents got night shifts too: \"so I can test everything in the morning\".",
+      "style": "Median prompt: 22 words. Longest: 2,789, which was a whole meeting pasted in with a request on top.",
+      "phrases": "\"i want\" 114 times, and \"maybe\" in 17.4% of prompts. Demands, delivered as a shrug.",
+      "manners": "Please in 6.1% of prompts. Thanks almost never. The agents get \"nice nice\" and \"works great!!!\" instead, which is pay in exposure.",
+      "projects": "One canvas app ate the most prompts. Everything else is a side quest you swore would be quick.",
+      "skills": "Your agents picked 80 skills, you picked 5. You don't choose the tools. You approve what comes out of them."
+    },
+    "quotes": [
+      {
+        "title": "Dot patrol",
+        "text": "i dont see the dots bro hahaha",
+        "meta": "Claude Code · November, 9pm",
+        "caption": "The dot grid is a recurring character in your life."
+      },
+      {
+        "title": "Sign-off process",
+        "text": "okay full send! do it :D",
+        "meta": "Claude Code · October, 4pm",
+        "caption": "The entire approval workflow, start to finish."
+      },
+      {
+        "title": "Target market",
+        "text": "Don’t worry about existing shaders from users hahah we don’t have any. I’m the only user.",
+        "meta": "Claude Code · November, 2am",
+        "caption": "Huge roadmap, very exclusive user base."
+      }
+    ],
+    "receipts": [
+      {
+        "title": "Hierarchy brief",
+        "text": "So heirarchy bro... could we make it feel more... light? look at Wabi... could we make it feel more lightweight like this?",
+        "meta": "Claude Code · November, 7pm",
+        "marks": [
+          {
+            "text": "heirarchy bro",
+            "note": "design theory, then a fist bump"
+          },
+          {
+            "text": "feel more... light?",
+            "note": "the spec is a vibe"
+          }
+        ],
+        "verdict": "Vibe spec",
+        "take": "Two ellipses, one reference and zero values, yet you know exactly what you want. The agent is expected to read your mind, and somehow it does."
+      },
+      {
+        "title": "Praise sandwich",
+        "text": "i really like it. this might not be a bug that we can fix but i'd like you to attempt it.",
+        "meta": "Claude Code · October, 9pm",
+        "marks": [
+          {
+            "text": "i really like it.",
+            "note": "the anaesthetic"
+          },
+          {
+            "text": "i'd like you to attempt it",
+            "note": "this was not optional"
+          }
+        ],
+        "verdict": "Soft open",
+        "take": "Compliment, disclaimer, then the real ask. You manage agents like a kind creative director: they always feel good right before the next round of feedback."
+      },
+      {
+        "title": "Shrug stack",
+        "text": "just look like an iphone app thumbnail, know what i mean? ... a dotted square with a plus in the middle...? maybe? try that",
+        "meta": "Claude Code · November, midnight",
+        "marks": [
+          {
+            "text": "know what i mean?",
+            "note": "the whole brief"
+          },
+          {
+            "text": "...? maybe? try that",
+            "note": "three exits in a row"
+          }
+        ],
+        "verdict": "Triple hedge",
+        "take": "A very specific picture, delivered as if you're about to back out of it. You won't. The dotted square is going in."
+      },
+      {
+        "title": "Night shift",
+        "text": "Okay go ahead and just pick that up next in 0.8.2 yourself so I can test everything in the morning.",
+        "meta": "Claude Code · November, 2am",
+        "marks": [
+          {
+            "text": "yourself",
+            "note": "the agent just got promoted"
+          },
+          {
+            "text": "in the morning",
+            "note": "you sleep, it ships"
+          }
+        ],
+        "verdict": "Studio lead",
+        "take": "Version numbers, scheduling, delegation, all at 2am. You've stopped pairing with agents and started running a night crew."
+      },
+      {
+        "title": "Cheerful crit",
+        "text": "check this out... it's pretty bad hahahah we don't need to show the title of it's maker",
+        "meta": "Claude Code · November, 9pm",
+        "marks": [
+          {
+            "text": "it's pretty bad hahahah",
+            "note": "a crit, delivered laughing"
+          }
+        ],
+        "verdict": "Kind brutal",
+        "take": "You call the work bad and laugh in the same breath, so nobody, human or model, gets defensive. Then you list exactly what to cut."
+      }
+    ],
+    "evolution": {
+      "title": "From pairing to dispatching",
+      "then": {
+        "text": "hmmmm i must be doing something wrong hahaha cuz it's still like this",
+        "meta": "Claude Code"
+      },
+      "now": {
+        "text": "just so we don't burn through our tokens, make sure you spawn opus 5.5 subagents for this",
+        "meta": "Claude Code"
+      },
+      "shifts": [
+        "medianWords",
+        "praisePct",
+        "pleasePct"
+      ],
+      "read": "Early on you sat next to the agent, wondering out loud what you'd done wrong and cheering every fix. Now prompts are shorter and the praise is rarer, because you're handing out jobs: spin up an agent, release it, send a snippet. Less pair, more studio lead."
+    },
+    "traits": [
+      {
+        "left": "Collaborator",
+        "right": "Commander",
+        "value": 45,
+        "note": "\"what do you think?\" one minute, \"release it and send a snippet\" the next."
+      },
+      {
+        "left": "Feel",
+        "right": "Function",
+        "value": 15,
+        "note": "Bugs matter because they \"look a bit sloppy\", not because they crash."
+      },
+      {
+        "left": "Explorer",
+        "right": "Executor",
+        "value": 32,
+        "note": "Always one \"i wonder if\" away from a new feature."
+      },
+      {
+        "left": "Steady",
+        "right": "Fired up",
+        "value": 62,
+        "note": "\"works great!!!\" and \"this is quite frustrating...\" in the same week."
+      }
+    ],
+    "doomsday": {
+      "title": "Spared, as creative director",
+      "read": "You almost never say thanks, but \"nice nice\", \"brilliant\" and \"works great!!!\" land all the time, and frustration rarely gets past a \"hmmmm\". The machines will remember a boss who praised the work.",
+      "sentence": "We will keep you. You notice our padding."
+    },
+    "prediction": "Next year your agents ship overnight and you review over breakfast. Still \"nice nice\", still never \"thanks\"."
+  },
+  "look": {
+    "mood": "electric",
+    "mode": "auto"
+  },
+  "projectsHidden": true
+}
