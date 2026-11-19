@@ -45,6 +45,9 @@ const SECRET_PATTERNS = [
   /\bxox[abprs]-[A-Za-z0-9-]{10,}/g,
   /\bAKIA[0-9A-Z]{16}\b/g,
   /\bAIza[0-9A-Za-z_-]{30,}/g,
+  /\bGOCSPX-[A-Za-z0-9_-]{10,}/g,
+  // Anything assigned to a secret-sounding variable, like CLIENT_SECRET=... or API_KEY: ...
+  /\b([A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|PASSWD|API_?KEY|PRIVATE_KEY)[A-Z0-9_]*\s*[=:]\s*)["']?[^\s"']{6,}["']?/g,
   /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g,
   /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
   /\b[A-Fa-f0-9]{32,}\b/g,
@@ -53,7 +56,7 @@ const SECRET_PATTERNS = [
 
 function redact(text) {
   let t = text;
-  for (const re of SECRET_PATTERNS) t = t.replace(re, "[secret]");
+  for (const re of SECRET_PATTERNS) t = t.replace(re, (m, name) => (typeof name === "string" ? `${name}[secret]` : "[secret]"));
   t = t.replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[email]");
   t = t.replace(/(https?:\/\/[^\s?#]+)[?#]\S*/g, "$1");
   t = t.replace(/\+?\d[\d\s().-]{8,}\d/g, (m) => (m.replace(/\D/g, "").length >= 10 ? "[phone]" : m));
@@ -67,9 +70,13 @@ const NOISE_PREFIXES = [
   "<", "# AGENTS", "# In app browser", ">>>", "Caveat:", "Automation:",
   "The next image is untrusted", "[Request interrupted", "This session is being continued",
   "Update on pull request #", "Your turn ended while you were waiting",
+  // An orchestrator reporting back on a task it delegated, or carrying context over from another thread.
+  "Delegated task ", "Context handoff (", "Background command completed (", "Continue where you left off. Your last turn was cut short",
 ];
 // Prompts sent by buttons, harnesses and automations rather than typed by a person.
-const MACHINE_PATTERNS = [/Implement the plan as specified, it is attached/, /^\S.{0,120}\bwhich Supacode is watching\b/];
+const MACHINE_PATTERNS = [/Implement the plan as specified, it is attached/, /^\S.{0,120}\bwhich Supacode is watching\b/,
+  // An app's smoke test, checking an agent answers at all.
+  /Don't run commands, read files,? or change anything/, /\bReply with just the word \w+\b/, /^Note: the \w+ server restarted\b/];
 
 function cleanPrompt(raw) {
   if (typeof raw !== "string") return null;
@@ -79,9 +86,12 @@ function cleanPrompt(raw) {
   if (mine) raw = mine[1];
   let text = raw
     .replace(/\[Image[^\]]*\]/g, () => (images++, ""))
+    // Supaterm writes attachments into the prompt as text.
+    .replace(/\[Attached (?:image|file) "[^"]*" is saved at: [^\]]*\]/g, () => (images++, ""))
+    .replace(/\[User attached one or more files without additional text\.[^\]]*\]/g, "")
     .replace(/```(?:browser_element|chat_selection)[\s\S]*?```/g, " ")
     .replace(/<pasted_content[\s\S]*?<\/pasted_content[^>]*>/g, " [pasted] ")
-    .replace(/<supacode_context[\s\S]*?<\/supacode_context>/g, () => (images++, ""))
+    .replace(/<supa(?:code|term)_context[\s\S]*?<\/supa(?:code|term)_context>/g, () => (images++, ""))
     .replace(/\[Assistant quote\]\([^)]*\)/g, "")
     .replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, "")
     .trim();
@@ -99,6 +109,22 @@ const meta = {
   codex: { sessions: new Set(), models: {}, files: 0 },
   cursor: { sessions: new Set(), models: {} },
 };
+
+// Sessions an agent started for another agent: a delegated sub-agent, or a helper an app spun up. The brief and
+// every later message in that session come from the orchestrator, not the person.
+const AGENT_BRIEFS = [
+  /^Act as the [\w -]{1,40}? ?sub-?agent\b/i,
+  /^You are (?:working for|setting up|carrying on|the board itself)\b/,
+  /^This is "Variation [A-Z]"/,
+];
+const agentSessions = new Set(), seenSessions = new Set();
+function fromAgent(text, session) {
+  if (!seenSessions.has(session)) {
+    seenSessions.add(session);
+    if (AGENT_BRIEFS.some((re) => re.test(text))) agentSessions.add(session);
+  }
+  return agentSessions.has(session);
+}
 
 function addPrompt(p) {
   if (!p.ts || p.ts < SINCE || p.ts > UNTIL) return;
@@ -189,7 +215,7 @@ async function collectClaudeCode() {
         continue;
       }
       const cleaned = cleanPrompt(raw);
-      if (!cleaned) continue;
+      if (!cleaned || fromAgent(cleaned.text, e.sessionId)) continue;
       turn = new Set();
       meta.claudeCode.sessions.add(e.sessionId);
       addPrompt({
@@ -241,7 +267,7 @@ async function collectCodex() {
       const raw = (p.content ?? []).filter((b) => b.type === "input_text").map((b) => b.text).join("\n");
       const images = (p.content ?? []).filter((b) => b.type === "input_image").length;
       const cleaned = cleanPrompt(raw);
-      if (!cleaned) continue;
+      if (!cleaned || fromAgent(cleaned.text, session)) continue;
       turn = new Set();
       for (const m of cleaned.text.matchAll(/(?:^|[\s(])\$([\w.-]+)/g)) if (codexSkills.has(m[1])) addSkill(m[1], "you", Date.parse(e.timestamp), "codex", turn);
       meta.codex.sessions.add(session);
