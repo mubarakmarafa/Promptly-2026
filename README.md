@@ -68,4 +68,15 @@ Before it starts, it asks what to call you, what you do, and which colours you l
 | Codex | `~/.codex/sessions/**/*.jsonl` |
 | Cursor | `~/Library/Application Support/Cursor/User/globalStorage/state.vscdb` (needs Node 22.5+) |
 
-Subagent conversations, automations, tool output and harness messages are filtered out, so the stats reflect what you typed.
+Subagent conversations, automations, tool output and harness messages are filtered out, so the stats reflect what you typed. That includes sessions another agent started (a delegated sub-agent's brief and everything after it) and an orchestrator's reports on work it delegated.
+
+## Working on the design
+
+`demo/` holds Moby's real results (stats and persona only, project names disguised), so you can change the template and see it with real data without running the skill:
+
+```bash
+node demo/build.mjs          # writes demo/index.html from the current template
+open demo/index.html
+```
+
+`--mood` and `--mode` try other palettes. To refresh the data from a newly rendered page, run `node demo/build.mjs --import ~/Desktop/promptly-2026.html`.
