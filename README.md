@@ -75,8 +75,8 @@ Subagent conversations, automations, tool output and harness messages are filter
 `demo/` holds Moby's real results (stats and persona only, project names disguised), so you can change the template and see it with real data without running the skill:
 
 ```bash
-node demo/build.mjs          # writes demo/index.html from the current template
-open demo/index.html
+node demo/build.mjs --serve  # http://localhost:4174, rebuilt from the template on every refresh
+node demo/build.mjs          # or write demo/index.html once
 ```
 
 `--mood` and `--mode` try other palettes. To refresh the data from a newly rendered page, run `node demo/build.mjs --import ~/Desktop/promptly-2026.html`.
